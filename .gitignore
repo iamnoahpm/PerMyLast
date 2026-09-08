@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.DS_Store
+.claude/scheduled_tasks.lock
+
+# User's private design-system reference material (chmod 700/600 on disk —
+# deliberately kept out of both version control and the shipped app bundle).
+/files/

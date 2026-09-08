@@ -1,0 +1,373 @@
+/* Per My Last — marketing site. Full token set copied verbatim from the app's
+   renderer/tokens.css (the "Per My Last Color System"), not an approximation.
+   Only tokens the landing page actually uses are declared; anything unused
+   (wartime/peacetime chips, edited-state colors, etc.) is intentionally left out. */
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url('fonts/PlusJakartaSans-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400 500;
+  font-display: swap;
+  src: url('fonts/JetBrainsMono-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  /* Ink & neutrals — exact values from renderer/tokens.css */
+  --vc-ink:            #17171a;
+  --vc-muted:          #6b6b73;
+  --vc-white:          #ffffff;
+  --vc-paper:          #f7f7f9;
+  --vc-paper-2:        #f2f2f5;
+  --vc-border:         #e4e4e9;
+  --vc-border-strong:  #dedee3;
+  --vc-hint:           #9a9aa2;
+  --vc-faint:          #b0b0b8;
+  --vc-divider:        #ececf0;
+  --vc-inset:          #f6f6f8;
+
+  /* Accent & core status */
+  --vc-yellow:         #febc2e;
+  --vc-yellow-soft:    #fdf8ec;
+  --vc-blue:           #2b6cf6;
+  --vc-blue-soft:      #f0f5ff;
+  --vc-green:          #127a52;
+  --vc-green-soft:     #e7f4ed;
+  --vc-red:            #b3261e;
+  --vc-red-soft:       #fdf3f2;
+
+  /* Dark surface — the app's .on-dark inverted-section colors */
+  --vc-dark:           #1b1b1d;
+  --vc-dark-2:         #1d1f23;
+  --vc-on-dark:        #ffffff;
+  --vc-on-dark-muted:  #a6a9ae;
+
+  /* Semantic aliases — components read these, never the raw --vc-* values */
+  --fg:            var(--vc-ink);
+  --fg-muted:      var(--vc-muted);
+  --fg-hint:       var(--vc-hint);
+  --bg:            var(--vc-white);
+  --bg-alt:        var(--vc-paper);
+  --bg-sunken:     var(--vc-paper-2);
+  --bg-inset:      var(--vc-inset);
+  --line:          var(--vc-border);
+  --line-strong:   var(--vc-border-strong);
+  --accent-warm:   var(--vc-yellow);
+  --accent-warm-soft: var(--vc-yellow-soft);
+  --accent-cool:   var(--vc-blue);
+  --accent-cool-soft: var(--vc-blue-soft);
+  --success:       var(--vc-green);
+  --success-soft:  var(--vc-green-soft);
+  --danger:        var(--vc-red);
+  --danger-soft:   var(--vc-red-soft);
+  --focus-ring:    var(--vc-blue);
+  --accent:        var(--accent-cool);
+  --accent-soft:   var(--accent-cool-soft);
+
+  --font-display: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --fs-body: 1.0625rem;
+  --fs-body-l: 1.1875rem;
+  --fs-h1: clamp(2.25rem, 1.5rem + 3.2vw, 3.5rem);
+  --fs-h2: clamp(1.75rem, 1.3rem + 1.8vw, 2.5rem);
+  --fs-h4: 1.25rem;
+
+  --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 24px; --s-6: 32px; --s-7: 48px; --s-8: 64px; --s-9: 96px;
+
+  --container: 1080px;
+  --gutter: clamp(20px, 4vw, 48px);
+  --section-y: clamp(56px, 8vw, 112px);
+
+  --r-pill: 999px;
+  --r-card: 14px;
+  --r-btn: 8px;
+
+  --sh-card: 0 1px 2px rgba(23,24,26,.05), 0 1px 1px rgba(23,24,26,.04);
+  --sh-card-lg: 0 24px 60px -20px rgba(23,24,26,.28);
+
+  --ease: cubic-bezier(.2,.8,.2,1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --fg: var(--vc-on-dark);
+    --fg-muted: var(--vc-on-dark-muted);
+    --fg-hint: var(--vc-on-dark-muted);
+    --bg: var(--vc-dark);
+    --bg-alt: var(--vc-dark-2);
+    --bg-sunken: var(--vc-dark-2);
+    --bg-inset: rgba(255,255,255,.04);
+    --line: rgba(255,255,255,.12);
+    --line-strong: rgba(255,255,255,.18);
+    --accent-cool-soft: rgba(43,108,246,.16);
+    --accent-warm-soft: rgba(254,188,46,.14);
+    --success-soft: rgba(18,122,82,.18);
+    --danger-soft: rgba(179,38,30,.18);
+    --accent-soft: var(--accent-cool-soft);
+  }
+}
+
+* { box-sizing: border-box; }
+
+html { color-scheme: light dark; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-display);
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+img { max-width: 100%; display: block; }
+
+h1, h2, h3 { margin: 0; font-family: var(--font-display); letter-spacing: -0.02em; line-height: 1.15; }
+h1 { font-size: var(--fs-h1); font-weight: 800; }
+h2 { font-size: var(--fs-h2); font-weight: 700; }
+h3 { font-size: var(--fs-h4); font-weight: 700; }
+
+p { margin: 0 0 var(--s-4); }
+
+a { color: inherit; }
+
+:where(a, button, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.container { max-width: var(--container); margin-inline: auto; padding-inline: var(--gutter); }
+.section { padding-block: var(--section-y); }
+.section--alt { background: var(--bg-alt); border-block: 1px solid var(--line); }
+
+/* --- Eyebrow label: small mono uppercase tag above a heading --- */
+.eyebrow-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: var(--s-3);
+}
+.section__head .eyebrow-label,
+.hero .eyebrow-label { text-align: center; }
+
+/* --- Callout: a note with an accent left border --- */
+.callout {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: 10px;
+  padding: var(--s-4) var(--s-5);
+  font-size: 0.875rem;
+  color: var(--fg-muted);
+  line-height: 1.6;
+  text-align: left;
+}
+.callout strong { color: var(--fg); }
+.callout--center { margin-inline: auto; max-width: 56ch; }
+
+/* --- Nav --- */
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-block: var(--s-4);
+}
+.nav__brand { display: flex; align-items: center; gap: var(--s-2); font-weight: 700; font-size: 1rem; color: var(--fg); text-decoration: none; }
+.nav__brand img { width: 24px; height: 24px; border-radius: 6px; }
+.nav__links { display: flex; align-items: center; gap: var(--s-6); }
+.nav__link {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--fg-muted);
+  text-decoration: none;
+}
+.nav__link:hover { color: var(--fg); }
+.nav__link.is-current { color: var(--fg); }
+.nav__link--cta { color: var(--accent); }
+.nav__link--cta:hover { color: var(--accent); }
+
+/* --- Hero --- */
+.hero { padding-block: clamp(48px, 7vw, 96px) clamp(32px, 5vw, 64px); text-align: center; }
+.hero__icon { width: 88px; height: 88px; margin: 0 auto var(--s-5); border-radius: 20px; box-shadow: var(--sh-card-lg); }
+.hero__eyebrow {
+  display: inline-block;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 6px 14px;
+  border-radius: var(--r-pill);
+  margin-bottom: var(--s-4);
+}
+.hero h1 { max-width: 18ch; margin-inline: auto; margin-bottom: var(--s-5); }
+.hero__lead {
+  font-size: var(--fs-body-l);
+  color: var(--fg-muted);
+  max-width: 44ch;
+  margin-inline: auto;
+  margin-bottom: var(--s-6);
+}
+.hero__actions { display: flex; gap: var(--s-3); justify-content: center; flex-wrap: wrap; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  padding: 12px 22px;
+  border-radius: var(--r-btn);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform var(--ease) .18s, box-shadow var(--ease) .18s;
+}
+.btn:hover { transform: translateY(-1px); }
+
+/* Primary: the one action per view that matters most (Download for Mac). */
+.btn--primary { background: var(--fg); color: var(--bg); }
+.btn--primary:hover { box-shadow: var(--sh-card-lg); }
+
+/* Secondary: everything else clickable that isn't the primary action
+   (See how it works). .btn--ghost is kept as an alias — same rules — since
+   it's already used in markup and "ghost" and "secondary" mean the same
+   thing here. */
+.btn--secondary, .btn--ghost {
+  background: transparent;
+  border-color: var(--line-strong);
+  color: var(--fg);
+}
+.btn--secondary:hover, .btn--ghost:hover { background: var(--bg-alt); }
+
+/* Tertiary: a plain-text link styled as a button-weight action, for the
+   least important of three actions in one row. */
+.btn--tertiary {
+  background: transparent;
+  border-color: transparent;
+  color: var(--accent);
+  padding-inline: var(--s-2);
+}
+.btn--tertiary:hover { background: var(--accent-soft); }
+
+.btn[aria-disabled="true"] { opacity: .55; cursor: default; pointer-events: none; }
+
+.hero__note { margin-top: var(--s-4); font-size: 0.875rem; color: var(--fg-muted); }
+
+/* --- Steps --- */
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-6);
+}
+@media (max-width: 780px) { .steps { grid-template-columns: 1fr; } }
+
+.step__num {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--accent);
+  margin-bottom: var(--s-3);
+}
+.step h3 { margin-bottom: var(--s-2); }
+.step p { color: var(--fg-muted); margin-bottom: 0; }
+
+.section__head { text-align: center; max-width: 46ch; margin: 0 auto var(--s-8); }
+.section__head p { color: var(--fg-muted); margin-bottom: 0; }
+
+/* --- Feature grid --- */
+.features {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--s-5);
+}
+@media (max-width: 780px) { .features { grid-template-columns: 1fr; } }
+
+.feature {
+  background: var(--bg);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-card);
+  padding: var(--s-5);
+  box-shadow: var(--sh-card);
+}
+.feature h3 { margin-bottom: var(--s-2); font-size: 1.0625rem; }
+.feature p { color: var(--fg-muted); margin-bottom: 0; font-size: 0.9375rem; }
+
+/* --- Privacy strip --- */
+.privacy {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+  justify-content: center;
+  text-align: center;
+}
+.privacy__item { max-width: 28ch; }
+.privacy__item strong {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: var(--s-2);
+}
+.privacy__item strong::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 0 4px var(--success-soft);
+  flex: none;
+}
+.privacy__item span { color: var(--fg-muted); font-size: 0.9375rem; }
+
+/* --- Dark section (features page closing statement) --- */
+.section--dark {
+  background: var(--vc-dark);
+  color: var(--vc-on-dark);
+}
+.section--dark .muted { color: var(--vc-on-dark-muted); }
+
+.pull-quote {
+  font-size: clamp(1.5rem, 1.15rem + 1.6vw, 2.375rem);
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  max-width: 28ch;
+  margin: 0 auto;
+  text-wrap: balance;
+}
+.pull-quote span { color: var(--accent-cool); }
+
+/* --- Features page: numbered feature rows (reuses .step layout) --- */
+.feature-row .step__num { color: var(--accent); }
+
+/* --- Footer --- */
+.footer {
+  padding-block: var(--s-6);
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  font-size: 0.875rem;
+  color: var(--fg-muted);
+}
+.footer a { text-decoration: none; color: var(--fg-muted); }
+.footer a:hover { color: var(--fg); }

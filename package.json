@@ -1,0 +1,46 @@
+{
+  "name": "permylast",
+  "version": "1.1.0",
+  "description": "Say what you mean, but professionally. Saving careers, one email, one message at a time",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --mac --config.directories.output=/tmp/permylast-dist && rm -rf dist && mkdir -p dist && cp /tmp/permylast-dist/*.dmg /tmp/permylast-dist/*.blockmap dist/",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "electron": "^44.1.1",
+    "electron-builder": "^26.15.3",
+    "vitest": "^2.1.0"
+  },
+  "dependencies": {
+    "electron-store": "^8.1.0"
+  },
+  "build": {
+    "appId": "com.claude.permylast",
+    "productName": "Per My Last",
+    "directories": { "output": "dist" },
+    "files": [
+      "**/*",
+      "!dist${/*}",
+      "!website${/*}",
+      "!design_handoff_help_me_tabs${/*}",
+      "!design_handoff_per_my_last${/*}",
+      "!files${/*}",
+      "!docs${/*}",
+      "!*.zip",
+      "!*.test.js",
+      "!CLAUDE.md",
+      "!PerMyLast.md",
+      "!feature-global-capture-paste.md"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": "dmg",
+      "icon": "assets/icon.icns",
+      "identity": null,
+      "gatekeeperAssess": false
+    },
+    "afterSign": "build/afterSign.js"
+  }
+}

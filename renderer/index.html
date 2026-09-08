@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="tokens.css">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:transparent; overflow:hidden; font-size:13px; }
+  .window { background:var(--bg); margin:0; height:100vh; border-radius:var(--r-window); overflow:hidden; display:flex; flex-direction:column; }
+  .titlebar { height:38px; background:var(--vc-dark); display:flex; align-items:center; padding:0 12px; flex-shrink:0; position:relative; -webkit-app-region:drag; }
+  .traffic-lights { display:flex; gap:7px; -webkit-app-region:no-drag; flex-shrink:0; }
+  .tl { position:relative; width:11px; height:11px; border-radius:50%; border:none; padding:0; margin:0; cursor:pointer; }
+  .tl-close { background:var(--traffic-red); }
+  .tl-min { background:var(--traffic-yellow); }
+  .tl-max { background:var(--traffic-green); }
+  .tl span { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:9px; line-height:1; color:rgba(0,0,0,.5); opacity:0; }
+  .traffic-lights:hover .tl span { opacity:1; }
+  /* Inset well clear of the traffic-light buttons on the left — Chromium's
+     -webkit-app-region drag-region hit-testing is a compositor-level
+     mechanism that ignores pointer-events:none, so an absolutely-positioned
+     span painted on top of the buttons can swallow real mouse-downs as a
+     window-drag gesture even though DOM click events (including synthetic
+     ones from a script) still reach the button underneath just fine. */
+  .titlebar-title { position:absolute; left:70px; right:12px; text-align:center; color:#fff; font-size:13px; font-weight:600; pointer-events:none; }
+  .ctrls { position:absolute; right:12px; display:flex; gap:8px; -webkit-app-region:no-drag; }
+  .icon-btn { background:rgba(255,255,255,.12); border:none; color:#fff; width:24px; height:24px; border-radius:50%; cursor:pointer; font-size:13px; transition:background var(--dur-fast) var(--ease); display:none; }
+  .icon-btn:hover { background:rgba(255,255,255,.22); }
+
+  .content { flex:1; min-height:0; display:flex; flex-direction:column; padding:14px 16px 16px; gap:12px; background:var(--bg); overflow-y:auto; }
+
+  .warn-banner { display:none; align-items:flex-start; gap:10px; background:var(--warning-banner-bg); border:1px solid var(--warning-banner-border); border-radius:var(--r-card); padding:12px 14px; }
+  .warn-banner.show { display:flex; }
+  .warn-banner-body { flex:1; min-width:0; }
+  .warn-banner p { margin:0; font-size:var(--t-body); color:var(--fg); line-height:1.5; }
+  .warn-banner-actions { display:flex; align-items:center; gap:14px; margin-top:8px; }
+  .warn-banner-open { height:28px; padding:0 12px; border-radius:var(--r-btn); border:0; background:var(--vc-dark); color:#fff; font-family:inherit; font-size:12px; font-weight:700; cursor:pointer; transition:opacity var(--dur-fast) var(--ease); }
+  .warn-banner-open:hover { opacity:.88; }
+  .warn-banner-dismiss { background:none; border:none; padding:0; color:var(--fg-muted); font-family:inherit; font-size:12px; font-weight:600; text-decoration:underline; cursor:pointer; }
+  .warn-banner-dismiss:hover { color:var(--fg); }
+
+  /* Tab strip + Settings link ------------------------------------------- */
+  .tab-strip-row { display:flex; align-items:center; gap:8px; }
+  .tab-scroll { display:flex; align-items:flex-end; gap:3px; flex:1; min-width:0; overflow-x:auto; border-bottom:1px solid var(--vc-divider); }
+  .cat-tab { padding:6px 10px 9px; border:0; background:transparent; cursor:pointer; font-family:inherit; font-size:var(--t-tab-main); font-weight:500; color:var(--vc-label-subtle); flex-shrink:0; transition:color var(--dur-fast) var(--ease); }
+  .cat-tab:hover:not(.active) { color:var(--fg); }
+  .cat-tab.active { font-weight:700; color:var(--fg); box-shadow:inset 0 -2px 0 var(--accent-cool); }
+  .settings-link { display:inline-flex; align-items:center; gap:6px; margin-bottom:5px; height:28px; padding:0 10px; border-radius:var(--r-btn); border:1px solid var(--vc-border-btn); background:var(--bg); color:var(--vc-label-muted); font-size:12px; font-weight:600; flex-shrink:0; cursor:pointer; font-family:inherit; transition:all var(--dur-fast) var(--ease); }
+  .settings-link:hover { background:var(--vc-paper-2); color:var(--fg); border-color:#dcdce1; }
+
+  /* Source textarea ------------------------------------------------------ */
+  .source-wrap { position:relative; flex:0 0 auto; }
+  .hm-source { width:100%; padding:11px 12px; border:1px solid var(--vc-border-strong); border-radius:var(--r-inset); font-family:inherit; font-size:var(--t-input); line-height:1.55; color:var(--fg); resize:vertical; display:block; min-height:110px; max-height:60vh; transition:border-color var(--dur-fast) var(--ease); }
+  .hm-source::placeholder { color:var(--vc-hint); }
+  .hm-source:focus { outline:none; border-color:var(--accent-cool); }
+  .word-count { position:absolute; right:10px; bottom:8px; font-size:11px; color:var(--vc-faint); pointer-events:none; }
+
+  /* Preset chips ----------------------------------------------------------*/
+  .preset-row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .preset-chip { display:inline-flex; align-items:center; gap:6px; padding:7px 12px; border-radius:var(--r-chip); cursor:pointer; font-family:inherit; font-size:var(--t-body); color:var(--fg); background:var(--bg); border:1.5px solid var(--vc-border); transition:all var(--dur-fast) var(--ease); }
+  .preset-chip:hover:not(.active) { border-color:var(--vc-label-muted); }
+  .preset-chip.active { border-color:var(--accent-cool); background:var(--accent-cool-soft); }
+  .chip-icon { font-size:13px; line-height:1; flex-shrink:0; }
+  .chip-name { font-weight:700; white-space:nowrap; }
+  .preset-chip.active .chip-name { color:var(--accent-cool); }
+  .chip-summary { border-left:1px solid #dcdce1; padding-left:7px; white-space:nowrap; color:var(--vc-hint); }
+  .preset-chip.active .chip-summary { color:color-mix(in srgb, var(--accent-cool) 55%, var(--vc-label-muted)); border-left-color:color-mix(in srgb, var(--accent-cool) 30%, #dcdce1); }
+
+  /* Prompt meta row + disclosure ------------------------------------------*/
+  .prompt-meta { display:flex; align-items:center; gap:10px; font-size:12px; color:var(--vc-label-muted); flex-wrap:wrap; }
+  .prompt-toggle { display:flex; align-items:center; gap:5px; border:0; background:transparent; padding:0; color:var(--vc-label-muted); font-family:inherit; font-size:12px; font-weight:600; cursor:pointer; }
+  .prompt-toggle:hover { color:var(--fg); }
+  .prompt-toggle .caret { display:inline-block; transition:transform var(--dur-fast); }
+  .prompt-toggle.open .caret { transform:rotate(90deg); }
+  .meta-divider { width:1px; height:12px; background:var(--vc-divider-2); }
+  .meta-tone strong { color:var(--fg); font-weight:600; }
+  .saved-flash { color:var(--vc-green); font-weight:600; }
+
+  /* Prompt read / edit panels ---------------------------------------------*/
+  .prompt-region { display:none; flex-direction:column; gap:10px; }
+  .prompt-region.open { display:flex; }
+  /* white-space:pre-wrap lives on the text span itself, not this container —
+     put it on the container and the literal newline+indentation between the
+     div's opening tag and the span (just from how the HTML source is
+     formatted) becomes visible as a stray first-line indent. */
+  /* Bottom padding is wider than the other sides on purpose — it reserves a
+     dedicated strip for .prompt-edit-hint below, so a long prompt's last
+     line never runs underneath that absolutely-positioned hint text. */
+  .prompt-read { position:relative; padding:10px 12px 26px; border-radius:var(--r-inset); background:var(--vc-inset); border:1px solid var(--vc-divider-2); font-size:12.5px; line-height:1.55; color:var(--vc-ink-soft); cursor:text; transition:all var(--dur-fast) var(--ease); }
+  #promptReadText { white-space:pre-wrap; }
+  .prompt-read:hover { border-color:#d6d6dd; background:var(--vc-paper-2); }
+  .prompt-edit-hint { position:absolute; right:10px; bottom:8px; font-size:10.5px; font-weight:600; color:var(--vc-hint-2); }
+  .prompt-edit { display:none; border-radius:var(--r-inset); border:1.5px solid var(--accent-cool); background:var(--bg); overflow:hidden; }
+  .prompt-edit.show { display:block; }
+  .prompt-read.hide { display:none; }
+  .prompt-draft { width:100%; padding:10px 12px; border:0; font-family:inherit; font-size:12.5px; line-height:1.55; color:var(--fg); resize:none; display:block; }
+  .prompt-edit-bar { display:flex; align-items:center; gap:8px; padding:8px 10px; border-top:1px solid var(--vc-divider-2); background:var(--vc-inset-2); }
+  .prompt-edit-note { font-size:11.5px; color:var(--vc-hint); }
+  .prompt-edit-note strong { color:var(--vc-ink-soft); font-weight:600; }
+  .prompt-btn { height:27px; font-family:inherit; font-size:12px; font-weight:600; cursor:pointer; border-radius:var(--r-seg); }
+  .prompt-btn-revert { padding:0 10px; border:0; background:transparent; color:var(--vc-label-muted); display:none; }
+  .prompt-btn-revert:hover { color:var(--fg); }
+  .prompt-btn-cancel { padding:0 11px; border:1px solid var(--vc-border-btn); background:var(--bg); color:var(--vc-ink-soft); }
+  .prompt-btn-cancel:hover { background:var(--vc-paper-2); }
+  .prompt-btn-save { padding:0 12px; border:0; background:var(--accent-cool); color:#fff; font-weight:700; }
+
+  /* Intent row + Send ------------------------------------------------------*/
+  .send-row { display:flex; width:100%; gap:8px; align-items:stretch; }
+  .hm-reply-intent { display:flex; }
+  #sendRowWithIntent { align-items:flex-end; }
+  .intent-input { flex:1; min-width:0; min-height:40px; max-height:120px; padding:9px 12px; border:1px solid var(--vc-border-strong); border-radius:var(--r-inset); font-family:inherit; font-size:var(--t-input); line-height:1.4; color:var(--fg); resize:none; overflow-y:auto; }
+  .intent-input::placeholder { color:var(--vc-hint); }
+  .intent-input:focus { outline:none; border-color:var(--accent-cool); }
+  .hm-send { display:flex; align-items:center; justify-content:center; gap:8px; height:40px; padding:0 18px; border-radius:var(--r-inset); border:0; cursor:pointer; font-family:inherit; font-size:var(--t-input); font-weight:700; color:#fff; background:var(--accent-cool); transition:transform var(--dur-fast) var(--ease); flex:1; }
+  .hm-send.has-intent { flex:0 0 auto; }
+  .hm-send:hover:not(:disabled) { transform:translateY(var(--lift)); }
+  .hm-send:disabled { background:var(--vc-border); color:var(--vc-hint); cursor:default; }
+  .hm-send .kbd { opacity:.6; font-size:12px; }
+
+  /* Output panel -------------------------------------------------------- */
+  .output-panel { flex:1; min-height:0; border-radius:var(--r-card); border:1px solid #ececed; background:var(--vc-inset-2); overflow:hidden; }
+  .output-panel.filled { border-color:var(--vc-border); background:var(--bg); }
+  .output-empty { height:100%; display:grid; place-items:center; text-align:center; padding:16px; }
+  .output-empty-text { font-size:12.5px; color:var(--vc-hint-2); line-height:1.6; }
+  .output-filled { display:none; flex-direction:column; height:100%; }
+  .output-panel.filled .output-filled { display:flex; }
+  .output-panel.filled .output-empty { display:none; }
+  .output-header { display:flex; align-items:center; gap:8px; padding:9px 12px; border-bottom:1px solid var(--vc-divider); flex-shrink:0; }
+  .output-label { font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--vc-label-subtle); }
+  .output-btn { height:26px; padding:0 10px; border-radius:var(--r-seg); font-family:inherit; font-size:12px; font-weight:600; cursor:pointer; }
+  .output-regen { border:1px solid var(--vc-border-btn); background:var(--bg); color:var(--vc-ink-soft); }
+  .output-regen:hover { background:var(--vc-paper-2); }
+  .output-copy { border:1px solid var(--vc-dark); background:var(--vc-dark); color:#fff; }
+  .output-copy:hover { opacity:.88; }
+  .output-body { padding:12px; overflow-y:auto; font-size:var(--t-input); line-height:1.6; color:var(--fg); white-space:pre-wrap; user-select:text; }
+  .output-error { padding:12px; font-size:12px; line-height:1.4; color:var(--danger); }
+  .output-error a { color:inherit; text-decoration:underline; cursor:pointer; margin-left:4px; }
+
+  /* Footer ----------------------------------------------------------------*/
+  .footer { display:flex; align-items:center; gap:10px; padding:0 16px; height:34px; border-top:1px solid #e5e5e8; background:var(--bg); font-size:11.5px; color:var(--vc-hint); flex-shrink:0; }
+  .footer a, .footer button.link { color:var(--accent-cool); text-decoration:none; background:none; border:0; padding:0; font-family:inherit; font-size:11.5px; cursor:pointer; }
+  .footer a:hover, .footer button.link:hover { text-decoration:underline; }
+  .footer-divider { width:1px; height:11px; background:#dcdce1; }
+</style>
+</head>
+<body>
+  <div class="window">
+    <div class="titlebar">
+      <div class="traffic-lights">
+        <button class="tl tl-close" id="closeBtn" title="Close (Esc)"><span>×</span></button>
+        <button class="tl tl-min" id="minBtn" title="Minimize"><span>−</span></button>
+        <button class="tl tl-max" id="maxBtn" title="Maximize"><span>+</span></button>
+      </div>
+      <span class="titlebar-title" id="titleText">Per My Last</span>
+    </div>
+
+    <div class="content">
+      <div class="warn-banner" id="shortcutWarnBanner">
+        <div class="warn-banner-body">
+          <p id="shortcutWarnMessage"></p>
+          <div class="warn-banner-actions">
+            <button type="button" class="warn-banner-open" id="shortcutWarnSettingsBtn">Open Settings →</button>
+            <button type="button" class="warn-banner-dismiss" id="shortcutWarnDismissBtn">Dismiss</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-strip-row">
+        <div class="tab-scroll" role="tablist" aria-label="What are you trying to do" id="hmTabs"></div>
+        <button type="button" class="settings-link" id="settingsBtn" title="Settings">
+          <span style="font-size:13px">⚙</span>
+          <span id="settingsLinkLabel">Settings</span>
+        </button>
+      </div>
+
+      <div class="source-wrap">
+        <textarea id="selected" class="hm-source" rows="6" placeholder="Select text anywhere, then press your shortcut — or paste text here directly"></textarea>
+        <div class="word-count" id="wordCount"></div>
+      </div>
+
+      <div class="preset-row" role="listbox" aria-label="Action" id="hmActions"></div>
+
+      <div class="prompt-meta">
+        <button type="button" class="prompt-toggle" id="promptToggle"><span class="caret">›</span> <span id="promptToggleLabel">Prompt</span></button>
+        <span class="meta-divider"></span>
+        <span class="meta-tone" id="metaTone"></span>
+        <span class="saved-flash" id="savedFlash" style="display:none;"></span>
+      </div>
+
+      <div class="prompt-region" id="promptRegion">
+        <div class="prompt-read" id="promptRead" title="Click to edit this prompt">
+          <span id="promptReadText"></span>
+          <span class="prompt-edit-hint" id="promptEditHint">Click to edit</span>
+        </div>
+        <div class="prompt-edit" id="promptEdit">
+          <textarea class="prompt-draft" id="promptDraft" rows="4"></textarea>
+          <div class="prompt-edit-bar">
+            <span class="prompt-edit-note" id="promptEditNote"></span>
+            <span style="flex:1"></span>
+            <button type="button" class="prompt-btn prompt-btn-revert" id="promptRevertBtn">Reset to original</button>
+            <button type="button" class="prompt-btn prompt-btn-cancel" id="promptCancelBtn">Cancel</button>
+            <button type="button" class="prompt-btn prompt-btn-save" id="promptSaveBtn">Save &amp; overwrite</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="hm-reply-intent" id="hmReplyIntentWrap" style="display:none;">
+        <div class="send-row" id="sendRowWithIntent">
+          <textarea id="hmReplyIntent" class="intent-input" rows="1" placeholder="e.g. Confirm I can make it, but ask to push 30 minutes"></textarea>
+        </div>
+      </div>
+      <div class="send-row" id="sendRow">
+        <button class="hm-send" id="send"><span id="sendLabel">Send</span><span class="kbd">⌘↵</span></button>
+      </div>
+
+      <div class="output-panel" id="outputPanel">
+        <div class="output-empty"><div class="output-empty-text" id="outputEmptyText"></div></div>
+        <div class="output-filled">
+          <div class="output-header">
+            <span class="output-label" id="outputLabel"></span>
+            <span style="flex:1"></span>
+            <button type="button" class="output-btn output-regen" id="regenBtn">Regenerate</button>
+            <button type="button" class="output-btn output-copy" id="copyBtn">Copy</button>
+          </div>
+          <div class="output-body" id="outputBody"></div>
+        </div>
+      </div>
+      <div id="errorRegion"></div>
+    </div>
+
+    <div class="footer">
+      <span id="footerVersion"></span>
+      <span class="footer-divider"></span>
+      <button type="button" class="link" id="footerFeedbackBtn">Send feedback</button>
+      <span class="footer-divider"></span>
+      <button type="button" class="link" id="footerUpdatesBtn">Check for updates</button>
+    </div>
+  </div>
+
+<script src="shortcutConflicts.js"></script>
+<script src="i18n.js"></script>
+<script>
+  // Tabs are fully user-owned (renamable/addable/deletable/reorderable in
+  // Settings), so both lists are fetched live rather than hardcoded — see
+  // loadPresets() and onModesUpdated below.
+  let CATEGORIES = ['Reply', 'Write', 'Understand'];
+  let INTENT_CATEGORIES = ['Reply'];
+
+  let busy = false;
+  let allPresets = [];
+  let activeCategory = CATEGORIES[0];
+  let selectedLabel = null;
+  let motherLanguage = '';
+  let appLanguage = 'en';
+  let shortcutDisplay = '';
+  let sent = false;
+  let promptOpen = false;
+  let editing = false;
+  let savedFlashTimer = null;
+
+  const $ = (s) => document.querySelector(s);
+  const tr = (key, vars) => window.I18n.t(appLanguage, key, vars);
+
+  window.api.getAppName().then((name) => { $('#titleText').textContent = name; document.title = name; });
+  window.api.getAppVersion().then((v) => { $('#footerVersion').textContent = tr('footerVersion', { version: v }); });
+  window.api.getSettings().then((s) => {
+    motherLanguage = s.motherLanguage || '';
+    appLanguage = s.appLanguage || 'en';
+    if (s.shortcut) shortcutDisplay = window.ShortcutConflicts.acceleratorToDisplay(s.shortcut);
+    applyTranslations();
+    renderActions();
+  });
+
+  const selectedEl = $('#selected');
+  const sendBtn = $('#send');
+  const tabsEl = $('#hmTabs');
+  const actionsEl = $('#hmActions');
+  const replyIntentWrapEl = $('#hmReplyIntentWrap');
+  const replyIntentEl = $('#hmReplyIntent');
+  // Plain Enter already inserts a newline by default in a <textarea> — only
+  // Cmd/Ctrl+Enter (handled by the global keydown listener below) sends.
+  // Auto-grow up to the CSS max-height, after which it scrolls internally.
+  replyIntentEl.addEventListener('input', () => {
+    replyIntentEl.style.height = 'auto';
+    replyIntentEl.style.height = `${replyIntentEl.scrollHeight}px`;
+  });
+  const promptRegionEl = $('#promptRegion');
+  const promptReadEl = $('#promptRead');
+  const promptReadTextEl = $('#promptReadText');
+  const promptEditEl = $('#promptEdit');
+  const promptDraftEl = $('#promptDraft');
+  const outputPanelEl = $('#outputPanel');
+  const outputBodyEl = $('#outputBody');
+  const outputEmptyTextEl = $('#outputEmptyText');
+  const errorRegionEl = $('#errorRegion');
+
+  // The source textarea's height is a per-user layout preference, not app
+  // config — persisted in localStorage (this window's own file:// origin,
+  // survives restarts) rather than the main-process settings store, and
+  // restored before anything else lays out the page so it never flashes at
+  // the default size first. A ResizeObserver (rather than a 'mouseup' guess
+  // at the resize handle) is the only reliable way to notice a manual drag,
+  // since resizing a <textarea> fires no dedicated DOM event.
+  const SOURCE_HEIGHT_KEY = 'pml-source-height';
+  try {
+    const savedHeight = localStorage.getItem(SOURCE_HEIGHT_KEY);
+    if (savedHeight) selectedEl.style.height = savedHeight;
+  } catch {}
+  if (window.ResizeObserver) {
+    new ResizeObserver(() => {
+      try { localStorage.setItem(SOURCE_HEIGHT_KEY, `${selectedEl.offsetHeight}px`); } catch {}
+    }).observe(selectedEl);
+  }
+
+  function presetsForCategory(category) {
+    return allPresets.filter((p) => p.category === category);
+  }
+
+  function defaultForCategory(category) {
+    const list = presetsForCategory(category);
+    return list.find((p) => p.isDefault) || list[0] || null;
+  }
+
+  function currentPreset() {
+    return presetsForCategory(activeCategory).find((p) => p.label === selectedLabel) || null;
+  }
+
+  // Tab names are user-authored text (renamed freely in Settings), not app
+  // chrome — displayed as-is, not run through i18n.
+  function categoryDisplayLabel(cat) { return cat; }
+
+  function renderTabs() {
+    tabsEl.innerHTML = '';
+    CATEGORIES.forEach((cat) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'cat-tab' + (cat === activeCategory ? ' active' : '');
+      btn.dataset.cat = cat;
+      btn.textContent = categoryDisplayLabel(cat);
+      btn.setAttribute('role', 'tab');
+      btn.setAttribute('aria-selected', cat === activeCategory ? 'true' : 'false');
+      btn.tabIndex = cat === activeCategory ? 0 : -1;
+      btn.addEventListener('click', () => selectCategory(cat));
+      tabsEl.appendChild(btn);
+    });
+  }
+
+  function selectCategory(cat) {
+    activeCategory = cat;
+    const def = defaultForCategory(cat);
+    selectedLabel = def ? def.label : null;
+    sent = false;
+    editing = false;
+    replyIntentEl.value = '';
+    replyIntentEl.style.height = '';
+    clearSavedFlash();
+    renderTabs();
+    renderActions();
+    updatePromptUI();
+    updateOutputUI();
+  }
+
+  tabsEl.addEventListener('keydown', (e) => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    e.preventDefault();
+    const idx = CATEGORIES.indexOf(activeCategory);
+    const nextIdx = e.key === 'ArrowRight' ? (idx + 1) % CATEGORIES.length : (idx - 1 + CATEGORIES.length) % CATEGORIES.length;
+    selectCategory(CATEGORIES[nextIdx]);
+    tabsEl.children[nextIdx].focus();
+  });
+
+  function renderActions() {
+    actionsEl.innerHTML = '';
+    presetsForCategory(activeCategory).forEach((p) => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'preset-chip' + (p.label === selectedLabel ? ' active' : '');
+      chip.setAttribute('role', 'option');
+      chip.setAttribute('aria-selected', p.label === selectedLabel ? 'true' : 'false');
+      if (p.icon) {
+        const icon = document.createElement('span');
+        icon.className = 'chip-icon';
+        icon.textContent = p.icon;
+        chip.appendChild(icon);
+      }
+      const name = document.createElement('span');
+      name.className = 'chip-name';
+      name.textContent = p.label;
+      chip.appendChild(name);
+      if (p.blurb) {
+        const summary = document.createElement('span');
+        summary.className = 'chip-summary';
+        summary.textContent = resolvedBlurbText(p);
+        chip.appendChild(summary);
+      }
+      chip.addEventListener('click', () => {
+        selectedLabel = p.label;
+        sent = false;
+        editing = false;
+        renderActions();
+        updatePromptUI();
+        updateOutputUI();
+      });
+      actionsEl.appendChild(chip);
+    });
+  }
+
+  actionsEl.addEventListener('keydown', (e) => {
+    const forward = e.key === 'ArrowDown' || e.key === 'ArrowRight';
+    const backward = e.key === 'ArrowUp' || e.key === 'ArrowLeft';
+    if (!forward && !backward && e.key !== 'Enter') return;
+    const rows = Array.from(actionsEl.children);
+    if (!rows.length) return;
+    if (e.key === 'Enter') { e.preventDefault(); document.activeElement.click(); return; }
+    e.preventDefault();
+    const idx = rows.findIndex((r) => r.classList.contains('active'));
+    const nextIdx = forward ? (idx + 1) % rows.length : (idx - 1 + rows.length) % rows.length;
+    rows[nextIdx].click();
+    rows[nextIdx].focus();
+  });
+
+  // {{motherLanguage}} is a template token only Translate uses — resolved
+  // here rather than baked into the stored prompt, so the prompt preview
+  // always shows exactly what will be sent, and changing the Settings value
+  // takes effect without editing the preset itself.
+  function resolvedPromptText(preset) {
+    if (!preset) return '';
+    if (preset.requiresMotherLanguage) return preset.prompt.replace('{{motherLanguage}}', motherLanguage.trim());
+    return preset.prompt;
+  }
+
+  // Same {{motherLanguage}} substitution as resolvedPromptText, but for the
+  // chip hint text (blurb) — so the main page shows the actual configured
+  // language (e.g. "Into Vietnamese") instead of a generic placeholder.
+  function resolvedBlurbText(preset) {
+    if (!preset || !preset.blurb) return preset ? preset.blurb : '';
+    if (preset.requiresMotherLanguage && preset.blurb.includes('{{motherLanguage}}')) {
+      const lang = motherLanguage.trim();
+      return preset.blurb.replace('{{motherLanguage}}', lang || 'your language from Settings');
+    }
+    return preset.blurb;
+  }
+
+  function renderPromptReadWithMotherLanguageLink(preset) {
+    const parts = preset.prompt.split('{{motherLanguage}}');
+    promptReadTextEl.innerHTML = '';
+    promptReadTextEl.appendChild(document.createTextNode(parts[0]));
+    const link = document.createElement('a');
+    link.href = '#';
+    link.style.color = 'var(--accent-cool)';
+    link.style.fontWeight = '600';
+    link.style.textDecoration = 'underline';
+    link.textContent = tr('setMotherLanguageLink');
+    link.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); window.api.openSettings(); });
+    promptReadTextEl.appendChild(link);
+    promptReadTextEl.appendChild(document.createTextNode(parts.slice(1).join('{{motherLanguage}}')));
+  }
+
+  function savedTargetLabel(preset) {
+    return `${categoryDisplayLabel(preset.category)} › ${preset.label}`;
+  }
+
+  function clearSavedFlash() {
+    clearTimeout(savedFlashTimer);
+    $('#savedFlash').style.display = 'none';
+  }
+
+  function updatePromptUI() {
+    const preset = currentPreset();
+    promptRegionEl.classList.toggle('open', promptOpen);
+    $('#promptToggle').classList.toggle('open', promptOpen);
+
+    if (!preset) { updateSendState(); return; }
+
+    const missingLang = !!(preset.requiresMotherLanguage && !motherLanguage.trim());
+    if (missingLang) renderPromptReadWithMotherLanguageLink(preset);
+    else promptReadTextEl.textContent = resolvedPromptText(preset);
+
+    $('#metaTone').innerHTML = '';
+    if (preset.tone) {
+      $('#metaTone').appendChild(document.createTextNode(tr('toneLabel') + ' '));
+      const strong = document.createElement('strong');
+      strong.textContent = preset.tone;
+      $('#metaTone').appendChild(strong);
+    }
+    const isEdited = preset.prompt !== preset.originalPrompt;
+
+    const showEditMode = promptOpen && editing;
+    promptReadEl.classList.toggle('hide', showEditMode);
+    promptEditEl.classList.toggle('show', showEditMode);
+    if (showEditMode) $('#promptEditNote').innerHTML = tr('savesToInSettings', { target: `<strong>${savedTargetLabel(preset)}</strong>` });
+    $('#promptRevertBtn').style.display = isEdited ? 'inline-block' : 'none';
+
+    replyIntentWrapEl.style.display = INTENT_CATEGORIES.includes(activeCategory) ? 'flex' : 'none';
+    $('#sendRow').style.display = INTENT_CATEGORIES.includes(activeCategory) ? 'none' : 'flex';
+    if (INTENT_CATEGORIES.includes(activeCategory)) {
+      // Send lives inside the intent row so the two sit on one line, per design.
+      if (sendBtn.parentElement !== $('#sendRowWithIntent')) $('#sendRowWithIntent').appendChild(sendBtn);
+      sendBtn.classList.add('has-intent');
+    } else {
+      if (sendBtn.parentElement !== $('#sendRow')) $('#sendRow').appendChild(sendBtn);
+      sendBtn.classList.remove('has-intent');
+    }
+    updateSendState();
+  }
+
+  function openEditor() {
+    const preset = currentPreset();
+    if (!preset) return;
+    promptOpen = true;
+    editing = true;
+    promptDraftEl.value = preset.prompt;
+    clearSavedFlash();
+    updatePromptUI();
+    promptDraftEl.focus();
+  }
+
+  async function savePromptEdit() {
+    const preset = currentPreset();
+    if (!preset) return;
+    const draft = promptDraftEl.value.trim();
+    const nextPrompt = (!draft || draft === preset.originalPrompt) ? preset.originalPrompt : draft;
+    const r = await window.api.savePreset({
+      label: preset.label, category: preset.category, icon: preset.icon, blurb: preset.blurb,
+      tone: preset.tone, prompt: nextPrompt, isEmail: preset.isEmail, isDefault: preset.isDefault
+    });
+    if (r.success) allPresets = r.presets;
+    editing = false;
+    updatePromptUI();
+    $('#savedFlash').textContent = tr('savedTo', { target: savedTargetLabel(preset) });
+    $('#savedFlash').style.display = 'inline';
+    clearTimeout(savedFlashTimer);
+    savedFlashTimer = setTimeout(() => { $('#savedFlash').style.display = 'none'; }, 2600);
+  }
+
+  function revertPromptEdit() {
+    const preset = currentPreset();
+    if (!preset) return;
+    promptDraftEl.value = preset.originalPrompt;
+  }
+
+  $('#promptToggle').addEventListener('click', () => { promptOpen = !promptOpen; editing = false; updatePromptUI(); });
+  promptReadEl.addEventListener('click', openEditor);
+  promptReadEl.addEventListener('dblclick', openEditor);
+  $('#promptSaveBtn').addEventListener('click', savePromptEdit);
+  $('#promptCancelBtn').addEventListener('click', () => { editing = false; updatePromptUI(); });
+  $('#promptRevertBtn').addEventListener('click', revertPromptEdit);
+  promptDraftEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { editing = false; updatePromptUI(); }
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); savePromptEdit(); }
+  });
+
+  function updateSendState() {
+    const preset = currentPreset();
+    const hasText = selectedEl.value.trim().length > 0;
+    const missingMotherLanguage = !!(preset && preset.requiresMotherLanguage && !motherLanguage.trim());
+    sendBtn.disabled = busy || !hasText || !preset || missingMotherLanguage;
+    if (missingMotherLanguage) sendBtn.title = tr('setMotherLanguageFirst');
+    else if (!hasText) sendBtn.title = tr('selectOrPasteFirst');
+    else sendBtn.title = '';
+  }
+  // Editing the source text after a result exists must NOT clear the output
+  // panel — the user expects the previous result to stay visible until they
+  // explicitly press Send/Regenerate again, so `sent` and updateOutputUI()
+  // are deliberately left untouched here.
+  selectedEl.addEventListener('input', () => {
+    updateWordCount();
+    updateSendState();
+  });
+
+  // A manual Cmd+V straight into this textarea bypasses onSelectedText/
+  // beautifyText entirely — the browser just inserts the clipboard's
+  // plain-text as-is. Some apps (Microsoft Teams observed) put plain text on
+  // the clipboard that already has inflated paragraph gaps baked in (a single
+  // blank line in the source becomes 3 blank lines once pasted anywhere), so
+  // pasting here needs the same cleanup pass as a captured selection gets.
+  selectedEl.addEventListener('paste', (e) => {
+    const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+    if (text == null) return;
+    e.preventDefault();
+    const cleaned = beautifyText(text);
+    const start = selectedEl.selectionStart;
+    const end = selectedEl.selectionEnd;
+    selectedEl.value = selectedEl.value.slice(0, start) + cleaned + selectedEl.value.slice(end);
+    const cursor = start + cleaned.length;
+    selectedEl.setSelectionRange(cursor, cursor);
+    selectedEl.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+
+  function updateWordCount() {
+    const text = selectedEl.value;
+    $('#wordCount').textContent = text.trim() ? tr('wordCount', { n: text.trim().split(/\s+/).length }) : '';
+  }
+
+  function finalPromptAndIsEmail() {
+    const preset = currentPreset();
+    if (!preset) return { prompt: '', isEmail: false };
+    let prompt = resolvedPromptText(preset);
+    if (INTENT_CATEGORIES.includes(activeCategory)) {
+      const intent = replyIntentEl.value.trim();
+      if (intent) prompt = prompt + ' ' + intent;
+    }
+    return { prompt, isEmail: preset.isEmail };
+  }
+
+  function updateOutputUI() {
+    outputPanelEl.classList.toggle('filled', sent);
+    const preset = currentPreset();
+    if (!sent) {
+      outputEmptyTextEl.innerHTML = tr('emptyOutputTitle') + '<br>' + (INTENT_CATEGORIES.includes(activeCategory) ? tr('emptyHintIntent') : tr('emptyHintNoIntent'));
+    } else if (preset) {
+      $('#outputLabel').textContent = preset.tone ? `${preset.label} · ${preset.tone}` : preset.label;
+    }
+    sendBtn.querySelector('#sendLabel') && ($('#sendLabel').textContent = sent ? tr('sendAgain') : tr('send'));
+  }
+
+  // Settings edits presets in a separate window while this popup sits hidden
+  // behind it — refresh live instead of waiting for this page to reload.
+  window.api.onPresetsUpdated((presets) => {
+    allPresets = presets;
+    const stillExists = presetsForCategory(activeCategory).some((p) => p.label === selectedLabel);
+    if (!stillExists) {
+      const def = defaultForCategory(activeCategory);
+      selectedLabel = def ? def.label : null;
+    }
+    renderActions();
+    updatePromptUI();
+    updateOutputUI();
+  });
+
+  async function loadPresets() {
+    const [presets, modes, intentModes] = await Promise.all([
+      window.api.getPresets(), window.api.getToneModes(), window.api.getIntentModes()
+    ]);
+    allPresets = presets;
+    CATEGORIES = modes;
+    INTENT_CATEGORIES = intentModes;
+    activeCategory = CATEGORIES[0];
+    const def = defaultForCategory(activeCategory);
+    selectedLabel = def ? def.label : null;
+    renderTabs();
+    renderActions();
+    updatePromptUI();
+    updateOutputUI();
+  }
+  loadPresets();
+
+  // Settings can add/rename/delete/reorder tabs while this popup sits hidden
+  // behind it — refresh live, same reasoning as onPresetsUpdated below. If
+  // the active tab was deleted or renamed out from under us, fall back to
+  // whichever tab is now first.
+  window.api.onModesUpdated(async (modes) => {
+    CATEGORIES = modes;
+    INTENT_CATEGORIES = await window.api.getIntentModes();
+    if (!CATEGORIES.includes(activeCategory)) {
+      selectCategory(CATEGORIES[0]);
+      return;
+    }
+    renderTabs();
+    updatePromptUI();
+    updateOutputUI();
+  });
+
+  // Some source apps hand back a selection (or receive a pasted result) with
+  // stray duplicated lines — e.g. the same row copied twice/thrice in a row,
+  // or runs of blank lines — an artifact of how that app renders text into
+  // the clipboard rather than anything in the text itself. Normalizing line
+  // endings and collapsing those duplicates avoids carrying the artifact
+  // through to whatever gets pasted next.
+  function beautifyText(text) {
+    if (!text) return text;
+    const lines = text.replace(/\r\n?/g, '\n').split('\n');
+    const deduped = lines.filter((line, i) => i === 0 || line.trim() !== lines[i - 1].trim() || line.trim() === '');
+    return deduped.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  }
+
+  window.api.onSelectedText((t) => {
+    selectedEl.value = beautifyText(t);
+    sent = false;
+    errorRegionEl.innerHTML = '';
+    updateWordCount();
+    updateSendState();
+    updateOutputUI();
+    selectedEl.focus();
+  });
+
+  // Focus the source field by default whenever the app is opened. The very
+  // first load is handled by the direct call below; every later reopen (the
+  // window is hidden/shown, never reloaded, so this script only ever runs
+  // once) is handled by the native window 'focus' event, which fires each
+  // time the OS actually hands this window keyboard focus — including every
+  // time showMainWindow()/captureAndFill() bring it forward.
+  selectedEl.focus();
+  window.addEventListener('focus', () => selectedEl.focus());
+
+  // Re-sent every time the popup is shown (see main.js's mainWindow.on('show')
+  // handler) — this can't be detected at the exact moment a keystroke gets
+  // eaten by another app (if that happens, our process never sees the event
+  // at all), so instead it's a standing check against the currently saved
+  // shortcut, refreshed on every show.
+  window.api.onShortcutConflictStatus((conflict) => {
+    const banner = $('#shortcutWarnBanner');
+    if (!conflict) { banner.classList.remove('show'); return; }
+    const display = window.ShortcutConflicts.acceleratorToDisplay(conflict.accelerator);
+    $('#shortcutWarnMessage').textContent =
+      `Your shortcut (${display}) is known to conflict with ${conflict.app}'s ${conflict.description} — it may not always reach Per My Last there. Consider choosing a different combo in Settings.`;
+    banner.classList.add('show');
+  });
+
+  // Re-sent every time the popup is shown, same as the shortcut-conflict
+  // check above — Settings hides this window rather than reloading it, so
+  // without this, setting your mother language and coming back would still
+  // show the "not set" link until a full relaunch.
+  window.api.onMotherLanguageStatus((lang) => {
+    motherLanguage = lang || '';
+    renderActions();
+    updatePromptUI();
+  });
+  $('#shortcutWarnSettingsBtn').addEventListener('click', () => window.api.openSettings());
+  // Dismisses for this view only — the banner is a standing check re-sent on
+  // every show (see above), so a still-conflicting shortcut reappears next
+  // time the popup opens rather than staying silently hidden forever.
+  $('#shortcutWarnDismissBtn').addEventListener('click', () => $('#shortcutWarnBanner').classList.remove('show'));
+
+  $('#closeBtn').addEventListener('click', () => window.api.hideWindow());
+  $('#minBtn').addEventListener('click', () => window.api.minimizeWindow());
+  $('#maxBtn').addEventListener('click', () => window.api.toggleMaximizeWindow());
+  $('#settingsBtn').addEventListener('click', () => window.api.openSettings());
+  $('#footerFeedbackBtn').addEventListener('click', () => window.api.sendFeedback(''));
+  $('#footerUpdatesBtn').addEventListener('click', () => window.api.checkForUpdates());
+  sendBtn.addEventListener('click', process);
+  $('#regenBtn').addEventListener('click', process);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') window.api.hideWindow();
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') process();
+  });
+
+  async function process() {
+    if (busy || sendBtn.disabled) return;
+    const preset = currentPreset();
+    const { prompt, isEmail } = finalPromptAndIsEmail();
+    const text = selectedEl.value.trim();
+    if (!prompt || !text) return;
+
+    busy = true;
+    updateSendState();
+    $('#sendLabel').textContent = tr('sending');
+    errorRegionEl.innerHTML = '';
+
+    const r = await window.api.sendToClaude(text, prompt, isEmail, preset ? preset.label : null);
+
+    if (r.success) {
+      sent = true;
+      outputBodyEl.textContent = beautifyText(r.data);
+      updateOutputUI();
+    } else {
+      sent = false;
+      updateOutputUI();
+      errorRegionEl.innerHTML = '<div class="output-error"></div>';
+      errorRegionEl.querySelector('.output-error').textContent = tr('error') + r.error;
+      const retry = document.createElement('a');
+      retry.href = '#';
+      retry.textContent = tr('retry');
+      retry.addEventListener('click', (e) => { e.preventDefault(); process(); });
+      errorRegionEl.querySelector('.output-error').appendChild(retry);
+    }
+
+    busy = false;
+    updateSendState();
+    if (!sent) $('#sendLabel').textContent = tr('send');
+  }
+
+  $('#copyBtn').addEventListener('click', () => {
+    window.api.copyToClipboard(outputBodyEl.textContent);
+    const btn = $('#copyBtn');
+    const original = btn.textContent;
+    btn.textContent = tr('copied');
+    setTimeout(() => { btn.textContent = original; }, 1500);
+  });
+
+  function applyTranslations() {
+    $('#settingsLinkLabel').textContent = tr('openSettings').replace(' →', '');
+    replyIntentEl.placeholder = tr('replyIntentPlaceholder');
+    selectedEl.placeholder = tr('sourcePlaceholder', { shortcut: shortcutDisplay || '⌃⌘⇧S' });
+    $('#promptToggleLabel').textContent = tr('promptCaption');
+    $('#promptEditHint').textContent = tr('clickToEdit');
+    $('#shortcutWarnSettingsBtn').textContent = tr('openSettings');
+    $('#shortcutWarnDismissBtn').textContent = tr('dismiss');
+    $('#regenBtn').textContent = tr('regenerate');
+    $('#copyBtn').textContent = tr('copy').replace('📋 ', '');
+    $('#promptRevertBtn').textContent = tr('resetToOriginal');
+    $('#promptCancelBtn').textContent = tr('cancel');
+    $('#promptSaveBtn').textContent = tr('saveOverwrite');
+    $('#footerFeedbackBtn').textContent = tr('footerFeedback');
+    $('#footerUpdatesBtn').textContent = tr('footerUpdates');
+    updateWordCount();
+    renderTabs();
+    updatePromptUI();
+    updateOutputUI();
+  }
+
+  // Re-sent every time the popup is shown, same reasoning as the mother-
+  // language push — Settings hides this window rather than reloading it.
+  window.api.onAppLanguageStatus((lang) => {
+    appLanguage = lang || 'en';
+    applyTranslations();
+  });
+</script>
+</body>
+</html>

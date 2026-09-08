@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #e9e9ec; font-family: "Plus Jakarta Sans", -apple-system, sans-serif; }
+  a { color: #2b6cf6; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  input, select, textarea { font-family: inherit; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: #2b6cf6; }
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; justify-content: center; padding: 40px 24px">
+  <div style="width: 720px; border-radius: 12px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,.28); background: #fff; display: flex; flex-direction: column; height: 720px">
+
+    <div style="height: 38px; background: #1b1b1d; display: flex; align-items: center; padding: 0 12px; flex-shrink: 0; position: relative">
+      <div style="display: flex; gap: 7px">
+        <div style="width: 11px; height: 11px; border-radius: 50%; background: #ff5f57"></div>
+        <div style="width: 11px; height: 11px; border-radius: 50%; background: #febc2e"></div>
+        <div style="width: 11px; height: 11px; border-radius: 50%; background: #28c840"></div>
+      </div>
+      <div style="position: absolute; left: 0; right: 0; text-align: center; color: #fff; font-size: 13px; font-weight: 600; pointer-events: none">Per My Last Settings</div>
+      <span style="{{ savedStyle }}">{{ savedLabel }}</span>
+    </div>
+
+    <div style="display: flex; gap: 2px; padding: 8px 12px 0; border-bottom: 1px solid #e5e5e8; flex-shrink: 0">
+      <sc-for list="{{ topTabs }}" as="tab" hint-placeholder-count="4">
+        <button onClick="{{ tab.onClick }}" style="{{ tab.style }}" style-hover="background: #f4f4f6">
+          <span style="font-size: 15px; line-height: 1">{{ tab.icon }}</span>
+          <span style="font-size: 12px; font-weight: 600">{{ tab.label }}</span>
+        </button>
+      </sc-for>
+    </div>
+
+    <div style="flex: 1; overflow-y: auto; background: #f7f7f9">
+
+      <sc-if value="{{ isGeneral }}" hint-placeholder-val="{{ true }}">
+        <div style="padding: 18px 20px 28px; display: flex; flex-direction: column; gap: 18px">
+          <div>
+            <div style="font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: #8a8a92; margin: 0 2px 8px">Claude connection</div>
+            <div style="border-radius: 10px; border: 1px solid #e4e4e9; background: #fff; overflow: hidden">
+              <div style="display: flex; align-items: center; gap: 14px; padding: 13px 14px">
+                <div style="width: 176px; flex-shrink: 0">
+                  <div style="font-size: 13.5px; font-weight: 600; color: #17171a">API key</div>
+                  <div style="font-size: 11.5px; color: #9a9aa2; margin-top: 2px">{{ keyHint }}</div>
+                </div>
+                <div style="flex: 1; display: flex; align-items: center; gap: 8px; min-width: 0">
+                  <span style="{{ keyStatusStyle }}">{{ keyStatusLabel }}</span>
+                  <span style="font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: #4a4a52; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ keyMasked }}</span>
+                  <span style="flex: 1"></span>
+                  <button onClick="{{ onEditKey }}" style="height: 28px; padding: 0 11px; border-radius: 7px; border: 1px solid #e0e0e5; background: #fff; color: #4a4a52; font-size: 12px; font-weight: 600; cursor: pointer; flex-shrink: 0" style-hover="background: #f4f4f6">{{ keyButtonLabel }}</button>
+                </div>
+              </div>
+              <sc-if value="{{ keyEditing }}">
+                <div style="padding: 0 14px 14px 174px; display: flex; flex-direction: column; gap: 8px">
+                  <input value="{{ keyDraft }}" onChange="{{ onKeyDraft }}" placeholder="sk-ant-api03-…" style="width: 100%; height: 34px; padding: 0 10px; border: 1px solid #dedee3; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: #17171a" />
+                  <div style="display: flex; align-items: center; gap: 8px">
+                    <button onClick="{{ onSaveKey }}" style="height: 30px; padding: 0 13px; border-radius: 7px; border: 0; background: #1b1b1d; color: #fff; font-size: 12.5px; font-weight: 700; cursor: pointer" style-hover="opacity: .88">Verify &amp; save</button>
+                    <button onClick="{{ onCancelKey }}" style="height: 30px; padding: 0 12px; border-radius: 7px; border: 1px solid #e0e0e5; background: #fff; color: #4a4a52; font-size: 12.5px; font-weight: 600; cursor: pointer" style-hover="background: #f4f4f6">Cancel</button>
+                    <span style="font-size: 11.5px; color: #9a9aa2">Get one at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> — stored in your macOS Keychain.</span>
+                  </div>
+                </div>
+              </sc-if>
+
+              <div style="height: 1px; background: #f0f0f3"></div>
+
+              <div style="display: flex; align-items: center; gap: 14px; padding: 13px 14px">
+                <div style="width: 176px; flex-shrink: 0">
+                  <div style="font-size: 13.5px; font-weight: 600; color: #17171a">Model</div>
+                  <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9a9aa2; margin-top: 3px">{{ modelId }}</div>
+                </div>
+                <select value="{{ model }}" onChange="{{ onModel }}" style="flex: 1; height: 34px; padding: 0 10px; border: 1px solid #dedee3; border-radius: 8px; font-size: 13px; color: #17171a; background: #fff">
+                  <sc-for list="{{ models }}" as="m" hint-placeholder-count="3">
+                    <option value="{{ m.id }}">{{ m.label }}</option>
+                  </sc-for>
+                </select>
+              </div>
+
+              <div style="height: 1px; background: #f0f0f3"></div>
+
+              <div style="display: flex; align-items: center; gap: 14px; padding: 13px 14px">
+                <div style="width: 176px; flex-shrink: 0">
+                  <div style="font-size: 13.5px; font-weight: 600; color: #17171a">Effort</div>
+                  <div style="font-size: 11.5px; color: #9a9aa2; margin-top: 2px">{{ effortHint }}</div>
+                </div>
+                <div style="flex: 1; display: flex; gap: 3px; padding: 3px; background: #f2f2f5; border-radius: 8px">
+                  <sc-for list="{{ efforts }}" as="e" hint-placeholder-count="5">
+                    <button onClick="{{ e.onClick }}" style="{{ e.style }}">{{ e.label }}</button>
+                  </sc-for>
+                </div>
+              </div>
+
+              <div style="height: 1px; background: #f0f0f3"></div>
+
+              <div style="padding: 11px 14px">
+                <button onClick="{{ onToggleWorkspace }}" style="display: flex; align-items: center; gap: 6px; border: 0; background: transparent; padding: 0; color: #7a7a82; font-family: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer" style-hover="color: #17171a">
+                  <span style="{{ caretStyle }}">›</span> Workspace ID
+                  <span style="font-weight: 400; color: #a0a0a8">— only if you hit an “anthropic-workspace-id is required” error</span>
+                </button>
+                <sc-if value="{{ workspaceOpen }}">
+                  <div style="margin-top: 10px; padding-left: 16px">
+                    <input value="{{ workspace }}" onChange="{{ onWorkspace }}" placeholder="wrkspc_…" style="width: 280px; height: 32px; padding: 0 10px; border: 1px solid #dedee3; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: #17171a" />
+                    <div style="font-size: 11.5px; color: #9a9aa2; margin-top: 6px; max-width: 440px; line-height: 1.5">That error means your key is tied to your identity inside an org rather than a standalone workspace.</div>
+                  </div>
+                </sc-if>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div style="font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: #8a8a92; margin: 0 2px 8px">Behaviour</div>
+            <div style="border-radius: 10px; border: 1px solid #e4e4e9; background: #fff; overflow: hidden">
+              <div style="display: flex; align-items: center; gap: 14px; padding: 13px 14px">
+                <div style="width: 176px; flex-shrink: 0">
+                  <div style="font-size: 13.5px; font-weight: 600; color: #17171a">Global shortcut</div>
+                  <div style="font-size: 11.5px; color: #9a9aa2; margin-top: 2px">Captures your selection anywhere</div>
+                </div>
+                <div style="flex: 1; display: flex; align-items: center; gap: 8px">
+                  <span style="display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 6px 0 11px; border-radius: 7px; border: 1px solid #e0e0e5; background: #f8f8fa; font-size: 13px; font-weight: 600; color: #17171a">
+                    {{ shortcut }}
+                    <button onClick="{{ onClearShortcut }}" title="Clear" style="width: 18px; height: 18px; border: 0; border-radius: 4px; background: transparent; color: #a0a0a8; font-size: 11px; cursor: pointer" style-hover="background: #e8e8ec; color: #17171a">✕</button>
+                  </span>
+                  <button onClick="{{ onRecord }}" style="{{ recordStyle }}" style-hover="opacity: .88">{{ recordLabel }}</button>
+                </div>
+              </div>
+
+              <div style="height: 1px; background: #f0f0f3"></div>
+
+              <div style="display: flex; align-items: center; gap: 14px; padding: 13px 14px">
+                <div style="width: 176px; flex-shrink: 0">
+                  <div style="font-size: 13.5px; font-weight: 600; color: #17171a">Show in Dock</div>
+                  <div style="font-size: 11.5px; color: #9a9aa2; margin-top: 2px">Off = menu bar only</div>
+                </div>
+                <button onClick="{{ onToggleDock }}" style="{{ dockTrackStyle }}"><span style="{{ dockKnobStyle }}"></span></button>
+              </div>
+
+              <div style="height: 1px; background: #f0f0f3"></div>
+
+              <div style="display: flex; align-items: center; gap: 14px; padding: 13px 14px">
+                <div style="width: 176px; flex-shrink: 0">
+                  <div style="font-size: 13.5px; font-weight: 600; color: #17171a">Launch at login</div>
+                </div>
+                <button onClick="{{ onToggleLaunch }}" style="{{ launchTrackStyle }}"><span style="{{ launchKnobStyle }}"></span></button>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div style="font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: #8a8a92; margin: 0 2px 8px">Language</div>
+            <div style="border-radius: 10px; border: 1px solid #e4e4e9; background: #fff; overflow: hidden">
+              <div style="display: flex; align-items: center; gap: 14px; padding: 13px 14px">
+                <div style="width: 176px; flex-shrink: 0">
+                  <div style="font-size: 13.5px; font-weight: 600; color: #17171a">My language</div>
+                  <div style="font-size: 11.5px; color: #9a9aa2; margin-top: 2px">Target for Translate</div>
+                </div>
+                <select value="{{ motherLang }}" onChange="{{ onMotherLang }}" style="flex: 1; height: 34px; padding: 0 10px; border: 1px solid #dedee3; border-radius: 8px; font-size: 13px; color: #17171a; background: #fff">
+                  <sc-for list="{{ langs }}" as="l" hint-placeholder-count="4">
+                    <option value="{{ l }}">{{ l }}</option>
+                  </sc-for>
+                </select>
+              </div>
+
+              <div style="height: 1px; background: #f0f0f3"></div>
+
+              <div style="display: flex; align-items: center; gap: 14px; padding: 13px 14px">
+                <div style="width: 176px; flex-shrink: 0">
+                  <div style="font-size: 13.5px; font-weight: 600; color: #17171a">App language</div>
+                  <div style="font-size: 11.5px; color: #9a9aa2; margin-top: 2px">2 available</div>
+                </div>
+                <div style="flex: 1; display: flex; align-items: center; gap: 10px">
+                  <select value="{{ appLang }}" onChange="{{ onAppLang }}" style="flex: 1; height: 34px; padding: 0 10px; border: 1px solid #dedee3; border-radius: 8px; font-size: 13px; color: #17171a; background: #fff">
+                    <option value="English (US)">🇺🇸 English (US)</option>
+                    <option value="Vietnamese">🇻🇳 Tiếng Việt</option>
+                  </select>
+                  <a href="#translate" style="font-size: 12px; white-space: nowrap">Help translate</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isPresets }}">
+        <div style="padding: 20px 22px 36px">
+          <div>
+            <div style="font-size: 17px; font-weight: 700; color: #17171a; letter-spacing: -.2px">Tone Presets</div>
+            <div style="font-size: 12.5px; color: #6b6b73; margin-top: 4px; max-width: 560px; line-height: 1.5">Tabs are your use cases — drag to reorder, rename, or add your own. Presets inside a tab are the actions shown when it opens.</div>
+          </div>
+
+          <div style="display: flex; align-items: flex-end; gap: 4px; border-bottom: 1px solid #e2e2e6; margin: 16px 0 18px; overflow-x: auto">
+            <sc-for list="{{ modeTabs }}" as="m" hint-placeholder-count="3">
+              <div draggable="true" onDragStart="{{ m.onDragStart }}" onDragEnter="{{ m.onDragEnter }}" onDragOver="{{ onDragOver }}" onDragEnd="{{ onDragEnd }}" onClick="{{ m.onClick }}" title="Drag to reorder" style="{{ m.style }}">
+                <span style="{{ m.gripStyle }}">⠿</span>
+                <sc-if value="{{ m.editing }}">
+                  <input autoFocus="{{ true }}" value="{{ m.inputValue }}" onChange="{{ m.onRenameInput }}" onBlur="{{ m.onRenameDone }}" onKeyDown="{{ m.onRenameKey }}" onClick="{{ stop }}" style="width: 96px; height: 22px; padding: 0 4px; border: 1px solid #d2d2d8; border-radius: 5px; font-size: 14px; font-weight: 700; color: #17171a" />
+                </sc-if>
+                <sc-if value="{{ m.showLabel }}" hint-placeholder-val="{{ true }}">
+                  <span onDoubleClick="{{ m.onRenameStart }}">{{ m.label }}</span>
+                </sc-if>
+                <span style="{{ m.badgeStyle }}">{{ m.count }}</span>
+                <sc-if value="{{ m.showActions }}">
+                  <span style="display: flex; align-items: center; gap: 2px; margin-left: 2px">
+                    <button onClick="{{ m.onRenameStart }}" title="Rename tab" style="width: 20px; height: 20px; border: 0; border-radius: 5px; background: transparent; color: #9a9aa2; font-size: 11px; cursor: pointer" style-hover="background: #eaeaef; color: #17171a">✎</button>
+                    <button onClick="{{ m.onDelete }}" title="Delete tab" style="{{ m.deleteStyle }}" style-hover="background: #fdf0ef; color: #b3261e">✕</button>
+                  </span>
+                </sc-if>
+              </div>
+            </sc-for>
+            <button onClick="{{ onAddTab }}" title="Add a use case" style="display: flex; align-items: center; gap: 5px; margin: 0 0 6px 8px; padding: 5px 10px; border: 1px dashed #cfcfd6; border-radius: 7px; background: transparent; color: #7a7a82; font-family: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; flex-shrink: 0" style-hover="background: #f1f1f4; color: #17171a; border-color: #b6b6be">+ New tab</button>
+          </div>
+
+          <div style="font-size: 12px; color: #8a8a92; display: flex; align-items: center; gap: 8px; margin-bottom: 12px">
+            <span style="letter-spacing: .06em; font-weight: 600; text-transform: uppercase">{{ listCaption }}</span>
+            <span style="flex: 1; height: 1px; background: #e8e8ec"></span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 10px">
+            <sc-for list="{{ presets }}" as="p" hint-placeholder-count="2">
+              <div style="{{ p.cardStyle }}">
+                <div style="display: flex; align-items: center; gap: 12px; padding: 13px 14px">
+                  <span style="color: #c3c3cb; font-size: 14px; cursor: grab; letter-spacing: -1px; user-select: none">⠿</span>
+                  <span style="width: 30px; height: 30px; border-radius: 8px; background: #f2f2f5; display: grid; place-items: center; font-size: 15px; flex-shrink: 0">{{ p.icon }}</span>
+                  <div style="min-width: 0; flex: 1">
+                    <div style="display: flex; align-items: center; gap: 8px">
+                      <span style="font-size: 14px; font-weight: 700; color: #17171a">{{ p.name }}</span>
+                      <span style="{{ p.defaultChipStyle }}">Default</span>
+                    </div>
+                    <div style="font-size: 12.5px; color: #7a7a82; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ p.summary }}</div>
+                  </div>
+                  <button onClick="{{ p.onStar }}" title="Set as default" style="{{ p.starStyle }}" style-hover="background: #f2f2f5">{{ p.starIcon }}</button>
+                  <button onClick="{{ p.onToggle }}" style="{{ p.editStyle }}" style-hover="background: #ebebef">{{ p.editLabel }}</button>
+                </div>
+                <sc-if value="{{ p.expanded }}">
+                  <div style="padding: 14px 14px 16px 68px; display: flex; flex-direction: column; gap: 14px; border-top: 1px solid #f0f0f3">
+                    <div style="display: flex; gap: 12px">
+                      <label style="flex: 1; display: flex; flex-direction: column; gap: 6px">
+                        <span style="font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #8a8a92">Name</span>
+                        <input value="{{ p.name }}" onChange="{{ p.onName }}" style="height: 34px; padding: 0 10px; border: 1px solid #dedee3; border-radius: 8px; font-size: 13px; color: #17171a; background: #fff" />
+                      </label>
+                      <label style="flex: 2; display: flex; flex-direction: column; gap: 6px">
+                        <span style="font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #8a8a92">Subtitle shown on the chip</span>
+                        <input value="{{ p.summary }}" onChange="{{ p.onSummary }}" style="height: 34px; padding: 0 10px; border: 1px solid #dedee3; border-radius: 8px; font-size: 13px; color: #17171a; background: #fff" />
+                      </label>
+                    </div>
+                    <label style="display: flex; flex-direction: column; gap: 6px">
+                      <span style="font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #8a8a92">Prompt</span>
+                      <textarea rows="3" value="{{ p.prompt }}" onChange="{{ p.onPrompt }}" style="padding: 10px; border: 1px solid #dedee3; border-radius: 8px; font-size: 13px; line-height: 1.5; color: #17171a; background: #fff; resize: vertical"></textarea>
+                    </label>
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+                      <div style="font-size: 12px; color: #8a8a92">Tone <strong style="color: #17171a; font-weight: 600">{{ p.tone }}</strong> · used {{ p.uses }} times</div>
+                      <div style="display: flex; gap: 8px">
+                        <button onClick="{{ p.onDelete }}" style="height: 30px; padding: 0 12px; border-radius: 7px; border: 1px solid #e6dcdc; background: #fff; color: #b3261e; font-size: 12.5px; font-weight: 600; cursor: pointer" style-hover="background: #fdf3f2">Delete</button>
+                        <button onClick="{{ p.onToggle }}" style="height: 30px; padding: 0 14px; border-radius: 7px; border: 1px solid #1b1b1d; background: #1b1b1d; color: #fff; font-size: 12.5px; font-weight: 600; cursor: pointer" style-hover="opacity: .88">Done</button>
+                      </div>
+                    </div>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+
+          <button onClick="{{ onAddPreset }}" style="margin-top: 12px; width: 100%; height: 44px; border: 1px dashed #d2d2d8; border-radius: 10px; background: transparent; color: #6b6b73; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer" style-hover="background: #f1f1f4; color: #17171a">+ Add to {{ activeMode }}</button>
+
+          <div style="margin-top: 24px; border-radius: 10px; border: 1px solid #e4e4e9; background: #fff; padding: 16px 18px">
+            <div style="font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #8a8a92; margin-bottom: 10px">Preview on the main screen</div>
+            <div style="display: flex; gap: 20px; border-bottom: 1px solid #ececf0; margin-bottom: 14px">
+              <sc-for list="{{ previewTabs }}" as="t" hint-placeholder-count="3">
+                <span style="{{ t.style }}">{{ t.label }}</span>
+              </sc-for>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap">
+              <sc-for list="{{ presets }}" as="p" hint-placeholder-count="2">
+                <span style="{{ p.chipStyle }}">
+                  <span style="font-size: 14px">{{ p.icon }}</span>
+                  <strong style="font-weight: 700; color: #17171a">{{ p.name }}</strong>
+                  <span style="color: #c9c9d0">|</span>
+                  <span style="color: #7a7a82">{{ p.summary }}</span>
+                </span>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isPermissions }}">
+        <div style="padding: 20px 22px 32px; display: flex; flex-direction: column; gap: 16px">
+          <div style="{{ bannerStyle }}">
+            <span style="{{ bannerDotStyle }}"></span>
+            <div style="flex: 1; min-width: 0">
+              <div style="font-size: 14px; font-weight: 700; color: #17171a">{{ bannerTitle }}</div>
+              <div style="font-size: 12.5px; color: #5f5f68; margin-top: 3px; line-height: 1.5">{{ bannerBody }}</div>
+            </div>
+            <sc-if value="{{ showBannerCta }}">
+              <button onClick="{{ onGrantAll }}" style="height: 32px; padding: 0 14px; border-radius: 8px; border: 0; background: #1b1b1d; color: #fff; font-family: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; flex-shrink: 0" style-hover="opacity: .88">{{ bannerCta }}</button>
+            </sc-if>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 10px">
+            <sc-for list="{{ perms }}" as="p" hint-placeholder-count="3">
+              <div style="{{ p.cardStyle }}">
+                <div style="display: flex; align-items: flex-start; gap: 12px; padding: 14px">
+                  <span style="{{ p.iconStyle }}">{{ p.icon }}</span>
+                  <div style="flex: 1; min-width: 0">
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+                      <span style="font-size: 14px; font-weight: 700; color: #17171a">{{ p.name }}</span>
+                      <span style="{{ p.pillStyle }}">{{ p.pillLabel }}</span>
+                      <span style="{{ p.requiredStyle }}">{{ p.requiredLabel }}</span>
+                    </div>
+                    <div style="font-size: 12.5px; color: #6b6b73; margin-top: 4px; line-height: 1.55">{{ p.why }}</div>
+                    <div style="font-size: 12px; color: #9a9aa2; margin-top: 6px">Without it: {{ p.without }}</div>
+                    <sc-if value="{{ p.showSteps }}">
+                      <div style="margin-top: 12px; padding: 12px; border-radius: 8px; background: #fafafb; border: 1px solid #ececf0">
+                        <div style="font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #8a8a92; margin-bottom: 8px">How to grant it</div>
+                        <div style="display: flex; flex-direction: column; gap: 7px">
+                          <sc-for list="{{ p.steps }}" as="s" hint-placeholder-count="3">
+                            <div style="display: flex; gap: 9px; font-size: 12.5px; color: #4a4a52; line-height: 1.5">
+                              <span style="width: 17px; height: 17px; border-radius: 50%; background: #e8e8ec; color: #6b6b73; font-size: 10px; font-weight: 700; display: grid; place-items: center; flex-shrink: 0; margin-top: 1px">{{ s.n }}</span>
+                              <span>{{ s.text }}</span>
+                            </div>
+                          </sc-for>
+                        </div>
+                      </div>
+                    </sc-if>
+                  </div>
+                  <div style="display: flex; flex-direction: column; gap: 6px; align-items: stretch; flex-shrink: 0">
+                    <button onClick="{{ p.onPrimary }}" style="{{ p.primaryStyle }}" style-hover="opacity: .88">{{ p.primaryLabel }}</button>
+                    <sc-if value="{{ p.showSecondary }}">
+                      <button onClick="{{ p.onSteps }}" style="height: 28px; padding: 0 10px; border-radius: 7px; border: 1px solid #e0e0e5; background: #fff; color: #4a4a52; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer" style-hover="background: #f4f4f6">{{ p.secondaryLabel }}</button>
+                    </sc-if>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 10px; font-size: 12px; color: #8a8a92">
+            <button onClick="{{ onRecheck }}" style="display: flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: 7px; border: 1px solid #e0e0e5; background: #fff; color: #4a4a52; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer" style-hover="background: #f1f1f4">
+              <span style="{{ spinStyle }}">↻</span> Re-check
+            </button>
+            <span>{{ checkedLabel }}</span>
+            <span style="flex: 1"></span>
+            <button onClick="{{ onResetPerms }}" style="border: 0; background: transparent; color: #a0a0a8; font-family: inherit; font-size: 12px; cursor: pointer; text-decoration: underline" style-hover="color: #17171a">Reset demo state</button>
+          </div>
+
+          <div style="border-radius: 10px; border: 1px solid #e4e4e9; background: #fff; padding: 14px 16px">
+            <div style="font-size: 12.5px; font-weight: 700; color: #17171a; margin-bottom: 6px">What Per My Last does with this access</div>
+            <div style="font-size: 12.5px; color: #6b6b73; line-height: 1.6">It reads only the text you have selected at the moment you press the hotkey — nothing in the background, no keystroke logging, no screen recording. Selected text is sent to Claude with your own API key and is not stored on our side. <a href="#privacy">Privacy details</a></div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isAdvanced }}">
+        <div style="padding: 18px 20px 30px; display: flex; flex-direction: column; gap: 18px">
+
+          <div>
+            <div style="font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: #8a8a92; margin: 0 2px 8px">Tools — extra context Per My Last writes with</div>
+            <div style="border-radius: 10px; border: 1px solid #e4e4e9; background: #fff; overflow: hidden">
+              <sc-for list="{{ tools }}" as="t" hint-placeholder-count="3">
+                <div style="{{ t.rowStyle }}">
+                  <span style="width: 30px; height: 30px; border-radius: 8px; background: #f2f2f5; display: grid; place-items: center; font-size: 15px; flex-shrink: 0">{{ t.icon }}</span>
+                  <div style="flex: 1; min-width: 0">
+                    <div style="display: flex; align-items: center; gap: 8px">
+                      <span style="font-size: 13.5px; font-weight: 700; color: #17171a">{{ t.name }}</span>
+                      <span style="{{ t.soonStyle }}">Coming soon</span>
+                    </div>
+                    <div style="font-size: 11.5px; color: #9a9aa2; margin-top: 2px">{{ t.desc }}</div>
+                  </div>
+                  <button onClick="{{ t.onToggle }}" style="{{ t.trackStyle }}"><span style="{{ t.knobStyle }}"></span></button>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <sc-if value="{{ writeOn }}">
+            <div>
+              <div style="font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: #8a8a92; margin: 0 2px 8px">Write My Way</div>
+              <div style="border-radius: 10px; border: 1px solid #e4e4e9; background: #fff; overflow: hidden">
+
+                <div style="display: flex; align-items: center; gap: 14px; padding: 13px 14px">
+                  <div style="width: 176px; flex-shrink: 0">
+                    <div style="font-size: 13.5px; font-weight: 600; color: #17171a">English level</div>
+                    <div style="font-size: 11.5px; color: #9a9aa2; margin-top: 2px">Keeps rewrites at your level</div>
+                  </div>
+                  <div style="flex: 1; display: flex; align-items: center; gap: 10px">
+                    <button onClick="{{ onToggleLevel }}" style="{{ levelTrackStyle }}"><span style="{{ levelKnobStyle }}"></span></button>
+                    <sc-if value="{{ levelOn }}">
+                      <div style="display: flex; align-items: center; gap: 8px">
+                        <select value="{{ test }}" onChange="{{ onTest }}" style="height: 32px; padding: 0 8px; border: 1px solid #dedee3; border-radius: 8px; font-size: 12.5px; color: #17171a; background: #fff">
+                          <sc-for list="{{ tests }}" as="t" hint-placeholder-count="3">
+                            <option value="{{ t }}">{{ t }}</option>
+                          </sc-for>
+                        </select>
+                        <input value="{{ score }}" onChange="{{ onScore }}" placeholder="{{ scorePlaceholder }}" style="width: 110px; height: 32px; padding: 0 10px; border: 1px solid #dedee3; border-radius: 8px; font-size: 12.5px; color: #17171a" />
+                        <span style="font-size: 11.5px; color: #9a9aa2">Recent score or your best estimate</span>
+                      </div>
+                    </sc-if>
+                  </div>
+                </div>
+
+                <div style="height: 1px; background: #f0f0f3"></div>
+
+                <div style="display: flex; align-items: center; gap: 14px; padding: 13px 14px">
+                  <div style="width: 176px; flex-shrink: 0">
+                    <div style="font-size: 13.5px; font-weight: 600; color: #17171a">Default tone</div>
+                  </div>
+                  <select value="{{ tone }}" onChange="{{ onTone }}" style="flex: 1; height: 34px; padding: 0 10px; border: 1px solid #dedee3; border-radius: 8px; font-size: 13px; color: #17171a; background: #fff">
+                    <sc-for list="{{ tones }}" as="t" hint-placeholder-count="4">
+                      <option value="{{ t }}">{{ t }}</option>
+                    </sc-for>
+                  </select>
+                </div>
+
+                <div style="height: 1px; background: #f0f0f3"></div>
+
+                <div style="display: flex; align-items: center; gap: 14px; padding: 13px 14px">
+                  <div style="width: 176px; flex-shrink: 0">
+                    <div style="font-size: 13.5px; font-weight: 600; color: #17171a">Length</div>
+                    <div style="font-size: 11.5px; color: #9a9aa2; margin-top: 2px">{{ lengthHint }}</div>
+                  </div>
+                  <div style="flex: 1; display: flex; gap: 3px; padding: 3px; background: #f2f2f5; border-radius: 8px">
+                    <sc-for list="{{ lengths }}" as="l" hint-placeholder-count="4">
+                      <button onClick="{{ l.onClick }}" style="{{ l.style }}">{{ l.label }}</button>
+                    </sc-for>
+                  </div>
+                </div>
+
+                <div style="height: 1px; background: #f0f0f3"></div>
+
+                <div style="display: flex; align-items: center; gap: 14px; padding: 13px 14px">
+                  <div style="width: 176px; flex-shrink: 0">
+                    <div style="font-size: 13.5px; font-weight: 600; color: #17171a">Format</div>
+                  </div>
+                  <select value="{{ format }}" onChange="{{ onFormat }}" style="flex: 1; height: 34px; padding: 0 10px; border: 1px solid #dedee3; border-radius: 8px; font-size: 13px; color: #17171a; background: #fff">
+                    <sc-for list="{{ formats }}" as="f" hint-placeholder-count="3">
+                      <option value="{{ f }}">{{ f }}</option>
+                    </sc-for>
+                  </select>
+                </div>
+
+                <div style="height: 1px; background: #f0f0f3"></div>
+
+                <div style="padding: 11px 14px; font-size: 11.5px; color: #a0a0a8; line-height: 1.5">Target audience and standing custom instructions are set per Tone Preset — coming soon.</div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ modeOn }}">
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px; margin: 0 2px 8px">
+                <span style="font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: #8a8a92">Wartime / Peacetime</span>
+                <span style="flex: 1"></span>
+                <button onClick="{{ onToggleCompare }}" style="{{ compareStyle }}">{{ compareLabel }}</button>
+              </div>
+              <div style="border-radius: 10px; border: 1px solid #e4e4e9; background: #fff; padding: 14px">
+                <div style="font-size: 12.5px; color: #6b6b73; line-height: 1.55; margin-bottom: 12px">Your read on the company right now, not a universal standard. Per My Last uses it to judge how blunt, fast, and formal your drafts should be.</div>
+
+                <div style="display: flex; gap: 3px; padding: 3px; background: #f2f2f5; border-radius: 9px; margin-bottom: 14px">
+                  <sc-for list="{{ modeOptions }}" as="m" hint-placeholder-count="2">
+                    <button onClick="{{ m.onClick }}" style="{{ m.style }}">
+                      <span>{{ m.label }}</span>
+                      <span style="{{ m.subStyle }}">{{ m.sub }}</span>
+                    </button>
+                  </sc-for>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+                  <sc-for list="{{ traitGroups }}" as="g" hint-placeholder-count="4">
+                    <div style="border-radius: 9px; background: #fafafb; border: 1px solid #f0f0f3; padding: 11px 12px">
+                      <div style="font-size: 12px; font-weight: 700; color: #17171a; margin-bottom: 7px">{{ g.title }}</div>
+                      <div style="display: flex; flex-direction: column; gap: 6px">
+                        <sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="4">
+                          <div style="font-size: 11.5px; line-height: 1.45">
+                            <span style="color: #8a8a92">{{ r.label }}</span>
+                            <div style="{{ r.activeStyle }}">{{ r.active }}</div>
+                            <sc-if value="{{ r.compare }}">
+                              <div style="color: #b0b0b8; margin-top: 2px">{{ r.otherLabel }} {{ r.other }}</div>
+                            </sc-if>
+                          </div>
+                        </sc-for>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+
+                <div style="{{ noteStyle }}">{{ note }}</div>
+
+                <div style="margin-top: 12px; border-top: 1px solid #f0f0f3; padding-top: 12px">
+                  <button onClick="{{ onToggleExport }}" style="display: flex; align-items: center; gap: 6px; border: 0; background: transparent; padding: 0; color: #7a7a82; font-family: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer" style-hover="color: #17171a">
+                    <span style="{{ exportCaretStyle }}">›</span> Export this as context for another AI assistant
+                  </button>
+                  <sc-if value="{{ exportOpen }}">
+                    <div style="margin-top: 10px">
+                      <textarea rows="7" readOnly="{{ true }}" value="{{ exportText }}" style="width: 100%; padding: 10px; border: 1px solid #dedee3; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.6; color: #4a4a52; background: #fafafb; resize: vertical"></textarea>
+                      <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px">
+                        <button onClick="{{ onCopy }}" style="height: 30px; padding: 0 13px; border-radius: 7px; border: 0; background: #1b1b1d; color: #fff; font-size: 12.5px; font-weight: 700; cursor: pointer" style-hover="opacity: .88">{{ copyLabel }}</button>
+                        <span style="font-size: 11.5px; color: #9a9aa2">Paste into ChatGPT, Claude, or a project brief.</span>
+                      </div>
+                    </div>
+                  </sc-if>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ noToolsOn }}">
+            <div style="border-radius: 10px; border: 1px dashed #d8d8de; background: #fff; padding: 22px; text-align: center">
+              <div style="font-size: 13px; font-weight: 600; color: #17171a">No tools on</div>
+              <div style="font-size: 12.5px; color: #8a8a92; margin-top: 4px; line-height: 1.5">Turn one on above and its settings appear here.</div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 10px; padding: 0 16px; height: 34px; border-top: 1px solid #e5e5e8; background: #fff; font-size: 11.5px; color: #9a9aa2; flex-shrink: 0">
+      <span>Version 1.4.2</span>
+      <span style="width: 1px; height: 11px; background: #dcdce1"></span>
+      <a href="#feedback">Send feedback</a>
+      <span style="width: 1px; height: 11px; background: #dcdce1"></span>
+      <a href="#updates">Check for updates</a>
+      <span style="flex: 1"></span>
+      <span>Changes save as you make them</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:780,&quot;height&quot;:800},&quot;accentColor&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#2b6cf6&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#2b6cf6&quot;,&quot;#17171a&quot;,&quot;#0f7b6c&quot;,&quot;#7c3aed&quot;]}}">
+const PRESET_SEED = {
+  Reply: [
+    { id: "r1", icon: "📧", name: "Email", summary: "Workplace email reply in your tone", tone: "Direct", uses: 42, prompt: "You are an expert email writer who drafts clear, professional email replies for workplace contexts. Write the reply in a Direct tone." },
+    { id: "r2", icon: "💬", name: "Message", summary: "Short chat / DM reply", tone: "Warm", uses: 18, prompt: "Write a short, natural reply to this message. Keep it conversational and to the point." }
+  ],
+  Write: [
+    { id: "w1", icon: "✍️", name: "Rewrite like Native", summary: "Clear, native English level", tone: "Neutral", uses: 67, prompt: "Rewrite this text like a native English speaker would, keeping the original meaning." },
+    { id: "w2", icon: "🧑", name: "Rewrite Like Me", summary: "Match my style, my English level", tone: "Personal", uses: 25, prompt: "Rewrite this text in my own voice, using my saved writing samples as reference." },
+    { id: "w3", icon: "🧓", name: "Fix Grammar", summary: "Spelling and grammar only", tone: "Neutral", uses: 12, prompt: "Fix only spelling and grammar. Do not change wording, tone, or structure." },
+    { id: "w4", icon: "👔", name: "Professional", summary: "Raise the register", tone: "Formal", uses: 8, prompt: "Rewrite this text at a more professional register, without making it stiff or wordy." }
+  ],
+  Understand: [
+    { id: "u1", icon: "🔍", name: "What are they asking?", summary: "Plain-English read of the ask", tone: "Plain", uses: 31, prompt: "Explain what this message is actually asking for, in plain English. List any implied requests or deadlines." },
+    { id: "u2", icon: "🧭", name: "Read between the lines", summary: "Subtext and likely intent", tone: "Analytical", uses: 9, prompt: "Summarise the subtext of this message: tone, urgency, and what the sender likely wants but did not say." }
+  ]
+};
+
+const PERMS = [
+  { id: "accessibility", icon: "🔓", name: "Accessibility", required: true, why: "Lets the hotkey read the text you have highlighted in another app.", without: "you can still paste text into the window by hand.", steps: ["System Settings → Privacy & Security → Accessibility", "Turn on the switch next to Per My Last", "Come back here and hit Re-check"] },
+  { id: "automation", icon: "⚡", name: "Automation", sub: "System Events", required: true, why: "Lets the app trigger the copy step so your selection is captured cleanly.", without: "capture fails silently on some apps, notably Mail and Slack.", steps: ["System Settings → Privacy & Security → Automation", "Expand Per My Last and enable System Events", "Come back here and hit Re-check"] },
+  { id: "notifications", icon: "🔔", name: "Notifications", required: false, why: "Tells you when a long draft is ready if the window is not focused.", without: "drafts still appear in the window, just without a ping.", steps: ["System Settings → Notifications → Per My Last", "Allow notifications"] }
+];
+
+const MODELS = [
+  { id: "claude-sonnet-5", label: "Claude Sonnet 5 — recommended" },
+  { id: "claude-opus-4-6", label: "Claude Opus 4.6 — most capable" },
+  { id: "claude-haiku-4-5", label: "Claude Haiku 4.5 — fastest" }
+];
+const EFFORTS = [
+  ["Low", "One quick pass — fastest, cheapest"],
+  ["Medium", "Balanced. Fine for most replies"],
+  ["High", "More thorough — a few seconds longer"],
+  ["Extra", "Deep reasoning on nuanced messages"],
+  ["Max", "Slowest and most expensive on your key"]
+];
+const LANGS = ["🇻🇳 Vietnamese", "🇺🇸 English", "🇯🇵 Japanese", "🇰🇷 Korean", "🇩🇪 German", "🇫🇷 French", "🇪🇸 Spanish"];
+const TRAITS = [
+  { title: "Business environment", rows: [
+    ["Business pressure", "Existential — fending off a real threat to survival.", "Little to none. The company holds a solid position."],
+    ["Focus on competition", "Preoccupied with rivals; every move is read against them.", "No need to obsess over what rivals are doing."],
+    ["Dev priority", "Ship quickly. Speed beats polish.", "Ship thoroughly validated features, not just fast ones."],
+    ["Deadlines", "Non-negotiable. Missing one is a real problem.", "A bonus to hit, not a must."]
+  ]},
+  { title: "How work gets done", rows: [
+    ["Meetings", "Kept to a minimum. “Done is better than perfect.”", "Common and expected. “Alignment matters more than speed.”"],
+    ["Conflict", "Acceptable, even encouraged, if it moves things faster.", "Discouraged, even where it might help."],
+    ["Process", "Broken or skipped when it slows the outcome.", "Followed; it exists for a reason."],
+    ["Scope", "No room for nice-to-have work.", "Room for nice-to-have work and long-term investment."]
+  ]},
+  { title: "Culture and tone", rows: [
+    ["Frustration", "Stress and overwhelm are normal, rarely punished.", "Not acceptable if it turns unprofessional."],
+    ["Work-life balance", "Not a priority. Long hours during pushes.", "A real focus, often backed by policy."],
+    ["Decision-making", "Fast and decisive.", "Aims for common ground over speed."],
+    ["Leadership", "Highly visible, raw and direct, into the detail.", "Less visible day to day, measured and professional."],
+    ["Unpopular calls", "Made often when leadership sees them as necessary.", "Avoided; little appetite to upset a group."]
+  ]},
+  { title: "How to operate well", rows: [
+    ["Pace", "Move fast, but pace yourself — sprinting risks burnout.", "Sustainable by design; watch for stagnation."],
+    ["Conflict", "Don’t take it personally; it’s the pressure talking.", "Ask why it is happening — it is not welcomed here."],
+    ["Politics", "Standing with the CEO or CTO beats broad alliances.", "Build alliances across teams; they get things done."],
+    ["Priorities", "Only what the business needs right now.", "Invest in longer-term initiatives too."],
+    ["Biggest risk", "Burnout, yours and your team’s.", "Stagnation or boredom."]
+  ]}
+];
+
+const MODE_NOTE = {
+  Wartime: "Wartime fits a genuine existential threat — a competitor overtaking you, collapsing share, or running out of money. It trades sustainability for speed.",
+  Peacetime: "Peacetime usually follows a stabilising event — an IPO, a strong quarter, a deliberate reset. It trades some speed for a pace people can sustain."
+};
+
+const TESTS = ["IELTS", "TOEFL iBT", "TOEIC", "CEFR", "Duolingo English Test"];
+const SCORE_PLACEHOLDER = { "IELTS": "e.g. 7.5", "TOEFL iBT": "e.g. 98", "TOEIC": "e.g. 850", "CEFR": "e.g. B2", "Duolingo English Test": "e.g. 120" };
+const TONES = ["Professional", "Direct", "Warm", "Neutral", "Casual"];
+const FORMATS = ["Prose", "Bullet points", "Numbered list", "Match the original"];
+const LENGTHS = [["Short", "One tight paragraph"], ["Medium", "Two or three paragraphs"], ["Long", "Room to explain"], ["Custom", "Set per preset"]];
+
+const TOP_TABS = [["General", "☀"], ["Tone Presets", "▤"], ["Permissions", "🛡"], ["Advanced", "✎"]];
+
+class Component extends DCLogic {
+  state = {
+    tab: "General",
+    // general
+    key: "sk-ant-api03-8f2b9c1d4e7a6b3c5d8e9f0a1b2c3d4f2a",
+    keyEditing: false, keyDraft: "",
+    workspaceOpen: false, workspace: "",
+    model: "claude-sonnet-5", effort: "High",
+    shortcut: "⇧⌘W", recording: false,
+    dock: true, launch: true,
+    motherLang: "🇻🇳 Vietnamese", appLang: "English (US)",
+    savedAt: 0,
+    // presets
+    modes: ["Reply", "Write", "Understand"],
+    mode: "Reply",
+    data: PRESET_SEED,
+    defaults: { Reply: "r1", Write: "w1", Understand: "u1" },
+    expanded: null, editingTab: null, tabDraft: "", editStartedAt: 0, dragTab: null,
+    // permissions
+    granted: { accessibility: false, automation: true, notifications: false },
+    permOpen: "accessibility", checkedAgo: 12, spinning: false,
+    // advanced
+    writeOn: true, vipOn: false, modeOn: true,
+    levelOn: false, test: "IELTS", score: "",
+    tone: "Professional", length: "Short", format: "Bullet points",
+    opMode: "Wartime", compare: false, exportOpen: false, copied: false
+  };
+
+  accent() { return this.props.accentColor ?? "#2b6cf6"; }
+  touch(patch) { this.setState({ ...patch, savedAt: Date.now() }); }
+
+  componentDidMount() {
+    this.timer = setInterval(() => this.setState(s => ({ checkedAgo: s.checkedAgo + 1 })), 1000);
+  }
+  componentWillUnmount() { clearInterval(this.timer); }
+
+  toggleStyles(on) {
+    const accent = this.accent();
+    return [
+      `width: 40px; height: 23px; border-radius: 999px; border: 0; padding: 2px; cursor: pointer; display: flex; align-items: center; justify-content: ${on ? "flex-end" : "flex-start"}; background: ${on ? accent : "#d8d8de"}; flex-shrink: 0; transition: background .15s`,
+      "width: 19px; height: 19px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.25); display: block"
+    ];
+  }
+
+  updatePreset(id, key, value) {
+    this.setState(s => ({ data: { ...s.data, [s.mode]: s.data[s.mode].map(p => p.id === id ? { ...p, [key]: value } : p) } }));
+  }
+
+  startEdit(label) { this.setState({ editingTab: label, tabDraft: label, mode: label, editStartedAt: Date.now() }); }
+
+  renameMode(from, to) {
+    const name = (to || "").trim();
+    this.setState(s => {
+      if (!name || (name !== from && s.modes.includes(name))) return { editingTab: null, tabDraft: "" };
+      const data = {}, defaults = {};
+      s.modes.forEach(t => { const k = t === from ? name : t; data[k] = s.data[t]; defaults[k] = s.defaults[t]; });
+      return { modes: s.modes.map(t => t === from ? name : t), data, defaults, mode: s.mode === from ? name : s.mode, editingTab: null, tabDraft: "" };
+    });
+  }
+
+  commitRename(label) {
+    const draft = this.state.tabDraft;
+    if (draft == null || draft === label) this.setState({ editingTab: null, tabDraft: "" });
+    else this.renameMode(label, draft);
+  }
+
+  addMode() {
+    this.setState(s => {
+      let name = "New tab", n = 2;
+      while (s.modes.includes(name)) name = "New tab " + n++;
+      return { modes: [...s.modes, name], data: { ...s.data, [name]: [] }, defaults: { ...s.defaults, [name]: null }, mode: name, editingTab: name, tabDraft: name, editStartedAt: Date.now(), expanded: null };
+    });
+  }
+
+  deleteMode(name) {
+    this.setState(s => {
+      const modes = s.modes.filter(t => t !== name);
+      const data = { ...s.data }, defaults = { ...s.defaults };
+      delete data[name]; delete defaults[name];
+      return { modes, data, defaults, mode: s.mode === name ? modes[0] : s.mode, expanded: null, editingTab: null };
+    });
+  }
+
+  moveMode(target) {
+    this.setState(s => {
+      const from = s.dragTab;
+      if (!from || from === target) return {};
+      const modes = s.modes.filter(t => t !== from);
+      modes.splice(s.modes.indexOf(target) > s.modes.indexOf(from) ? modes.indexOf(target) + 1 : modes.indexOf(target), 0, from);
+      return { modes };
+    });
+  }
+
+  renderVals() {
+    const s = this.state;
+    const accent = this.accent();
+    const list = s.data[s.mode] || [];
+    const missingRequired = PERMS.filter(p => p.required && !s.granted[p.id]);
+    const permsOk = missingRequired.length === 0;
+    const [dockTrackStyle, dockKnobStyle] = this.toggleStyles(s.dock);
+    const [launchTrackStyle, launchKnobStyle] = this.toggleStyles(s.launch);
+    const recentlySaved = Date.now() - s.savedAt < 2000;
+
+    return {
+      topTabs: TOP_TABS.map(([label, icon]) => {
+        const active = label === s.tab;
+        const needsAttention = label === "Permissions" && !permsOk;
+        return {
+          label: needsAttention ? label + " •" : label,
+          icon,
+          onClick: () => this.setState({ tab: label }),
+          style: `display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 7px 14px 8px; border: 0; background: transparent; border-radius: 8px 8px 0 0; cursor: pointer; font-family: inherit; color: ${active ? accent : needsAttention ? "#b8860b" : "#77777f"}; box-shadow: ${active ? "inset 0 -2px 0 " + accent : "none"}`
+        };
+      }),
+      isGeneral: s.tab === "General",
+      isPresets: s.tab === "Tone Presets",
+      isPermissions: s.tab === "Permissions",
+      isAdvanced: s.tab === "Advanced",
+      savedLabel: recentlySaved ? "Saved" : "",
+      savedStyle: `margin-left: auto; font-size: 11px; font-weight: 600; color: #8ee0b0; opacity: ${recentlySaved ? 1 : 0}; transition: opacity .3s`,
+
+      // ---- General
+      keyMasked: s.key ? "••••••••••••••••••" + s.key.slice(-4) : "Not set",
+      keyHint: s.key ? "In your macOS Keychain" : "Required to send anything",
+      keyStatusStyle: `font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 3px 7px; border-radius: 5px; background: ${s.key ? "#e7f4ed" : "#fbeed3"}; color: ${s.key ? "#0f6b48" : "#8a6205"}; flex-shrink: 0`,
+      keyStatusLabel: s.key ? "✓ Verified" : "Missing",
+      keyButtonLabel: s.keyEditing ? "Editing…" : s.key ? "Replace" : "Add key",
+      keyEditing: s.keyEditing,
+      keyDraft: s.keyDraft,
+      onEditKey: () => this.setState({ keyEditing: true, keyDraft: "" }),
+      onKeyDraft: e => this.setState({ keyDraft: e.target.value }),
+      onSaveKey: () => this.touch({ key: s.keyDraft || s.key, keyEditing: false }),
+      onCancelKey: () => this.setState({ keyEditing: false }),
+      models: MODELS,
+      model: s.model,
+      modelId: s.model,
+      onModel: e => this.touch({ model: e.target.value }),
+      efforts: EFFORTS.map(([label]) => {
+        const active = label === s.effort;
+        return {
+          label,
+          onClick: () => this.touch({ effort: label }),
+          style: `flex: 1; height: 28px; border: 0; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 12px; font-weight: ${active ? 700 : 500}; color: ${active ? "#17171a" : "#7a7a82"}; background: ${active ? "#fff" : "transparent"}; box-shadow: ${active ? "0 1px 2px rgba(0,0,0,.12)" : "none"}`
+        };
+      }),
+      effortHint: (EFFORTS.find(e => e[0] === s.effort) || EFFORTS[0])[1],
+      workspaceOpen: s.workspaceOpen,
+      workspace: s.workspace,
+      caretStyle: `display: inline-block; transition: transform .15s; transform: rotate(${s.workspaceOpen ? 90 : 0}deg)`,
+      onToggleWorkspace: () => this.setState({ workspaceOpen: !s.workspaceOpen }),
+      onWorkspace: e => this.touch({ workspace: e.target.value }),
+      shortcut: s.shortcut || "None",
+      recordLabel: s.recording ? "Press keys…" : "Change",
+      recordStyle: `height: 30px; padding: 0 12px; border-radius: 7px; border: ${s.recording ? "0" : "1px solid #e0e0e5"}; background: ${s.recording ? accent : "#fff"}; color: ${s.recording ? "#fff" : "#4a4a52"}; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer`,
+      onRecord: () => { this.setState({ recording: true }); setTimeout(() => this.touch({ recording: false, shortcut: "⌃⇧⌘S" }), 1400); },
+      onClearShortcut: () => this.touch({ shortcut: "" }),
+      dockTrackStyle, dockKnobStyle, launchTrackStyle, launchKnobStyle,
+      onToggleDock: () => this.touch({ dock: !s.dock }),
+      onToggleLaunch: () => this.touch({ launch: !s.launch }),
+      langs: LANGS,
+      motherLang: s.motherLang,
+      onMotherLang: e => this.touch({ motherLang: e.target.value }),
+      appLang: s.appLang,
+      onAppLang: e => this.touch({ appLang: e.target.value }),
+
+      // ---- Tone presets
+      activeMode: s.mode,
+      listCaption: `${list.length} action${list.length === 1 ? "" : "s"} in ${s.mode} · drag to reorder`,
+      stop: e => e.stopPropagation(),
+      onDragOver: e => e.preventDefault(),
+      onDragEnd: () => this.setState({ dragTab: null }),
+      onAddTab: () => this.addMode(),
+      modeTabs: s.modes.map(label => {
+        const active = label === s.mode;
+        const editing = s.editingTab === label;
+        return {
+          label,
+          count: (s.data[label] || []).length,
+          editing,
+          showLabel: !editing,
+          showActions: active && !editing,
+          inputValue: editing ? (s.tabDraft ?? label) : label,
+          onClick: () => this.setState({ mode: label, expanded: null }),
+          onDragStart: () => this.setState({ dragTab: label }),
+          onDragEnter: () => this.moveMode(label),
+          onRenameStart: e => { e.stopPropagation(); this.startEdit(label); },
+          onRenameInput: e => this.setState({ tabDraft: e.target.value }),
+          onRenameDone: () => { if (Date.now() - this.state.editStartedAt > 350) this.commitRename(label); },
+          onRenameKey: e => {
+            if (e.key === "Enter") this.commitRename(label);
+            else if (e.key === "Escape") this.setState({ editingTab: null, tabDraft: "" });
+          },
+          onDelete: e => { e.stopPropagation(); if (s.modes.length > 1) this.deleteMode(label); },
+          gripStyle: `font-size: 11px; letter-spacing: -1px; color: ${active ? "#b6b6be" : "transparent"}; cursor: grab; user-select: none`,
+          style: `display: flex; align-items: center; gap: 6px; padding: 7px 10px 9px; border: 0; border-radius: 8px 8px 0 0; background: ${active ? "#fff" : "transparent"}; cursor: pointer; font-family: inherit; font-size: 15px; font-weight: ${active ? 700 : 500}; color: ${active ? "#17171a" : "#8a8a92"}; box-shadow: ${active ? "inset 0 -2px 0 " + accent : "none"}; flex-shrink: 0`,
+          badgeStyle: `min-width: 19px; height: 19px; padding: 0 5px; border-radius: 10px; display: grid; place-items: center; font-size: 11px; font-weight: 700; background: ${active ? accent : "#e8e8ec"}; color: ${active ? "#fff" : "#8a8a92"}`,
+          deleteStyle: `width: 20px; height: 20px; border: 0; border-radius: 5px; background: transparent; color: #9a9aa2; font-size: 11px; cursor: ${s.modes.length > 1 ? "pointer" : "not-allowed"}; opacity: ${s.modes.length > 1 ? 1 : .3}`
+        };
+      }),
+      previewTabs: s.modes.map(label => {
+        const active = label === s.mode;
+        return { label, style: `padding-bottom: 8px; font-size: 13px; font-weight: ${active ? 700 : 500}; color: ${active ? "#17171a" : "#a0a0a8"}; box-shadow: ${active ? "inset 0 -2px 0 " + accent : "none"}` };
+      }),
+      presets: list.map(p => {
+        const isDefault = s.defaults[s.mode] === p.id;
+        const open = s.expanded === p.id;
+        return {
+          ...p,
+          expanded: open,
+          cardStyle: `border-radius: 10px; border: 1px solid ${open ? "#d3d3da" : "#e4e4e9"}; background: #fff; box-shadow: ${open ? "0 6px 18px rgba(0,0,0,.07)" : "0 1px 2px rgba(0,0,0,.03)"}`,
+          defaultChipStyle: isDefault
+            ? `font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 3px 7px; border-radius: 5px; background: ${accent}14; color: ${accent}`
+            : "display: none",
+          starIcon: isDefault ? "★" : "☆",
+          starStyle: `width: 30px; height: 30px; border-radius: 7px; border: 0; background: transparent; cursor: pointer; font-size: 15px; color: ${isDefault ? accent : "#b6b6be"}`,
+          editLabel: open ? "Close" : "Edit",
+          editStyle: "height: 30px; padding: 0 12px; border-radius: 7px; border: 1px solid #e0e0e5; background: #f6f6f8; color: #4a4a52; font-family: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer",
+          chipStyle: `display: inline-flex; align-items: center; gap: 7px; padding: 9px 14px; border-radius: 999px; font-size: 13px; border: 1.5px solid ${isDefault ? "#17171a" : "#e4e4e9"}; background: ${isDefault ? "#f6f6f8" : "#fff"}`,
+          onStar: () => this.setState(st => ({ defaults: { ...st.defaults, [st.mode]: p.id } })),
+          onToggle: () => this.setState(st => ({ expanded: st.expanded === p.id ? null : p.id })),
+          onName: e => this.updatePreset(p.id, "name", e.target.value),
+          onSummary: e => this.updatePreset(p.id, "summary", e.target.value),
+          onPrompt: e => this.updatePreset(p.id, "prompt", e.target.value),
+          onDelete: () => this.setState(st => ({ data: { ...st.data, [st.mode]: st.data[st.mode].filter(x => x.id !== p.id) }, expanded: null }))
+        };
+      }),
+      onAddPreset: () => {
+        const id = "n" + Date.now();
+        this.setState(st => ({
+          data: { ...st.data, [st.mode]: [...st.data[st.mode], { id, icon: "✨", name: "New preset", summary: "Describe when to use this", tone: "Neutral", uses: 0, prompt: "" }] },
+          expanded: id
+        }));
+      },
+
+      // ---- Permissions
+      bannerStyle: `display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border-radius: 10px; border: 1px solid ${permsOk ? "#cfe8dc" : "#f0dfb4"}; background: ${permsOk ? "#f2faf6" : "#fdf8ec"}`,
+      bannerDotStyle: `width: 9px; height: 9px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; background: ${permsOk ? "#127a52" : "#b8860b"}`,
+      bannerTitle: permsOk ? "Hotkey capture is working" : `Hotkey capture is off — ${missingRequired.length} permission${missingRequired.length === 1 ? "" : "s"} missing`,
+      bannerBody: permsOk
+        ? `Press ${s.shortcut || "your shortcut"} anywhere and your selection lands in Per My Last.`
+        : `Grant ${missingRequired.map(p => p.name).join(" and ")} so the hotkey can read your selection. Everything else in the app works without it.`,
+      showBannerCta: !permsOk,
+      bannerCta: missingRequired.length > 1 ? "Open System Settings" : "Open " + (missingRequired[0] ? missingRequired[0].name : ""),
+      onGrantAll: () => this.setState(st => {
+        const g = { ...st.granted };
+        PERMS.filter(p => p.required).forEach(p => { g[p.id] = true; });
+        return { granted: g, permOpen: null, checkedAgo: 0 };
+      }),
+      perms: PERMS.map(p => {
+        const on = s.granted[p.id];
+        const blocking = p.required && !on;
+        const showSteps = s.permOpen === p.id && !on;
+        return {
+          ...p,
+          name: p.sub ? `${p.name} (${p.sub})` : p.name,
+          showSteps,
+          steps: p.steps.map((text, i) => ({ n: i + 1, text })),
+          cardStyle: `border-radius: 10px; border: 1px solid ${blocking ? "#ecdcbc" : "#e4e4e9"}; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.03)`,
+          iconStyle: `width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; font-size: 15px; flex-shrink: 0; background: ${on ? "#eef8f3" : blocking ? "#fdf6e8" : "#f2f2f5"}`,
+          pillStyle: `display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 3px 7px; border-radius: 5px; background: ${on ? "#e7f4ed" : blocking ? "#fbeed3" : "#f0f0f3"}; color: ${on ? "#0f6b48" : blocking ? "#8a6205" : "#7a7a82"}`,
+          pillLabel: on ? "✓ Granted" : blocking ? "Needed" : "Not granted",
+          requiredStyle: p.required ? "display: none" : "font-size: 11.5px; color: #a0a0a8; font-weight: 600",
+          requiredLabel: "Optional",
+          primaryLabel: on ? "Revoke" : "Open Settings",
+          primaryStyle: on
+            ? "height: 28px; padding: 0 10px; border-radius: 7px; border: 1px solid #e0e0e5; background: #fff; color: #7a7a82; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer"
+            : `height: 28px; padding: 0 10px; border-radius: 7px; border: 0; background: ${blocking ? "#1b1b1d" : "#f2f2f5"}; color: ${blocking ? "#fff" : "#4a4a52"}; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer`,
+          onPrimary: () => this.setState(st => ({ granted: { ...st.granted, [p.id]: !on }, permOpen: null, checkedAgo: 0 })),
+          showSecondary: !on,
+          secondaryLabel: showSteps ? "Hide steps" : "Show steps",
+          onSteps: () => this.setState(st => ({ permOpen: st.permOpen === p.id ? null : p.id }))
+        };
+      }),
+      spinStyle: `display: inline-block; font-size: 12px; transition: transform .7s; transform: rotate(${s.spinning ? 360 : 0}deg)`,
+      checkedLabel: s.checkedAgo < 3 ? "Checked just now" : `Checked ${s.checkedAgo}s ago`,
+      onRecheck: () => { this.setState({ spinning: true }); setTimeout(() => this.setState({ spinning: false, checkedAgo: 0 }), 700); },
+      onResetPerms: () => this.setState({ granted: { accessibility: false, automation: true, notifications: false }, permOpen: "accessibility" }),
+
+      // ---- Advanced
+      tools: [
+        { id: "writeOn", icon: "✍️", name: "Write My Way", desc: "Your level, tone, length, and format applied to every rewrite", on: s.writeOn },
+        { id: "vipOn", icon: "⭐", name: "VIP Contacts", desc: "Per-person tone rules for the people you write to most", on: false, soon: true },
+        { id: "modeOn", icon: "⚔️", name: "Wartime / Peacetime Mode", desc: "How much bluntness and urgency your company currently rewards", on: s.modeOn }
+      ].map((t, i, arr) => {
+        const [trackStyle, knobStyle] = this.toggleStyles(t.on);
+        return {
+          ...t,
+          rowStyle: `display: flex; align-items: center; gap: 12px; padding: 13px 14px; ${i < arr.length - 1 ? "border-bottom: 1px solid #f0f0f3;" : ""} ${t.soon ? "opacity: .6;" : ""}`,
+          soonStyle: t.soon ? "font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 3px 6px; border-radius: 5px; background: #f0f0f3; color: #8a8a92" : "display: none",
+          trackStyle: t.soon ? trackStyle + "; pointer-events: none; opacity: .5" : trackStyle,
+          knobStyle,
+          onToggle: () => { if (!t.soon) this.touch({ [t.id]: !t.on }); }
+        };
+      }),
+      writeOn: s.writeOn,
+      modeOn: s.modeOn,
+      noToolsOn: !s.writeOn && !s.modeOn,
+
+      levelOn: s.levelOn,
+      levelTrackStyle: this.toggleStyles(s.levelOn)[0],
+      levelKnobStyle: this.toggleStyles(s.levelOn)[1],
+      onToggleLevel: () => this.touch({ levelOn: !s.levelOn }),
+      tests: TESTS,
+      test: s.test,
+      onTest: e => this.touch({ test: e.target.value }),
+      score: s.score,
+      scorePlaceholder: SCORE_PLACEHOLDER[s.test] || "Your score",
+      onScore: e => this.touch({ score: e.target.value }),
+      tones: TONES,
+      tone: s.tone,
+      onTone: e => this.touch({ tone: e.target.value }),
+      formats: FORMATS,
+      format: s.format,
+      onFormat: e => this.touch({ format: e.target.value }),
+      lengthHint: (LENGTHS.find(l => l[0] === s.length) || LENGTHS[0])[1],
+      lengths: LENGTHS.map(([label]) => {
+        const active = label === s.length;
+        return {
+          label,
+          onClick: () => this.touch({ length: label }),
+          style: `flex: 1; height: 28px; border: 0; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 12px; font-weight: ${active ? 700 : 500}; color: ${active ? "#17171a" : "#7a7a82"}; background: ${active ? "#fff" : "transparent"}; box-shadow: ${active ? "0 1px 2px rgba(0,0,0,.12)" : "none"}`
+        };
+      }),
+
+      modeOptions: [
+        ["Wartime", "Speed over sustainability"],
+        ["Peacetime", "Sustainability over speed"]
+      ].map(([label, sub]) => {
+        const active = label === s.opMode;
+        const warm = label === "Wartime";
+        return {
+          label, sub,
+          onClick: () => this.touch({ opMode: label }),
+          style: `flex: 1; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 8px 6px; border: 0; border-radius: 7px; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: ${active ? 700 : 500}; color: ${active ? "#17171a" : "#7a7a82"}; background: ${active ? (warm ? "#fbe2a7" : "#dbe6ff") : "transparent"}; box-shadow: ${active ? "0 1px 2px rgba(0,0,0,.1)" : "none"}`,
+          subStyle: `font-size: 10.5px; font-weight: 500; color: ${active ? "#6b6b73" : "#a8a8b0"}`
+        };
+      }),
+      traitGroups: TRAITS.map(g => ({
+        title: g.title,
+        rows: g.rows.map(([label, war, peace]) => ({
+          label,
+          active: s.opMode === "Wartime" ? war : peace,
+          other: s.opMode === "Wartime" ? peace : war,
+          otherLabel: s.opMode === "Wartime" ? "Peacetime:" : "Wartime:",
+          compare: s.compare,
+          activeStyle: "color: #17171a; font-weight: 500"
+        }))
+      })),
+      compareLabel: s.compare ? "Hide the other mode" : "Compare modes",
+      compareStyle: `height: 26px; padding: 0 10px; border-radius: 6px; border: 1px solid ${s.compare ? "#1b1b1d" : "#e0e0e5"}; background: ${s.compare ? "#1b1b1d" : "#fff"}; color: ${s.compare ? "#fff" : "#4a4a52"}; font-family: inherit; font-size: 11.5px; font-weight: 600; cursor: pointer`,
+      onToggleCompare: () => this.setState({ compare: !s.compare }),
+      note: MODE_NOTE[s.opMode],
+      noteStyle: `margin-top: 12px; padding: 10px 12px; border-radius: 8px; font-size: 12px; font-style: italic; line-height: 1.55; color: #4a4a52; background: ${s.opMode === "Wartime" ? "#fdf8ec" : "#f0f5ff"}; border-left: 3px solid ${s.opMode === "Wartime" ? "#e5b94e" : "#8fb0ff"}`,
+      exportOpen: s.exportOpen,
+      exportCaretStyle: `display: inline-block; transition: transform .15s; transform: rotate(${s.exportOpen ? 90 : 0}deg)`,
+      onToggleExport: () => this.setState({ exportOpen: !s.exportOpen }),
+      exportText: `COMPANY OPERATING MODE: ${s.opMode.toUpperCase()}\n\nTreat the company as currently operating in ${s.opMode.toUpperCase()} mode. When you give advice, feedback, or suggestions, reason according to the priorities below rather than generic best practice.\n\n` +
+        TRAITS.map(g => g.title + ":\n" + g.rows.map(([label, war, peace]) => `- ${label}: ${s.opMode === "Wartime" ? war : peace}`).join("\n")).join("\n\n") +
+        `\n\nContext: ${MODE_NOTE[s.opMode]}`,
+      copyLabel: s.copied ? "Copied" : "Copy",
+      onCopy: () => {
+        this.setState({ copied: true });
+        setTimeout(() => this.setState({ copied: false }), 1500);
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

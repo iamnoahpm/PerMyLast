@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="tokens.css">
+<style>
+  * { box-sizing:border-box; }
+  body { background:transparent; overflow:hidden; font-size:13px; }
+  .window { background:var(--bg); margin:0; height:100vh; border-radius:var(--r-window); overflow:hidden; display:flex; flex-direction:column; }
+  .header { background:var(--vc-dark); color:#fff; padding:0 12px; height:38px; display:flex; align-items:center; gap:10px; -webkit-app-region:drag; flex-shrink:0; position:relative; }
+  .traffic-lights { display:flex; gap:7px; -webkit-app-region:no-drag; flex-shrink:0; }
+  .tl { position:relative; width:11px; height:11px; border-radius:50%; border:none; padding:0; margin:0; cursor:pointer; }
+  .tl-close { background:var(--traffic-red); }
+  .tl-min { background:var(--traffic-yellow); }
+  .tl-max { background:var(--traffic-green); }
+  .tl span { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:9px; line-height:1; color:rgba(0,0,0,.5); opacity:0; }
+  .traffic-lights:hover .tl span { opacity:1; }
+  /* Inset well clear of the traffic-light buttons (left) and the Saved flash
+     (right) — Chromium's -webkit-app-region drag-region hit-testing is a
+     compositor-level mechanism that ignores pointer-events:none, so an
+     absolutely-positioned span painted on top of the buttons can swallow
+     real mouse-downs as a window-drag gesture even though DOM click events
+     (including synthetic ones from a script) still reach the button
+     underneath just fine. */
+  .header .title { position:absolute; left:70px; right:70px; text-align:center; font-weight:600; font-size:13px; pointer-events:none; }
+  .saved-flash { position:absolute; right:12px; font-size:11px; font-weight:600; color:#8ee0b0; opacity:0; transition:opacity .3s; pointer-events:none; }
+  .saved-flash.show { opacity:1; }
+  .icon-btn { display:none; }
+  .tabbar { display:flex; gap:2px; background:var(--bg); border-bottom:1px solid #e5e5e8; padding:8px 12px 0; flex-shrink:0; }
+  .tab { -webkit-appearance:none; appearance:none; display:flex; flex-direction:column; align-items:center; gap:3px; background:transparent; border:none; box-shadow:none; width:auto; padding:7px 14px 8px; margin:0; cursor:pointer; color:var(--vc-label-subtle); font-size:12px; font-weight:600; font-family:inherit; border-radius:var(--r-input) var(--r-input) 0 0; transition:color var(--dur-fast) var(--ease); }
+  .tab:hover { color:var(--fg); transform:none; background:var(--vc-paper-2); }
+  .tab svg { width:15px; height:15px; stroke:currentColor; }
+  .tab.active { color:var(--accent-cool); box-shadow:inset 0 -2px 0 var(--accent-cool); background:transparent; }
+  .tab.active:hover { background:transparent; }
+  .tab.attention:not(.active) { color:var(--warning-dot); }
+  .tab-panel { display:none; }
+  .tab-panel.active { display:block; }
+  .content { padding:18px 20px 28px; overflow-y:auto; flex:1; background:var(--vc-paper); }
+  .section-label { font-size:var(--t-label); font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--vc-label-subtle); margin:0 2px 8px; }
+  .card { background:var(--bg); border:1px solid var(--vc-border); border-radius:var(--r-card); padding:16px; margin-bottom:12px; box-shadow:var(--sh-card); }
+  label { display:block; font-size:var(--t-input); font-weight:600; margin:10px 0 6px; color:var(--fg); }
+  input, select, textarea { width:100%; padding:10px; border:1px solid var(--vc-border-strong); border-radius:var(--r-input); font-size:var(--t-input); box-sizing:border-box; font-family:inherit; color:var(--fg); background:var(--bg); transition:border-color var(--dur-fast) var(--ease); }
+  input:focus, select:focus, textarea:focus { outline:none; border-color:var(--accent-cool); }
+  small { font-size:var(--t-hint); color:var(--vc-hint); line-height:1.5; }
+  .checkbox-row { display:flex; align-items:center; gap:8px; margin:0; cursor:pointer; }
+  .checkbox-row input { width:16px; height:16px; padding:0; flex-shrink:0; cursor:pointer; }
+  .checkbox-row span { font-size:var(--t-input); font-weight:600; color:var(--fg); }
+  .perm-check-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 0; border-bottom:1px solid var(--vc-divider-2); }
+  .perm-check-row:last-of-type { border-bottom:none; }
+  .perm-check-name { font-size:var(--t-input); font-weight:600; color:var(--fg); }
+  .perm-badge { -webkit-appearance:none; appearance:none; width:auto; flex-shrink:0; display:inline-flex; align-items:center; gap:4px; font-size:var(--t-badge); font-weight:700; letter-spacing:.04em; text-transform:uppercase; padding:3px 7px; margin:0; border-radius:var(--r-badge); box-shadow:none; font-family:inherit; transition:transform var(--dur-fast) var(--ease); }
+  .perm-badge:hover { transform:none; }
+  .perm-badge.checking { background:var(--vc-paper-2); color:var(--vc-label-muted); border:1px solid var(--vc-border); cursor:default; }
+  .perm-badge.ok { background:var(--success-bg); color:var(--success-fg); border:1px solid var(--success-bg); cursor:default; }
+  .perm-badge.needed { background:var(--warning-bg); color:var(--warning-fg); border:1px solid var(--warning-bg); cursor:pointer; }
+  .perm-badge.needed:hover { transform:translateY(var(--lift)); }
+  .tool-row { display:flex; align-items:center; gap:12px; padding:13px 0; border-bottom:1px solid var(--vc-divider-2); }
+  .tool-row:last-of-type { border-bottom:none; }
+  .tool-icon { width:30px; height:30px; border-radius:var(--r-input); background:var(--vc-paper-2); display:grid; place-items:center; font-size:15px; flex-shrink:0; }
+  .tool-name { flex:1; font-size:var(--t-card-title); font-weight:700; color:var(--fg); }
+  .tool-badge { flex-shrink:0; font-size:10px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--vc-label-subtle); background:var(--vc-divider-2); border-radius:var(--r-badge); padding:3px 6px; }
+  .switch { position:relative; display:inline-block; width:40px; height:23px; flex-shrink:0; }
+  .switch input { position:absolute; opacity:0; width:0; height:0; }
+  .switch-track { position:absolute; inset:0; background:var(--vc-faint-2); border-radius:999px; cursor:pointer; transition:background var(--dur-fast) var(--ease); }
+  .switch-track::before { content:''; position:absolute; width:19px; height:19px; left:2px; top:2px; background:#fff; border-radius:50%; box-shadow:var(--sh-toggle-knob); transition:transform var(--dur-fast) var(--ease); }
+  .switch input:checked + .switch-track { background:var(--accent-cool); }
+  .switch input:checked + .switch-track::before { transform:translateX(17px); }
+  .wtpt-toggle { display:flex; gap:3px; padding:3px; background:var(--vc-paper-2); border-radius:var(--r-input); margin:0 0 14px; }
+  .wtpt-toggle-btn { width:auto; flex:1; display:flex; flex-direction:column; align-items:center; gap:1px; background:transparent; color:var(--vc-label-muted); border:0; box-shadow:none; padding:8px 6px; border-radius:var(--r-seg); font-weight:500; font-size:13px; }
+  .wtpt-toggle-btn:hover { transform:none; }
+  .wtpt-toggle-btn.active { font-weight:700; color:var(--fg); box-shadow:var(--sh-knob); }
+  #wtptCard.mode-wartime .wtpt-toggle-btn[data-mode="wartime"].active { background:var(--wartime-chip); }
+  #wtptCard.mode-peacetime .wtpt-toggle-btn[data-mode="peacetime"].active { background:var(--peacetime-chip); }
+  .wtpt-toggle-sub { font-size:10.5px; font-weight:500; color:var(--vc-faint-2); }
+  .wtpt-toggle-btn.active .wtpt-toggle-sub { color:var(--vc-muted); }
+  .wtpt-compare-btn { width:auto; height:26px; padding:0 10px; border-radius:var(--r-seg); border:1px solid var(--vc-border-btn); background:var(--bg); color:var(--vc-ink-soft); font-size:11.5px; font-weight:600; }
+  .wtpt-compare-btn.on { border-color:var(--vc-dark); background:var(--vc-dark); color:#fff; }
+  .wtpt-compare-btn:hover { transform:none; }
+  .wtpt-groups-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .wtpt-group { border-radius:var(--r-inset); background:var(--vc-inset-2); border:1px solid var(--vc-divider-2); padding:11px 12px; }
+  .wtpt-group-title { font-size:12px; font-weight:700; color:var(--fg); margin-bottom:7px; }
+  .wtpt-row { font-size:11.5px; line-height:1.45; margin-bottom:6px; }
+  .wtpt-row-label { color:var(--vc-label-subtle); }
+  .wtpt-row-active { color:var(--fg); font-weight:500; margin-top:1px; }
+  .wtpt-row-other { color:var(--vc-faint); margin-top:2px; display:none; }
+  #wtptCard.compare .wtpt-row-other { display:block; }
+  .wtpt-why { padding:10px 12px; border-radius:var(--r-input); font-size:12px; font-style:italic; margin-top:12px; line-height:1.55; color:var(--vc-ink-soft); background:var(--vc-paper-2); border-left:3px solid var(--vc-border); }
+  #wtptCard.mode-wartime .wtpt-why { background:var(--wartime-note-bg); border-left-color:var(--wartime-rule); }
+  #wtptCard.mode-peacetime .wtpt-why { background:var(--peacetime-note-bg); border-left-color:var(--peacetime-rule); }
+  .wtpt-export { font-family:var(--vc-font-mono); font-size:11px; min-height:160px; resize:vertical; margin-bottom:10px; }
+  .wmw-section { padding-top:14px; margin-top:14px; border-top:1px solid var(--vc-divider-2); }
+  .wmw-section:first-of-type { padding-top:0; margin-top:0; border-top:none; }
+  .wmw-section-head { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .wmw-section-title { font-size:var(--t-input); font-weight:700; color:var(--fg); }
+  .wmw-future { opacity:.65; }
+  .wmw-future-badge { font-weight:400; font-style:italic; color:var(--vc-hint); font-size:11px; }
+  .wmw-segmented, .effort-segmented { display:flex; gap:3px; padding:3px; background:var(--vc-paper-2); border-radius:var(--r-input); margin-top:4px; }
+  .wmw-seg-btn, .effort-seg-btn { width:auto; flex:1; background:transparent; color:var(--vc-label-muted); border:0; box-shadow:none; padding:8px; border-radius:var(--r-seg); font-size:12px; font-weight:500; }
+  .wmw-seg-btn:hover, .effort-seg-btn:hover { transform:none; background:transparent; }
+  .wmw-seg-btn.active, .effort-seg-btn.active { background:#fff; color:var(--fg); font-weight:700; box-shadow:var(--sh-knob); }
+  .effort-custom-note, .effort-unsupported-note { font-style:italic; }
+  .wmw-length-custom { display:none; gap:8px; margin-top:8px; }
+  .wmw-length-custom input, .wmw-length-custom select { flex:1; }
+  .shortcut-recorder { display:flex; align-items:center; min-height:44px; padding:6px 10px; border:1px solid var(--vc-border-strong); border-radius:var(--r-input); cursor:pointer; transition:border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease); }
+  .shortcut-recorder:focus, .shortcut-recorder.recording { outline:none; border-color:var(--accent-cool); background:var(--accent-cool-soft); }
+  .shortcut-recorder.invalid { border-color:var(--danger); background:var(--danger-soft); }
+  .shortcut-placeholder { display:none; color:var(--vc-hint); font-size:var(--t-input); }
+  .shortcut-recorder.empty .shortcut-placeholder { display:inline; }
+  .shortcut-recorder.empty .shortcut-pill { display:none; }
+  .shortcut-pill { display:inline-flex; align-items:center; gap:8px; background:var(--vc-inset); border:1px solid var(--vc-border-btn); border-radius:var(--r-pill); padding:6px 8px 6px 14px; font-weight:600; font-size:13px; letter-spacing:.02em; color:var(--fg); }
+  .shortcut-pill.conflict { background:var(--danger-soft); border-color:var(--danger); color:var(--danger); }
+  .shortcut-clear { width:auto; background:none; box-shadow:none; border:none; padding:2px 4px; margin:0; font-size:12px; color:inherit; opacity:.6; border-radius:50%; }
+  .shortcut-clear:hover { opacity:1; background:rgba(0,0,0,.08); transform:none; }
+  .shortcut-conflict-msg { color:var(--danger); font-weight:600; }
+  button { background:var(--accent-cool); color:#fff; border:none; box-shadow:none; padding:12px 20px; border-radius:var(--r-inset); font-size:var(--t-input); font-weight:700; cursor:pointer; width:100%; transition:transform var(--dur-fast) var(--ease), opacity var(--dur-fast) var(--ease); }
+  button:hover { transform:translateY(var(--lift)); opacity:.92; }
+  .btn-outline { background:var(--bg); color:var(--vc-ink-soft); border:1px solid var(--vc-border-btn); box-shadow:none; margin-bottom:10px; font-weight:600; }
+  .btn-outline:hover { background:var(--vc-paper-2); opacity:1; }
+  .lang-combobox { position:relative; }
+  .lang-combobox input.has-flag { padding-left:34px; }
+  .lang-selected-flag { position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:16px; line-height:1; pointer-events:none; }
+  .lang-suggestions { position:absolute; z-index:10; top:calc(100% + 4px); left:0; right:0; max-height:220px; overflow-y:auto; background:var(--bg); border:1px solid var(--vc-border); border-radius:var(--r-input); box-shadow:var(--sh-card-lg); }
+  .lang-suggestion { display:flex; align-items:center; gap:8px; padding:8px 10px; cursor:pointer; font-size:var(--t-input); }
+  .lang-suggestion:hover, .lang-suggestion.highlighted { background:var(--vc-paper-2); }
+  .lang-suggestion .lang-flag { font-size:16px; line-height:1; }
+  .model-display { background:var(--accent-cool-soft); border-left:3px solid var(--accent-cool); padding:10px; border-radius:var(--r-input); margin-top:10px; font-size:var(--t-input); }
+  .model-display code { background:var(--bg); padding:2px 6px; border-radius:4px; color:var(--accent-cool); font-weight:600; font-family:var(--vc-font-mono); font-size:11px; }
+  .custom { background:var(--warning-bg); border-left:3px solid var(--warning-dot); padding:14px; border-radius:var(--r-input); margin-top:10px; }
+  .custom small { color:var(--warning-fg); font-style:italic; }
+  .status { margin-top:var(--s-4); padding:12px; border-radius:var(--r-input); font-size:var(--t-input); display:none; }
+  .status.ok { background:var(--success-bg); color:var(--success-fg); border-left:3px solid var(--success-fg); display:block; }
+  .status.err { background:var(--danger-soft); color:var(--danger); border-left:3px solid var(--danger); display:block; }
+  a { color:var(--accent-cool); }
+  .preset-editor { margin-top:6px; }
+  .preset-row { display:flex; align-items:flex-start; gap:8px; padding:10px 0; border-bottom:1px solid var(--vc-divider-2); }
+  .preset-row:last-child { border-bottom:none; }
+  .preset-row.dragging { opacity:.4; }
+  .preset-row.drop-target { border-top:2px solid var(--accent-cool); }
+  .drag-handle { cursor:grab; color:var(--vc-faint-3); font-size:16px; line-height:1; padding-top:6px; user-select:none; }
+  .preset-row-main { flex:1; min-width:0; }
+  .preset-row-label-row { display:flex; align-items:center; gap:6px; margin-bottom:4px; }
+  .preset-row-icon-input { width:30px; flex-shrink:0; text-align:center; padding:4px 2px; border:1px solid transparent; border-radius:4px; font-size:16px; font-family:inherit; background:transparent; }
+  .preset-row-icon-input:hover { border-color:var(--vc-border); }
+  .preset-row-icon-input:focus { outline:none; border-color:var(--accent-cool); background:var(--bg); }
+  .preset-row-label-input { width:auto; flex:1; min-width:0; padding:4px 6px; border:1px solid transparent; border-radius:4px; font-size:var(--t-input); font-weight:700; color:var(--fg); font-family:inherit; background:transparent; }
+  .preset-row-label-input:hover { border-color:var(--vc-border); }
+  .preset-row-label-input:focus { outline:none; border-color:var(--accent-cool); background:var(--bg); }
+  .default-toggle { width:auto; flex-shrink:0; box-shadow:none; margin:0; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.02em; color:var(--vc-label-muted); background:var(--vc-paper-2); border:1px solid var(--vc-border); border-radius:var(--r-pill); padding:3px 9px; cursor:pointer; transition:transform var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease); }
+  .default-toggle:hover { transform:none; background:var(--bg); }
+  .default-toggle.is-default { background:var(--accent-cool); color:#fff; border-color:var(--accent-cool); cursor:default; }
+  .default-toggle.is-default:hover { background:var(--accent-cool); }
+  .preset-row-blurb-input { width:100%; padding:4px 6px; margin-bottom:6px; border:1px solid transparent; border-radius:4px; font-size:12.5px; font-style:italic; color:var(--vc-label-muted); font-family:inherit; background:transparent; }
+  .preset-row-blurb-input:hover { border-color:var(--vc-border); }
+  .preset-row-blurb-input:focus { outline:none; border-color:var(--accent-cool); background:var(--bg); font-style:normal; }
+  .preset-row-prompt { width:100%; min-height:44px; padding:8px; border:1px solid var(--vc-border); border-radius:var(--r-input); font-size:12px; font-family:inherit; resize:vertical; box-sizing:border-box; }
+  .preset-row-prompt:focus { outline:none; border-color:var(--accent-cool); }
+  .preset-row-footer { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:6px; }
+  .preset-row-tone-input { width:160px; flex-shrink:0; padding:4px 6px; border:1px solid transparent; border-radius:4px; font-size:11.5px; font-weight:600; color:var(--vc-label-muted); font-family:inherit; background:transparent; }
+  .preset-row-tone-input:hover { border-color:var(--vc-border); }
+  .preset-row-tone-input:focus { outline:none; border-color:var(--accent-cool); background:var(--bg); color:var(--fg); }
+  .preset-row-uses { flex-shrink:0; margin-left:auto; font-size:11.5px; color:var(--vc-hint); }
+  .preset-row-del { width:auto; background:transparent; color:var(--vc-label-muted); border:none; box-shadow:none; padding:4px 6px; font-size:14px; font-weight:400; border-radius:4px; }
+  .preset-row-del:hover { background:var(--vc-paper-2); color:var(--fg); transform:none; }
+
+  .tone-mode-head { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .tone-mode-head label { margin:0; white-space:nowrap; }
+  .tone-mode-head button { width:auto; flex-shrink:0; margin-bottom:0; }
+  .tone-mode-tabstrip { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+  .tone-mode-tab { display:flex; align-items:center; gap:5px; padding:6px 8px 6px 6px; border:1px solid var(--vc-border); border-radius:var(--r-pill); background:var(--vc-paper-2); cursor:pointer; user-select:none; transition:background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease); }
+  .tone-mode-tab:hover { background:var(--bg); }
+  .tone-mode-tab.active { background:var(--accent-cool); border-color:var(--accent-cool); }
+  .tone-mode-tab.active .tone-mode-tab-name, .tone-mode-tab.active .tone-mode-tab-count { color:#fff; }
+  .tone-mode-tab.dragging { opacity:.4; }
+  .tone-mode-tab.drop-target { border-color:var(--fg); }
+  .tone-mode-tab-grip { color:var(--vc-faint-3); font-size:13px; line-height:1; cursor:grab; }
+  .tone-mode-tab.active .tone-mode-tab-grip { color:rgba(255,255,255,.7); }
+  .tone-mode-tab-name { font-size:12.5px; font-weight:700; color:var(--fg); background:transparent; border:none; padding:2px 0; font-family:inherit; width:auto; box-shadow:none; max-width:140px; }
+  .tone-mode-tab-name:focus { outline:none; }
+  .tone-mode-tab-name[readonly] { cursor:pointer; }
+  .tone-mode-tab-count { font-size:11px; color:var(--vc-hint); }
+  .tone-mode-tab-del { width:auto; background:transparent; color:var(--vc-label-muted); border:none; box-shadow:none; padding:0 2px; font-size:13px; line-height:1; border-radius:3px; }
+  .tone-mode-tab.active .tone-mode-tab-del { color:rgba(255,255,255,.85); }
+  .tone-mode-tab-del:hover { background:rgba(0,0,0,.08); transform:none; }
+  .tone-mode-empty { padding:14px 0; font-size:12.5px; color:var(--vc-hint); font-style:italic; }
+  .footer { display:flex; align-items:center; gap:10px; padding:0 16px; height:34px; border-top:1px solid #e5e5e8; background:var(--bg); font-size:11.5px; color:var(--vc-hint); flex-shrink:0; }
+  .footer button.link { color:var(--accent-cool); text-decoration:none; background:none; border:0; padding:0; font-family:inherit; font-size:11.5px; font-weight:400; cursor:pointer; width:auto; box-shadow:none; }
+  .footer button.link:hover { text-decoration:underline; transform:none; opacity:1; }
+  .footer-divider { width:1px; height:11px; background:#dcdce1; }
+  .footer-save-note { margin-left:auto; }
+</style>
+</head>
+<body>
+  <div class="window">
+    <div class="header">
+      <div class="traffic-lights">
+        <button class="tl tl-close" id="closeBtn" title="Close"><span>×</span></button>
+        <button class="tl tl-min" id="minBtn" title="Minimize"><span>−</span></button>
+        <button class="tl tl-max" id="maxBtn" title="Maximize"><span>+</span></button>
+      </div>
+      <span class="title" id="titleText">PerMyLast Settings</span>
+      <span class="saved-flash" id="savedFlash" data-i18n="savedFlashLabel">Saved</span>
+    </div>
+    <div class="tabbar">
+      <button class="tab active" data-tab="general" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v2.4M12 19.1v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/></svg>
+        <span data-i18n="settingsTabGeneral">General</span>
+      </button>
+      <button class="tab" data-tab="presets" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="6" rx="1.5"/><rect x="4" y="14" width="16" height="6" rx="1.5"/></svg>
+        <span data-i18n="settingsTabPresets">Tone Presets</span>
+      </button>
+      <button class="tab" data-tab="permissions" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3.2v5c0 4.6-3 8.6-7 9.8-4-1.2-7-5.2-7-9.8v-5L12 3z"/></svg>
+        <span data-i18n="settingsTabPermissions">Permissions</span>
+      </button>
+      <button class="tab" data-tab="advanced" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 1 1.4 0l1.6 1.6a1 1 0 0 1 0 1.4L8.4 18.6a2 2 0 0 1-.9.5l-2.7.7.7-2.7a2 2 0 0 1 .5-.9L14.7 6.3z"/><path d="M13 8l3 3"/></svg>
+        <span data-i18n="settingsTabAdvanced">Advanced</span>
+      </button>
+    </div>
+    <div class="content">
+      <div class="tab-panel active" data-panel="general">
+        <div class="card">
+          <label for="apiKey" data-i18n="apiKeyLabel">Claude API Key</label>
+          <input type="password" id="apiKey" placeholder="sk-ant-api…" autocomplete="off">
+          <small><span data-i18n="apiKeyGetOne">Get one at </span><a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a></small>
+
+          <label for="workspaceId" data-i18n="workspaceIdLabel">Workspace ID (optional)</label>
+          <input type="text" id="workspaceId" placeholder="wrkspc_…" autocomplete="off">
+          <small data-i18n="workspaceIdHint">Only needed if you see "anthropic-workspace-id is required" — that means your key is linked to your identity within an org, not a standalone workspace key.</small>
+
+          <label for="model" data-i18n="modelLabel">Model</label>
+          <select id="model">
+            <option value="claude-sonnet-5" data-i18n="modelOptSonnet">Claude Sonnet 5 — Recommended</option>
+            <option value="claude-opus-5" data-i18n="modelOptOpus">Claude Opus 5 (Most Capable)</option>
+            <option value="claude-haiku-4-5" data-i18n="modelOptHaiku">Claude Haiku 4.5 (Fastest)</option>
+            <option value="claude-fable-5" data-i18n="modelOptFable">Claude Fable 5 (Frontier)</option>
+            <option value="other" data-i18n="modelOptOther">Other (custom)</option>
+          </select>
+          <div class="model-display" id="modelDisplay"><strong data-i18n="selectedModelLabel">Selected model:</strong> <code id="modelValue"></code></div>
+          <div class="custom" id="customWrap" style="display:none;">
+            <label for="customModel" data-i18n="customModelLabel">Custom model name</label>
+            <input type="text" id="customModel" placeholder="e.g. claude-sonnet-5">
+            <small data-i18n="customModelHint">Enter the exact model string from Anthropic's docs.</small>
+          </div>
+
+          <div id="effortWrap">
+            <label data-i18n="effortLabel">Effort</label>
+            <div class="effort-segmented" id="effortSegmented">
+              <button type="button" class="effort-seg-btn" data-effort="low" data-i18n="effortLow">Low</button>
+              <button type="button" class="effort-seg-btn active" data-effort="medium" data-i18n="effortMedium">Medium</button>
+              <button type="button" class="effort-seg-btn" data-effort="high" data-i18n="effortHigh">High</button>
+              <button type="button" class="effort-seg-btn" data-effort="xhigh" data-i18n="effortXHigh">Extra</button>
+              <button type="button" class="effort-seg-btn" data-effort="max" data-i18n="effortMax">Max</button>
+            </div>
+            <small data-i18n="effortHint">Higher effort produces more thorough results, but takes longer and uses more tokens on your API key.</small>
+            <small class="effort-custom-note" id="effortCustomNote" style="display:none;" data-i18n="effortCustomNote">This custom model may or may not support Effort — if requests start failing, try turning it off.</small>
+          </div>
+          <small class="effort-unsupported-note" id="effortUnsupportedNote" style="display:none;" data-i18n="effortUnsupportedNote">Claude Haiku 4.5 doesn't support Effort — this only applies to Sonnet, Opus, and Fable models.</small>
+        </div>
+
+        <div class="card">
+          <label data-i18n="shortcutLabel">Global shortcut</label>
+          <div class="shortcut-recorder empty" id="shortcutRecorder" tabindex="0">
+            <span class="shortcut-pill" id="shortcutPill">
+              <span id="shortcutPillText"></span>
+              <button type="button" id="shortcutClearBtn" class="shortcut-clear" data-i18n-title="shortcutClearTitle" title="Clear">✕</button>
+            </span>
+            <span class="shortcut-placeholder" id="shortcutPlaceholder" data-i18n="shortcutPlaceholder">Click here, then press a key combo…</span>
+          </div>
+          <small id="shortcutHint"></small>
+          <small class="shortcut-conflict-msg" id="shortcutConflictMsg" style="display:none;"></small>
+          <small class="shortcut-conflict-msg" id="shortcutRequiredMsg" style="display:none;" data-i18n="shortcutRequiredMsg">⚠ A shortcut is required — record one above, then click Save.</small>
+        </div>
+
+        <div class="card">
+          <label class="checkbox-row" for="showInDock">
+            <input type="checkbox" id="showInDock">
+            <span data-i18n="showInDockLabel">Show in Dock</span>
+          </label>
+          <small data-i18n="showInDockHint">Off by default — Per My Last runs from the menu bar only. Turn on to also get a Dock icon (also toggleable from the tray menu).</small>
+
+          <label class="checkbox-row" for="launchAtLogin" style="margin-top:14px;">
+            <input type="checkbox" id="launchAtLogin">
+            <span data-i18n="launchAtLoginLabel">Launch at login</span>
+          </label>
+          <small data-i18n="launchAtLoginHint">Starts Per My Last automatically when you log in to your Mac.</small>
+        </div>
+
+        <div class="card">
+          <label for="motherLanguage" data-i18n="motherLanguageLabel">Mother language</label>
+          <div class="lang-combobox" id="motherLanguageBox">
+            <span class="lang-selected-flag" id="motherLanguageFlag" style="display:none;"></span>
+            <input type="text" id="motherLanguage" placeholder="Type to search — e.g. Spanish, Japanese, French" data-i18n-placeholder="motherLanguagePlaceholder" autocomplete="off">
+            <div class="lang-suggestions" id="motherLanguageSuggestions" style="display:none;"></div>
+          </div>
+          <small data-i18n="motherLanguageHint">Used by the "Translate" action under Help me → Understand.</small>
+        </div>
+
+        <div class="card">
+          <label for="appLanguage" data-i18n="appLanguageLabel">App Language</label>
+          <select id="appLanguage">
+            <option value="en-US">🇺🇸 English (US)</option>
+            <option value="en-GB">🇬🇧 English (UK)</option>
+            <option value="vi">🇻🇳 Tiếng Việt</option>
+          </select>
+          <small data-i18n="appLanguageHint">Only English and Vietnamese are available today. Want Per My Last in your own language? We'd love the help — use the Feedback form below to volunteer translating it.</small>
+        </div>
+
+        <div class="card">
+          <label for="feedbackText" data-i18n="feedbackLabel">Feedback</label>
+          <textarea id="feedbackText" rows="4" placeholder="Bugs, feature ideas, language requests — anything." data-i18n-placeholder="feedbackPlaceholder"></textarea>
+          <button type="button" id="sendFeedbackBtn" class="btn-outline" data-i18n="feedbackSendBtn">Send Feedback</button>
+          <small data-i18n="feedbackHint">Opens your email app with this addressed to us — review it and hit send there.</small>
+          <div class="status" id="feedbackStatus"></div>
+        </div>
+
+        <button id="save" data-i18n="saveSettingsBtn">Save Settings</button>
+        <div class="status" id="status"></div>
+      </div>
+
+      <div class="tab-panel" data-panel="presets">
+        <div class="card">
+          <div class="tone-mode-head">
+            <label data-i18n="presetsModesLabel">Tone Preset Tabs</label>
+            <button type="button" class="btn-outline" id="addModeBtn" data-i18n="presetsAddModeBtn">+ New tab</button>
+          </div>
+          <small data-i18n="presetsModesHint">Drag to reorder tabs. Click a tab's name to rename it.</small>
+          <div class="tone-mode-tabstrip" id="toneModeTabstrip"></div>
+        </div>
+
+        <div class="card">
+          <label id="activeModeLabel"></label>
+          <small data-i18n="presetsActiveHint">Drag to reorder. The starred action is the default shown when this tab opens.</small>
+          <div class="preset-editor" id="presetEditorActive"></div>
+          <button type="button" class="btn-outline" id="addPresetBtn"></button>
+        </div>
+
+        <button id="savePresetsBtn" type="button" data-i18n="presetsSaveBtn">Save Preset Changes</button>
+        <div class="status" id="presetStatus"></div>
+      </div>
+
+      <div class="tab-panel" data-panel="permissions">
+        <div class="card">
+          <label data-i18n="appPermissionsLabel">App Permissions</label>
+          <small data-i18n="appPermissionsHint">Per My Last needs both to auto-capture your selection when you press the hotkey.</small>
+          <div class="perm-check-row">
+            <span class="perm-check-name" data-i18n="accessibilityName">Accessibility</span>
+            <button type="button" class="perm-badge checking" id="permAccessibilityStatus" data-i18n="checking">Checking…</button>
+          </div>
+          <div class="perm-check-row">
+            <span class="perm-check-name" data-i18n="automationName">Automation (System Events)</span>
+            <button type="button" class="perm-badge checking" id="permAutomationStatus" data-i18n="checking">Checking…</button>
+          </div>
+          <button type="button" id="refreshPermsBtn" data-i18n="refreshPermsBtn">Refresh Permissions</button>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-panel="advanced">
+        <div class="card">
+          <label data-i18n="toolsLabel">Tools</label>
+          <small data-i18n="toolsHint">Extra capabilities for Per My Last.</small>
+          <div class="tool-row">
+            <span class="tool-icon">✍️</span>
+            <span class="tool-name" data-i18n="toolWriteMyWay">Write My Way</span>
+            <label class="switch">
+              <input type="checkbox" id="wmwEnabled">
+              <span class="switch-track"></span>
+            </label>
+          </div>
+          <div class="tool-row">
+            <span class="tool-icon">⭐</span>
+            <span class="tool-name" data-i18n="toolVipContacts">VIP Contacts</span>
+            <span class="tool-badge" data-i18n="comingSoon">Coming soon</span>
+          </div>
+          <div class="tool-row">
+            <span class="tool-icon">⚔️</span>
+            <span class="tool-name" data-i18n="toolWartime">Wartime / Peacetime Mode</span>
+            <label class="switch">
+              <input type="checkbox" id="wtptEnabled">
+              <span class="switch-track"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="card" id="wmwCard" style="display:none;">
+          <label data-i18n="toolWriteMyWay">Write My Way</label>
+          <small data-i18n="wmwHint">Mockup preview — not yet connected to your rewrites. Tell Per My Last how you write, so future rewrites already sound like you.</small>
+
+          <div class="wmw-section">
+            <div class="wmw-section-head">
+              <span class="wmw-section-title" data-i18n="wmwEnglishLevelTitle">English Level</span>
+              <label class="switch">
+                <input type="checkbox" id="wmwEnglishLevelEnabled">
+                <span class="switch-track"></span>
+              </label>
+            </div>
+            <small data-i18n="wmwEnglishLevelHint">Off by default. When on, pick the test you know your level from and enter your score — a recent actual score or your own best estimate.</small>
+            <div id="wmwEnglishLevelFields" style="display:none;">
+              <label for="wmwTestType" data-i18n="wmwTestLabel">Test</label>
+              <select id="wmwTestType">
+                <option value="TOEIC">TOEIC</option>
+                <option value="IELTS">IELTS</option>
+                <option value="SAT">SAT</option>
+                <option value="CEFR">CEFR</option>
+                <option value="TOEFL">TOEFL</option>
+              </select>
+              <label for="wmwTestScore" data-i18n="wmwScoreLabel">Score</label>
+              <input type="text" id="wmwTestScore" placeholder="e.g. 850, 7.0, 1350, B2, 100">
+            </div>
+          </div>
+
+          <div class="wmw-section">
+            <span class="wmw-section-title" data-i18n="wmwWritingStyleTitle">Writing Style</span>
+            <small data-i18n="wmwWritingStyleHint">The default tone, length, and format Per My Last aims for.</small>
+
+            <label for="wmwTone" data-i18n="wmwToneLabel">Tone</label>
+            <select id="wmwTone">
+              <option value="professional" data-i18n="wmwToneProfessional">Professional</option>
+              <option value="casual" data-i18n="wmwToneCasual">Casual</option>
+              <option value="friendly" data-i18n="wmwToneFriendly">Friendly</option>
+              <option value="persuasive" data-i18n="wmwTonePersuasive">Persuasive</option>
+              <option value="other" data-i18n="wmwToneOther">Other…</option>
+            </select>
+            <input type="text" id="wmwToneCustom" placeholder="Describe the tone you want" data-i18n-placeholder="wmwToneCustomPlaceholder" style="display:none; margin-top:8px;">
+
+            <label data-i18n="wmwLengthLabel">Length</label>
+            <div class="wmw-segmented" id="wmwLengthSegmented">
+              <button type="button" class="wmw-seg-btn active" data-length="short" data-i18n="wmwLengthShort">Short</button>
+              <button type="button" class="wmw-seg-btn" data-length="medium" data-i18n="wmwLengthMedium">Medium</button>
+              <button type="button" class="wmw-seg-btn" data-length="long" data-i18n="wmwLengthLong">Long</button>
+              <button type="button" class="wmw-seg-btn" data-length="custom" data-i18n="wmwLengthCustom">Custom</button>
+            </div>
+            <div class="wmw-length-custom" id="wmwLengthCustomFields">
+              <input type="number" id="wmwLengthCustomValue" min="1" placeholder="Max amount" data-i18n-placeholder="wmwLengthCustomPlaceholder">
+              <select id="wmwLengthCustomUnit">
+                <option value="words" data-i18n="wmwLengthUnitWords">Words</option>
+                <option value="characters" data-i18n="wmwLengthUnitChars">Characters</option>
+              </select>
+            </div>
+
+            <label for="wmwFormat" data-i18n="wmwFormatLabel">Format</label>
+            <select id="wmwFormat">
+              <option value="bullets" data-i18n="wmwFormatBullets">Bullet points</option>
+              <option value="message" data-i18n="wmwFormatMessage">Message (Teams / Slack)</option>
+              <option value="email" data-i18n="wmwFormatEmail">Email</option>
+              <option value="essay" data-i18n="wmwFormatEssay">Essay</option>
+              <option value="blog" data-i18n="wmwFormatBlog">Blog post</option>
+            </select>
+          </div>
+
+          <div class="wmw-section wmw-future">
+            <span class="wmw-section-title" data-i18n="wmwAudienceTitle">Target Audience</span><span class="wmw-future-badge" data-i18n="comingSoonSuffix"> — coming soon</span>
+            <small data-i18n="wmwAudienceHint">Who this writing should land with — beginners, experts, children, and so on. Set per Tone Preset, not here.</small>
+          </div>
+
+          <div class="wmw-section wmw-future">
+            <span class="wmw-section-title" data-i18n="wmwCustomInstrTitle">Custom Instructions</span><span class="wmw-future-badge" data-i18n="comingSoonSuffix"> — coming soon</span>
+            <small data-i18n="wmwCustomInstrHint">Standing rules the AI should always follow when writing. Set per Tone Preset, not here.</small>
+          </div>
+        </div>
+
+        <div class="card" id="wtptCard" style="display:none;">
+          <div class="wmw-section-head">
+            <label data-i18n="toolWartime" style="margin:0;">Wartime / Peacetime Mode</label>
+            <button type="button" class="wtpt-compare-btn" id="wtptCompareBtn">Compare modes</button>
+          </div>
+          <small data-i18n="wtptHint">This reflects your company's current situation — not a universal standard. Based on your own observation of business pressure, deadlines, and leadership behavior, judge which mode feels closer to reality right now and pick it below. Not sure, or would rather not categorize it? Turn this off from the Tools list above.</small>
+
+          <div class="wtpt-toggle" role="group" aria-label="Operating mode">
+            <button type="button" class="wtpt-toggle-btn" id="wtptWartimeBtn" data-mode="wartime">
+              <span data-i18n="wtptWartimeBtn">Wartime</span>
+              <span class="wtpt-toggle-sub" data-i18n="wtptWartimeSub">Speed over sustainability</span>
+            </button>
+            <button type="button" class="wtpt-toggle-btn" id="wtptPeacetimeBtn" data-mode="peacetime">
+              <span data-i18n="wtptPeacetimeBtn">Peacetime</span>
+              <span class="wtpt-toggle-sub" data-i18n="wtptPeacetimeSub">Sustainability over speed</span>
+            </button>
+          </div>
+
+          <div class="wtpt-groups-grid" id="wtptGroups"></div>
+
+          <div class="wtpt-why" id="wtptWhy"></div>
+
+          <label for="wtptExport" data-i18n="wtptExportLabel">Export context for an AI assistant</label>
+          <textarea id="wtptExport" class="wtpt-export" readonly rows="10"></textarea>
+          <button type="button" id="wtptCopyBtn" class="btn-outline" data-i18n="wtptCopyBtn">Copy</button>
+          <div class="status" id="wtptCopyStatus"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span id="footerVersion"></span>
+      <span class="footer-divider"></span>
+      <button type="button" class="link" id="footerFeedbackBtn" data-i18n="footerFeedback">Send feedback</button>
+      <span class="footer-divider"></span>
+      <button type="button" class="link" id="footerUpdatesBtn" data-i18n="footerUpdates">Check for updates</button>
+      <span class="footer-save-note" id="footerSaveNote" data-i18n="footerSaveNote">Changes save as you make them</span>
+    </div>
+  </div>
+
+<script src="wartimePeacetime.js"></script>
+<script src="shortcutConflicts.js"></script>
+<script src="languages.js"></script>
+<script src="i18n.js"></script>
+<script>
+  const STD = ['claude-sonnet-5','claude-opus-5','claude-haiku-4-5','claude-fable-5'];
+  // Effort (output_config.effort on the Messages API) works on Sonnet 5,
+  // Opus 5, and Fable 5 — Haiku 4.5 is an older-tier model and the API
+  // rejects the parameter outright if sent for it.
+  const EFFORT_UNSUPPORTED_MODELS = ['claude-haiku-4-5'];
+  const $ = (s) => document.querySelector(s);
+  window.api.getAppName().then((name) => { $('#titleText').textContent = name + ' Settings'; document.title = name + ' Settings'; });
+  window.api.getAppVersion().then((v) => { appVersion = v; $('#footerVersion').textContent = window.I18n.t(currentLang, 'footerVersion', { version: v }); });
+  $('#footerFeedbackBtn').addEventListener('click', () => { document.querySelector('.tab[data-tab="general"]').click(); $('#feedbackText').focus(); });
+  $('#footerUpdatesBtn').addEventListener('click', () => window.api.checkForUpdates());
+
+  // "Saved" flash in the titlebar — fades in for 2s after any settings
+  // change that actually persists. Structural preset edits (add/delete/
+  // reorder) intentionally skip this, since those already get their own
+  // inline status message.
+  let savedFlashTimer = null;
+  function flashSaved() {
+    clearTimeout(savedFlashTimer);
+    $('#savedFlash').classList.add('show');
+    savedFlashTimer = setTimeout(() => $('#savedFlash').classList.remove('show'), 2000);
+  }
+
+  // Settings-wide language switching -----------------------------------------
+  // A single applyTranslations() pass re-labels every static string and
+  // re-renders the few dynamic bits (shortcut hint, permission badges, preset
+  // editor tooltips) in the new language, called both at load (once the saved
+  // appLanguage is known) and right after a successful Save — so changing App
+  // Language takes effect across every tab in this window immediately,
+  // without needing to close and reopen Settings. The main popup picks up the
+  // same change separately, via the existing app-language-status push.
+  let currentLang = 'en-US';
+  let appVersion = '';
+  function applyTranslations(lang) {
+    currentLang = lang || 'en-US';
+    document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = window.I18n.t(currentLang, el.dataset.i18n); });
+    if (appVersion) $('#footerVersion').textContent = window.I18n.t(currentLang, 'footerVersion', { version: appVersion });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => { el.placeholder = window.I18n.t(currentLang, el.dataset.i18nPlaceholder); });
+    document.querySelectorAll('[data-i18n-title]').forEach((el) => { el.title = window.I18n.t(currentLang, el.dataset.i18nTitle); });
+    updateShortcutHint();
+    updateShortcutConflictUI();
+    refreshPermissions();
+    renderTabstrip();
+    renderActiveEditor();
+    applyWtptMode(wtptMode);
+    updateCompareBtn();
+  }
+
+  $('#closeBtn').addEventListener('click', () => window.api.closeSettingsWindow());
+  $('#minBtn').addEventListener('click', () => window.api.minimizeWindow());
+  $('#maxBtn').addEventListener('click', () => window.api.toggleMaximizeWindow());
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') window.api.closeSettingsWindow(); });
+
+  // "Changes save as you make them" is only true on Permissions (nothing to
+  // save there) and Advanced (its toggles call saveSettings on 'change'
+  // immediately) — General and Tone Presets both gate their edits behind an
+  // explicit Save button instead, so showing this note there would just
+  // contradict the button sitting right above it.
+  const AUTOSAVE_TABS = ['permissions', 'advanced'];
+  function updateFooterSaveNote(tabName) {
+    $('#footerSaveNote').style.display = AUTOSAVE_TABS.includes(tabName) ? '' : 'none';
+  }
+  updateFooterSaveNote('general');
+
+  document.querySelectorAll('.tab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach((t) => t.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach((p) => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.querySelector(`.tab-panel[data-panel="${tab.dataset.tab}"]`).classList.add('active');
+      updateFooterSaveNote(tab.dataset.tab);
+      if (tab.dataset.tab === 'permissions') refreshPermissions();
+    });
+  });
+
+  // Global shortcut recorder ------------------------------------------------
+  // Note: this is a plain DOM keydown listener, so it can only ever see
+  // combos that reach the web page at all. Some macOS-reserved combos
+  // (Spotlight, screenshots) are intercepted by the OS before any app sees
+  // them, and Electron's own default menu accelerators (Cmd+Q, Cmd+W, Cmd+M,
+  // Cmd+H) are dispatched natively and can fire independently of what this
+  // page does — recording one of those may also trigger its native action.
+  // This mirrors a real limitation of web-based recorders generally (macOS's
+  // own System Settings works around it with native-level event monitoring
+  // this app doesn't have).
+  let currentShortcut = null;
+  let recordingShortcut = false;
+
+  const SHORTCUT_SPECIAL_KEYS = {
+    ' ': 'Space', 'ArrowUp': 'Up', 'ArrowDown': 'Down', 'ArrowLeft': 'Left', 'ArrowRight': 'Right',
+    'Escape': 'Escape', 'Tab': 'Tab', 'Backspace': 'Backspace', 'Delete': 'Delete', 'Enter': 'Return',
+    ',': ',', '.': '.', '/': '/', ';': ';', "'": "'", '[': '[', ']': ']', '\\': '\\', '-': '-', '=': '='
+  };
+
+  function shortcutKeyFromEvent(e) {
+    if (e.key === 'Control' || e.key === 'Meta' || e.key === 'Alt' || e.key === 'Shift') return null;
+    if (/^[a-zA-Z]$/.test(e.key)) return e.key.toUpperCase();
+    if (/^[0-9]$/.test(e.key)) return e.key;
+    if (/^F([1-9]|1[0-9]|2[0-4])$/.test(e.key)) return e.key;
+    if (Object.prototype.hasOwnProperty.call(SHORTCUT_SPECIAL_KEYS, e.key)) return SHORTCUT_SPECIAL_KEYS[e.key];
+    return null;
+  }
+
+  function buildAcceleratorFromEvent(e) {
+    const key = shortcutKeyFromEvent(e);
+    if (!key) return null;
+    const mods = [];
+    if (e.ctrlKey) mods.push('Control');
+    if (e.metaKey) mods.push('Command');
+    if (e.altKey) mods.push('Alt');
+    if (e.shiftKey) mods.push('Shift');
+    if (mods.length === 0) return null; // require at least one modifier
+    return mods.concat(key).join('+');
+  }
+
+  function updateShortcutHint() {
+    $('#shortcutHint').textContent = currentShortcut
+      ? window.I18n.t(currentLang, 'shortcutHintSet', { shortcut: acceleratorToDisplay(currentShortcut) })
+      : window.I18n.t(currentLang, 'shortcutHintUnset');
+  }
+
+  function updateShortcutConflictUI() {
+    const pill = $('#shortcutPill');
+    const msgEl = $('#shortcutConflictMsg');
+    if (!currentShortcut) {
+      pill.classList.remove('conflict');
+      msgEl.style.display = 'none';
+      return;
+    }
+    const systemConflict = window.ShortcutConflicts.findShortcutConflict(currentShortcut, 'system');
+    const appConflict = !systemConflict ? window.ShortcutConflicts.findShortcutConflict(currentShortcut, 'app') : null;
+    if (systemConflict) {
+      pill.classList.add('conflict');
+      msgEl.style.display = 'block';
+      msgEl.textContent = window.I18n.t(currentLang, 'shortcutConflictSystem', { desc: systemConflict.description });
+    } else if (appConflict) {
+      pill.classList.remove('conflict');
+      msgEl.style.display = 'block';
+      msgEl.textContent = window.I18n.t(currentLang, 'shortcutConflictApp', { app: appConflict.app, desc: appConflict.description });
+    } else {
+      pill.classList.remove('conflict');
+      msgEl.style.display = 'none';
+    }
+  }
+
+  function clearShortcutRequiredError() {
+    $('#shortcutRecorder').classList.remove('invalid');
+    $('#shortcutRequiredMsg').style.display = 'none';
+  }
+
+  function showShortcutRequiredError() {
+    $('#shortcutRecorder').classList.add('invalid');
+    $('#shortcutRequiredMsg').style.display = 'block';
+  }
+
+  function setShortcut(accelerator) {
+    currentShortcut = accelerator || null;
+    const recorder = $('#shortcutRecorder');
+    if (currentShortcut) {
+      recorder.classList.remove('empty');
+      $('#shortcutPillText').textContent = acceleratorToDisplay(currentShortcut);
+    } else {
+      recorder.classList.add('empty');
+      $('#shortcutPillText').textContent = '';
+    }
+    clearShortcutRequiredError();
+    updateShortcutHint();
+    updateShortcutConflictUI();
+  }
+
+  function stopRecordingShortcut() {
+    recordingShortcut = false;
+    $('#shortcutRecorder').classList.remove('recording');
+    $('#shortcutPlaceholder').textContent = window.I18n.t(currentLang, 'shortcutPlaceholder');
+    // Re-registers whatever's actually saved (not the recorder's unsaved
+    // state) — see suspend-shortcut-recording in main.js for why this needs
+    // to happen at all: the currently-active hotkey would otherwise eat its
+    // own keydown before it ever reaches this window.
+    window.api.resumeShortcutRecording();
+  }
+
+  $('#shortcutRecorder').addEventListener('click', (e) => {
+    if (e.target.closest('#shortcutClearBtn')) return;
+    recordingShortcut = true;
+    window.api.suspendShortcutRecording();
+    const recorder = $('#shortcutRecorder');
+    recorder.classList.add('recording', 'empty'); // hide any pill, show the "press a key" placeholder while recording
+    $('#shortcutPlaceholder').textContent = window.I18n.t(currentLang, 'shortcutPlaceholderRecording');
+    recorder.focus();
+  });
+
+  $('#shortcutRecorder').addEventListener('keydown', (e) => {
+    if (!recordingShortcut) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.key === 'Escape') { stopRecordingShortcut(); setShortcut(currentShortcut); return; }
+    const accelerator = buildAcceleratorFromEvent(e);
+    if (!accelerator) return;
+    stopRecordingShortcut();
+    setShortcut(accelerator);
+  });
+
+  $('#shortcutRecorder').addEventListener('blur', () => {
+    if (recordingShortcut) { stopRecordingShortcut(); setShortcut(currentShortcut); }
+  });
+
+  $('#shortcutClearBtn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    setShortcut(null);
+  });
+
+  function setPermBadge(id, granted, onOpen) {
+    const el = $('#' + id);
+    el.textContent = granted ? window.I18n.t(currentLang, 'permGranted') : window.I18n.t(currentLang, 'permNeeded');
+    el.className = 'perm-badge ' + (granted ? 'ok' : 'needed');
+    el.onclick = granted ? null : onOpen;
+  }
+
+  async function refreshPermissions() {
+    $('#permAccessibilityStatus').textContent = window.I18n.t(currentLang, 'checking');
+    $('#permAccessibilityStatus').className = 'perm-badge checking';
+    $('#permAutomationStatus').textContent = window.I18n.t(currentLang, 'checking');
+    $('#permAutomationStatus').className = 'perm-badge checking';
+    const status = await window.api.checkPermissions();
+    setPermBadge('permAccessibilityStatus', status.accessibility, window.api.openAccessibilitySettings);
+    setPermBadge('permAutomationStatus', status.automation, window.api.openAutomationSettings);
+  }
+
+  $('#refreshPermsBtn').addEventListener('click', refreshPermissions);
+  refreshPermissions();
+
+  function refreshModelUI() {
+    const sel = $('#model').value;
+    if (sel === 'other') {
+      $('#customWrap').style.display = 'block';
+      $('#modelDisplay').style.display = 'none';
+    } else {
+      $('#customWrap').style.display = 'none';
+      $('#modelDisplay').style.display = 'block';
+      $('#modelValue').textContent = sel;
+    }
+    refreshEffortUI();
+  }
+  function selectedModel() {
+    return $('#model').value === 'other' ? $('#customModel').value.trim() : $('#model').value;
+  }
+  function status(msg, ok) {
+    const s = $('#status');
+    s.textContent = msg;
+    s.className = 'status ' + (ok ? 'ok' : 'err');
+  }
+
+  $('#model').addEventListener('change', refreshModelUI);
+  $('#customModel').addEventListener('input', refreshEffortUI);
+
+  // Effort (General tab, next to Model) ------------------------------------
+  // A known model tells us definitively whether Effort applies; a custom
+  // model string is unverifiable at settings-edit time, so the control stays
+  // enabled with a caveat rather than guessing right or wrong.
+  function currentEffort() {
+    const active = $('#effortSegmented').querySelector('.effort-seg-btn.active');
+    return active ? active.dataset.effort : 'high';
+  }
+  function setEffort(effort) {
+    $('#effortSegmented').querySelectorAll('.effort-seg-btn').forEach((b) => {
+      b.classList.toggle('active', b.dataset.effort === effort);
+    });
+  }
+  function refreshEffortUI() {
+    const model = selectedModel();
+    const unsupported = EFFORT_UNSUPPORTED_MODELS.includes(model);
+    $('#effortWrap').style.display = unsupported ? 'none' : 'block';
+    $('#effortUnsupportedNote').style.display = unsupported ? 'block' : 'none';
+    $('#effortCustomNote').style.display = (!unsupported && $('#model').value === 'other') ? 'block' : 'none';
+  }
+  $('#effortSegmented').addEventListener('click', (e) => {
+    const btn = e.target.closest('.effort-seg-btn');
+    if (!btn) return;
+    setEffort(btn.dataset.effort);
+  });
+
+  (async () => {
+    const s = await window.api.getSettings();
+    if (s.apiKey) $('#apiKey').value = s.apiKey;
+    if (s.workspaceId) $('#workspaceId').value = s.workspaceId;
+    if (s.motherLanguage) { $('#motherLanguage').value = s.motherLanguage; updateMotherLanguageFlag(); }
+    $('#appLanguage').value = s.appLanguage || 'en-US';
+    setShortcut(s.shortcut || 'Command+Shift+W');
+    $('#showInDock').checked = !!s.showInDock;
+    $('#launchAtLogin').checked = !!s.launchAtLogin;
+    $('#wtptEnabled').checked = !!s.wartimePeacetimeEnabled;
+    toggleWtptCard($('#wtptEnabled').checked);
+    if (STD.includes(s.model)) { $('#model').value = s.model; }
+    else { $('#model').value = 'other'; $('#customModel').value = s.model; }
+    setEffort(s.effort || 'medium');
+    refreshModelUI();
+    applyTranslations(s.appLanguage || 'en-US');
+  })();
+
+  $('#save').addEventListener('click', async () => {
+    const apiKey = $('#apiKey').value.trim();
+    const workspaceId = $('#workspaceId').value.trim();
+    const motherLanguage = $('#motherLanguage').value.trim();
+    const appLanguage = $('#appLanguage').value;
+    const model = selectedModel();
+    const effort = currentEffort();
+    const showInDock = $('#showInDock').checked;
+    const launchAtLogin = $('#launchAtLogin').checked;
+    if (!apiKey.startsWith('sk-ant-')) return status(window.I18n.t(currentLang, 'apiKeyInvalid'), false);
+    if (!model) return status(window.I18n.t(currentLang, 'modelRequired'), false);
+    if (!currentShortcut) {
+      showShortcutRequiredError();
+      $('#shortcutRecorder').scrollIntoView({ block: 'center' });
+      return status(window.I18n.t(currentLang, 'fixHighlighted'), false);
+    }
+    clearShortcutRequiredError();
+    if (window.ShortcutConflicts.findShortcutConflict(currentShortcut, 'system')) {
+      return status(window.I18n.t(currentLang, 'shortcutConflictsSystemSave'), false);
+    }
+    await window.api.saveSettings({ apiKey, workspaceId, motherLanguage, appLanguage, model, effort, shortcut: currentShortcut, showInDock, launchAtLogin });
+    applyTranslations(appLanguage);
+    status(window.I18n.t(currentLang, 'savedUsing', { model }), true);
+    flashSaved();
+  });
+
+  // Mother language autocomplete ------------------------------------------
+  // Shows suggestions from the first character typed — the list is short
+  // enough (under 100 languages) that filtering earlier costs nothing and
+  // helps more than a higher threshold would.
+  let langHighlightIndex = -1;
+
+  // Shows the matching flag once the field holds a recognized language name
+  // (exact match, case-insensitive) — typed freeform text that doesn't match
+  // anything in the list just hides it again, since there's no flag to show.
+  function updateMotherLanguageFlag() {
+    const value = $('#motherLanguage').value.trim().toLowerCase();
+    const match = value && window.Languages.LANGUAGES.find((l) => l.name.toLowerCase() === value);
+    const flagEl = $('#motherLanguageFlag');
+    const input = $('#motherLanguage');
+    if (match) {
+      flagEl.textContent = match.flag;
+      flagEl.style.display = 'inline';
+      input.classList.add('has-flag');
+    } else {
+      flagEl.style.display = 'none';
+      input.classList.remove('has-flag');
+    }
+  }
+
+  function renderLangSuggestions(matches) {
+    const box = $('#motherLanguageSuggestions');
+    box.innerHTML = '';
+    langHighlightIndex = -1;
+    if (!matches.length) { box.style.display = 'none'; return; }
+    matches.forEach((lang) => {
+      const item = document.createElement('div');
+      item.className = 'lang-suggestion';
+      item.setAttribute('role', 'option');
+      const flag = document.createElement('span');
+      flag.className = 'lang-flag';
+      flag.textContent = lang.flag;
+      const name = document.createElement('span');
+      name.textContent = lang.name;
+      item.appendChild(flag);
+      item.appendChild(name);
+      // mousedown (not click) fires before the input's blur, so selecting a
+      // suggestion doesn't get pre-empted by the input losing focus first.
+      item.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        $('#motherLanguage').value = lang.name;
+        updateMotherLanguageFlag();
+        box.style.display = 'none';
+      });
+      box.appendChild(item);
+    });
+    box.style.display = 'block';
+  }
+
+  $('#motherLanguage').addEventListener('input', () => {
+    renderLangSuggestions(window.Languages.findLanguages($('#motherLanguage').value, 8));
+    updateMotherLanguageFlag();
+  });
+  $('#motherLanguage').addEventListener('blur', () => {
+    setTimeout(() => { $('#motherLanguageSuggestions').style.display = 'none'; }, 0);
+  });
+  $('#motherLanguage').addEventListener('keydown', (e) => {
+    const box = $('#motherLanguageSuggestions');
+    const items = Array.from(box.children);
+    if (box.style.display === 'none' || !items.length) return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      items.forEach((it) => it.classList.remove('highlighted'));
+      langHighlightIndex = e.key === 'ArrowDown'
+        ? (langHighlightIndex + 1) % items.length
+        : (langHighlightIndex - 1 + items.length) % items.length;
+      items[langHighlightIndex].classList.add('highlighted');
+      items[langHighlightIndex].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter' && langHighlightIndex >= 0) {
+      e.preventDefault();
+      items[langHighlightIndex].dispatchEvent(new MouseEvent('mousedown'));
+    } else if (e.key === 'Escape') {
+      box.style.display = 'none';
+    }
+  });
+
+  // Feedback form -----------------------------------------------------------
+  $('#sendFeedbackBtn').addEventListener('click', async () => {
+    const text = $('#feedbackText').value.trim();
+    const fbStatus = $('#feedbackStatus');
+    if (!text) {
+      fbStatus.textContent = window.I18n.t(currentLang, 'feedbackEmptyErr');
+      fbStatus.className = 'status err';
+      return;
+    }
+    await window.api.sendFeedback(text);
+    fbStatus.textContent = window.I18n.t(currentLang, 'feedbackOpening');
+    fbStatus.className = 'status ok';
+    $('#feedbackText').value = '';
+  });
+
+  // Tabs ("modes") are fully user-owned: renamable, addable, deletable,
+  // reorderable. `presetsCache` groups the flat preset list by whichever tab
+  // it's currently filed under; only the active tab's rows are rendered at a
+  // time, so a drag can never cross between tabs.
+  let toneModes = [];
+  let activeMode = null;
+  let presetsCache = {};
+  let dragState = null; // preset row: { index }; tab strip: { mode }
+
+  function presetStatus(msg, ok) {
+    const s = $('#presetStatus');
+    s.textContent = msg;
+    s.className = 'status ' + (ok ? 'ok' : 'err');
+  }
+
+  // originalLabel tracks the last-persisted name for each preset, separate
+  // from the (user-editable) `label` field, so a pending rename can still be
+  // matched back to the right stored preset when Save is clicked.
+  function tagOriginal(p) { return { ...p, originalLabel: p.label }; }
+
+  function groupByMode(flatList, modes) {
+    const grouped = {};
+    modes.forEach((m) => { grouped[m] = []; });
+    flatList.forEach((p) => { (grouped[p.category] || (grouped[p.category] = [])).push(p); });
+    return grouped;
+  }
+
+  function flattenPresets() {
+    return toneModes.flatMap((m) => presetsCache[m] || []);
+  }
+
+  // Only the active tab's rows are on screen, so this only needs to read
+  // that one container back into presetsCache before any save/switch/mutate.
+  function syncEditsFromDOM() {
+    if (!activeMode) return;
+    const container = $('#presetEditorActive');
+    const rows = container.querySelectorAll('.preset-row');
+    rows.forEach((row, i) => {
+      const p = presetsCache[activeMode][i];
+      if (!p) return;
+      p.prompt = row.querySelector('.preset-row-prompt').value;
+      p.blurb = row.querySelector('.preset-row-blurb-input').value.trim();
+      p.icon = row.querySelector('.preset-row-icon-input').value.trim();
+      p.label = row.querySelector('.preset-row-label-input').value.trim() || p.label;
+      p.tone = row.querySelector('.preset-row-tone-input').value.trim();
+    });
+  }
+
+  function renderTabstrip() {
+    const strip = $('#toneModeTabstrip');
+    strip.innerHTML = '';
+    toneModes.forEach((mode) => {
+      const tab = document.createElement('div');
+      tab.className = 'tone-mode-tab' + (mode === activeMode ? ' active' : '');
+      tab.draggable = true;
+
+      tab.addEventListener('dragstart', (e) => { dragState = { mode }; tab.classList.add('dragging'); e.stopPropagation(); });
+      tab.addEventListener('dragend', () => {
+        tab.classList.remove('dragging');
+        strip.querySelectorAll('.tone-mode-tab').forEach((t) => t.classList.remove('drop-target'));
+      });
+      tab.addEventListener('dragover', (e) => {
+        if (!dragState || !dragState.mode) return;
+        e.preventDefault();
+        tab.classList.add('drop-target');
+      });
+      tab.addEventListener('dragleave', () => tab.classList.remove('drop-target'));
+      tab.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        tab.classList.remove('drop-target');
+        if (!dragState || !dragState.mode || dragState.mode === mode) return;
+        const draggedMode = dragState.mode;
+        dragState = null;
+        const next = toneModes.filter((m) => m !== draggedMode);
+        next.splice(next.indexOf(mode), 0, draggedMode);
+        const r = await window.api.reorderToneModes(next);
+        toneModes = r.modes;
+        renderTabstrip();
+      });
+
+      const grip = document.createElement('span');
+      grip.className = 'tone-mode-tab-grip';
+      grip.textContent = '⠿';
+
+      const nameInput = document.createElement('input');
+      nameInput.type = 'text';
+      nameInput.className = 'tone-mode-tab-name';
+      nameInput.value = mode;
+      nameInput.readOnly = true;
+      nameInput.setAttribute('aria-label', 'Tab name');
+      nameInput.addEventListener('click', () => {
+        if (mode !== activeMode) { switchToMode(mode); return; }
+        nameInput.readOnly = false;
+        nameInput.focus();
+        nameInput.select();
+      });
+      nameInput.addEventListener('blur', () => commitModeRename(mode, nameInput));
+      nameInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); nameInput.blur(); }
+        else if (e.key === 'Escape') { nameInput.value = mode; nameInput.readOnly = true; nameInput.blur(); }
+      });
+
+      const count = document.createElement('span');
+      count.className = 'tone-mode-tab-count';
+      count.textContent = String((presetsCache[mode] || []).length);
+
+      tab.appendChild(grip);
+      tab.appendChild(nameInput);
+      tab.appendChild(count);
+
+      if (toneModes.length > 1) {
+        const del = document.createElement('button');
+        del.type = 'button';
+        del.className = 'tone-mode-tab-del';
+        del.title = window.I18n.t(currentLang, 'presetsDeleteModeTitle');
+        del.textContent = '×';
+        del.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          if (!confirm(window.I18n.t(currentLang, 'presetsDeleteModeConfirm', { mode }))) return;
+          const r = await window.api.deleteToneMode(mode);
+          if (!r.success) return presetStatus(r.error, false);
+          toneModes = r.modes;
+          presetsCache = groupByMode(r.presets.map(tagOriginal), toneModes);
+          if (activeMode === mode) activeMode = toneModes[0];
+          renderTabstrip();
+          renderActiveEditor();
+        });
+        tab.appendChild(del);
+      }
+
+      strip.appendChild(tab);
+    });
+  }
+
+  async function commitModeRename(mode, inputEl) {
+    const next = inputEl.value.trim();
+    inputEl.readOnly = true;
+    if (!next || next === mode) { inputEl.value = mode; return; }
+    const r = await window.api.renameToneMode(mode, next);
+    if (!r.success) {
+      inputEl.value = mode;
+      presetStatus(r.error, false);
+      return;
+    }
+    toneModes = r.modes;
+    presetsCache = groupByMode(r.presets.map(tagOriginal), toneModes);
+    if (activeMode === mode) activeMode = next;
+    renderTabstrip();
+    renderActiveEditor();
+  }
+
+  function switchToMode(mode) {
+    if (mode === activeMode) return;
+    syncEditsFromDOM();
+    activeMode = mode;
+    renderTabstrip();
+    renderActiveEditor();
+  }
+
+  function renderPresetRow(container, list, i) {
+    const p = list[i];
+    const row = document.createElement('div');
+    row.className = 'preset-row';
+    row.draggable = true;
+
+    row.addEventListener('dragstart', () => { dragState = { index: i }; row.classList.add('dragging'); });
+    row.addEventListener('dragend', () => {
+      row.classList.remove('dragging');
+      container.querySelectorAll('.preset-row').forEach((r) => r.classList.remove('drop-target'));
+    });
+    row.addEventListener('dragover', (e) => {
+      if (!dragState || dragState.mode) return;
+      e.preventDefault();
+      row.classList.add('drop-target');
+    });
+    row.addEventListener('dragleave', () => row.classList.remove('drop-target'));
+    row.addEventListener('drop', (e) => {
+      e.preventDefault();
+      row.classList.remove('drop-target');
+      if (!dragState || dragState.mode || dragState.index === i) return;
+      syncEditsFromDOM();
+      const moved = presetsCache[activeMode].splice(dragState.index, 1)[0];
+      presetsCache[activeMode].splice(i, 0, moved);
+      dragState = null;
+      renderActiveEditor();
+    });
+
+    const handle = document.createElement('span');
+    handle.className = 'drag-handle';
+    handle.textContent = '⠿';
+    handle.title = window.I18n.t(currentLang, 'presetDragTitle');
+
+    const main = document.createElement('div');
+    main.className = 'preset-row-main';
+
+    const labelRow = document.createElement('div');
+    labelRow.className = 'preset-row-label-row';
+    const iconInput = document.createElement('input');
+    iconInput.type = 'text';
+    iconInput.className = 'preset-row-icon-input';
+    iconInput.maxLength = 4;
+    iconInput.placeholder = '🙂';
+    iconInput.title = window.I18n.t(currentLang, 'presetIconTitle');
+    iconInput.value = p.icon || '';
+    iconInput.setAttribute('aria-label', 'Preset icon (optional)');
+    labelRow.appendChild(iconInput);
+    const labelInput = document.createElement('input');
+    labelInput.type = 'text';
+    labelInput.className = 'preset-row-label-input';
+    labelInput.value = p.label;
+    labelInput.setAttribute('aria-label', 'Preset name');
+    labelRow.appendChild(labelInput);
+
+    const defaultBtn = document.createElement('button');
+    defaultBtn.type = 'button';
+    defaultBtn.className = 'default-toggle' + (p.isDefault ? ' is-default' : '');
+    defaultBtn.textContent = p.isDefault ? window.I18n.t(currentLang, 'presetDefaultText') : window.I18n.t(currentLang, 'presetSetDefaultText');
+    defaultBtn.disabled = p.isDefault;
+    defaultBtn.title = p.isDefault ? window.I18n.t(currentLang, 'presetDefaultTitleOn') : window.I18n.t(currentLang, 'presetDefaultTitleOff', { category: activeMode });
+    defaultBtn.addEventListener('click', () => {
+      syncEditsFromDOM();
+      presetsCache[activeMode].forEach((x) => { x.isDefault = false; });
+      presetsCache[activeMode][i].isDefault = true;
+      renderActiveEditor();
+    });
+    labelRow.appendChild(defaultBtn);
+
+    if (list.length > 1 && !p.isDefault) {
+      const del = document.createElement('button');
+      del.className = 'preset-row-del';
+      del.type = 'button';
+      del.title = window.I18n.t(currentLang, 'presetDeleteTitle');
+      del.textContent = '×';
+      del.addEventListener('click', async () => {
+        if (!confirm(window.I18n.t(currentLang, 'presetDeleteConfirm', { label: p.label }))) return;
+        syncEditsFromDOM();
+        await window.api.deletePreset(p.originalLabel);
+        presetsCache[activeMode] = presetsCache[activeMode].filter((x) => x.originalLabel !== p.originalLabel);
+        renderTabstrip();
+        renderActiveEditor();
+      });
+      labelRow.appendChild(del);
+    }
+
+    const blurbInput = document.createElement('input');
+    blurbInput.type = 'text';
+    blurbInput.className = 'preset-row-blurb-input';
+    blurbInput.placeholder = window.I18n.t(currentLang, 'presetBlurbPlaceholder');
+    blurbInput.value = p.blurb || '';
+
+    const promptEl = document.createElement('textarea');
+    promptEl.className = 'preset-row-prompt';
+    promptEl.rows = 2;
+    promptEl.value = p.prompt;
+
+    const footer = document.createElement('div');
+    footer.className = 'preset-row-footer';
+    const toneInput = document.createElement('input');
+    toneInput.type = 'text';
+    toneInput.className = 'preset-row-tone-input';
+    toneInput.placeholder = window.I18n.t(currentLang, 'presetTonePlaceholder');
+    toneInput.value = p.tone || '';
+    toneInput.setAttribute('aria-label', window.I18n.t(currentLang, 'presetToneLabel'));
+    footer.appendChild(toneInput);
+    const uses = document.createElement('span');
+    uses.className = 'preset-row-uses';
+    uses.textContent = window.I18n.t(currentLang, 'presetUsedTimes', { n: p.uses || 0 });
+    footer.appendChild(uses);
+
+    main.appendChild(labelRow);
+    main.appendChild(blurbInput);
+    main.appendChild(promptEl);
+    main.appendChild(footer);
+
+    row.appendChild(handle);
+    row.appendChild(main);
+    return row;
+  }
+
+  function renderActiveEditor() {
+    const container = $('#presetEditorActive');
+    container.innerHTML = '';
+    $('#activeModeLabel').textContent = activeMode || '';
+    $('#addPresetBtn').textContent = window.I18n.t(currentLang, 'presetsAddToMode', { mode: activeMode || '' });
+    const list = presetsCache[activeMode] || [];
+    if (!list.length) {
+      const empty = document.createElement('div');
+      empty.className = 'tone-mode-empty';
+      empty.textContent = window.I18n.t(currentLang, 'presetsModeEmpty');
+      container.appendChild(empty);
+      return;
+    }
+    list.forEach((p, i) => container.appendChild(renderPresetRow(container, list, i)));
+  }
+
+  (async () => {
+    const [flat, modes] = await Promise.all([window.api.getPresets(), window.api.getToneModes()]);
+    toneModes = modes;
+    presetsCache = groupByMode(flat.map(tagOriginal), toneModes);
+    activeMode = toneModes[0];
+    renderTabstrip();
+    renderActiveEditor();
+  })();
+
+  $('#savePresetsBtn').addEventListener('click', async () => {
+    syncEditsFromDOM();
+    const incoming = flattenPresets().map((p) => ({
+      originalLabel: p.originalLabel,
+      label: p.label,
+      prompt: p.prompt,
+      icon: p.icon,
+      blurb: p.blurb,
+      tone: p.tone,
+      isDefault: p.isDefault
+    }));
+    const r = await window.api.reorderPresets(incoming);
+    presetsCache = groupByMode(r.presets.map(tagOriginal), toneModes);
+    renderTabstrip();
+    renderActiveEditor();
+    presetStatus(window.I18n.t(currentLang, 'presetsSaved'), true);
+  });
+
+  // Added presets need a unique name up front — savePreset overwrites
+  // in place when the label already matches an existing preset, so a second
+  // "New Action" would silently replace the first instead of adding another.
+  function nextNewPresetLabel(mode) {
+    const existing = new Set((presetsCache[mode] || []).map((p) => p.label));
+    if (!existing.has('New Action')) return 'New Action';
+    let n = 2;
+    while (existing.has(`New Action ${n}`)) n++;
+    return `New Action ${n}`;
+  }
+
+  $('#addPresetBtn').addEventListener('click', async () => {
+    if (!activeMode) return;
+    const label = nextNewPresetLabel(activeMode);
+    const r = await window.api.savePreset({ label, category: activeMode, icon: '', blurb: '', prompt: '', isEmail: false });
+    if (!r.success) return presetStatus(r.error, false);
+    presetsCache = groupByMode(r.presets.map(tagOriginal), toneModes);
+    renderTabstrip();
+    renderActiveEditor();
+    presetStatus(window.I18n.t(currentLang, 'presetsAdded', { label, category: activeMode }), true);
+    const rows = $('#presetEditorActive').querySelectorAll('.preset-row');
+    const newRow = rows[rows.length - 1];
+    if (newRow) {
+      const input = newRow.querySelector('.preset-row-label-input');
+      newRow.scrollIntoView({ block: 'nearest' });
+      input.focus();
+      input.select();
+    }
+  });
+
+  $('#addModeBtn').addEventListener('click', async () => {
+    syncEditsFromDOM();
+    const r = await window.api.addToneMode();
+    if (!r.success) return presetStatus(r.error, false);
+    toneModes = r.modes;
+    presetsCache = groupByMode(flattenPresets().map((p) => ({ ...p, originalLabel: p.originalLabel || p.label })), toneModes);
+    activeMode = toneModes[toneModes.length - 1];
+    renderTabstrip();
+    renderActiveEditor();
+    const strip = $('#toneModeTabstrip');
+    const lastTab = strip.querySelector('.tone-mode-tab:last-child .tone-mode-tab-name');
+    if (lastTab) { lastTab.readOnly = false; lastTab.focus(); lastTab.select(); }
+  });
+
+  // Write My Way (Advanced tab) --------------------------------------------
+  // Mockup UI only: toggles and selections here are local page state, not
+  // persisted to the store and not yet read anywhere in the send-to-Claude
+  // flow. Target Audience and Custom Instructions are shown for context but
+  // stay non-interactive — those will live on each Tone Preset once built.
+  function toggleWmwCard(enabled) {
+    $('#wmwCard').style.display = enabled ? 'block' : 'none';
+  }
+  $('#wmwEnabled').addEventListener('change', (e) => toggleWmwCard(e.target.checked));
+  toggleWmwCard(false);
+
+  $('#wmwEnglishLevelEnabled').addEventListener('change', (e) => {
+    $('#wmwEnglishLevelFields').style.display = e.target.checked ? 'block' : 'none';
+  });
+
+  $('#wmwTone').addEventListener('change', () => {
+    $('#wmwToneCustom').style.display = $('#wmwTone').value === 'other' ? 'block' : 'none';
+  });
+
+  $('#wmwLengthSegmented').addEventListener('click', (e) => {
+    const btn = e.target.closest('.wmw-seg-btn');
+    if (!btn) return;
+    $('#wmwLengthSegmented').querySelectorAll('.wmw-seg-btn').forEach((b) => b.classList.remove('active'));
+    btn.classList.add('active');
+    $('#wmwLengthCustomFields').style.display = btn.dataset.length === 'custom' ? 'flex' : 'none';
+  });
+
+  // Wartime / Peacetime Mode (Advanced tab) -------------------------------
+  // Off by default; enabling it just reveals the configurator card below —
+  // the tool row's switch is the only thing wired to saveSettings here, kept
+  // separate from the General tab's own Save button since it lives in a
+  // different tab and should take effect immediately.
+  let wtptMode = 'wartime';
+  let wtptCompare = false;
+
+  function toggleWtptCard(enabled) {
+    $('#wtptCard').style.display = enabled ? 'block' : 'none';
+  }
+
+  function wtptEl(tag, cls, text) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+
+  // Each row is rendered with BOTH modes' values every time — .wtpt-row-other
+  // only becomes visible via the #wtptCard.compare CSS rule, so toggling
+  // Compare never needs a re-render, just a class flip on the card.
+  function renderWtptGroups(mode) {
+    const container = $('#wtptGroups');
+    container.innerHTML = '';
+    const otherMode = mode === 'wartime' ? 'peacetime' : 'wartime';
+    const activeGroups = window.WARTIME_PEACETIME_CONFIG[mode].groups;
+    const otherGroups = window.WARTIME_PEACETIME_CONFIG[otherMode].groups;
+    const otherModeLabel = window.I18n.t(currentLang, otherMode === 'wartime' ? 'wtptWartimeBtn' : 'wtptPeacetimeBtn');
+    activeGroups.forEach((group, gi) => {
+      const g = wtptEl('div', 'wtpt-group');
+      g.appendChild(wtptEl('div', 'wtpt-group-title', group.title));
+      group.rows.forEach(([label, value], ri) => {
+        const row = wtptEl('div', 'wtpt-row');
+        row.appendChild(wtptEl('span', 'wtpt-row-label', label));
+        row.appendChild(wtptEl('div', 'wtpt-row-active', value));
+        const otherRow = otherGroups[gi] && otherGroups[gi].rows[ri];
+        if (otherRow) row.appendChild(wtptEl('div', 'wtpt-row-other', otherModeLabel + ': ' + otherRow[1]));
+        g.appendChild(row);
+      });
+      container.appendChild(g);
+    });
+  }
+
+  function updateCompareBtn() {
+    $('#wtptCompareBtn').textContent = window.I18n.t(currentLang, wtptCompare ? 'wtptCompareOff' : 'wtptCompareOn');
+    $('#wtptCompareBtn').classList.toggle('on', wtptCompare);
+  }
+
+  function applyWtptMode(mode) {
+    wtptMode = mode;
+    $('#wtptWartimeBtn').classList.toggle('active', mode === 'wartime');
+    $('#wtptPeacetimeBtn').classList.toggle('active', mode === 'peacetime');
+    $('#wtptCard').classList.toggle('mode-wartime', mode === 'wartime');
+    $('#wtptCard').classList.toggle('mode-peacetime', mode === 'peacetime');
+    renderWtptGroups(mode);
+    $('#wtptWhy').textContent = window.WARTIME_PEACETIME_CONFIG[mode].why;
+    $('#wtptExport').value = window.buildWartimePeacetimeExportText(mode);
+    $('#wtptCopyStatus').textContent = '';
+  }
+
+  $('#wtptWartimeBtn').addEventListener('click', () => applyWtptMode('wartime'));
+  $('#wtptPeacetimeBtn').addEventListener('click', () => applyWtptMode('peacetime'));
+  $('#wtptCompareBtn').addEventListener('click', () => {
+    wtptCompare = !wtptCompare;
+    $('#wtptCard').classList.toggle('compare', wtptCompare);
+    updateCompareBtn();
+  });
+
+  $('#wtptEnabled').addEventListener('change', async () => {
+    const enabled = $('#wtptEnabled').checked;
+    toggleWtptCard(enabled);
+    await window.api.saveSettings({ wartimePeacetimeEnabled: enabled });
+    flashSaved();
+  });
+
+  $('#wtptCopyBtn').addEventListener('click', async () => {
+    const exportEl = $('#wtptExport');
+    try {
+      await navigator.clipboard.writeText(exportEl.value);
+      $('#wtptCopyStatus').textContent = window.I18n.t(currentLang, 'wtptCopied');
+    } catch (err) {
+      exportEl.focus();
+      exportEl.select();
+      $('#wtptCopyStatus').textContent = window.I18n.t(currentLang, 'wtptCopyFailed');
+    }
+    setTimeout(() => { $('#wtptCopyStatus').textContent = ''; }, 2500);
+  });
+
+  applyWtptMode('wartime');
+  updateCompareBtn();
+</script>
+</body>
+</html>

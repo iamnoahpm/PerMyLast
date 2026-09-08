@@ -1,0 +1,271 @@
+/* ==========================================================================
+   Valuecase-style design tokens
+   Single source of truth. Components must never hardcode a value that
+   appears here. [EST] = reconstructed, role is real but value is not sampled.
+   ========================================================================== */
+
+/* Bundled locally (OFL-licensed, from Google Fonts) so Plus Jakarta Sans and
+   JetBrains Mono render identically regardless of whether the user has them
+   installed — matches design_handoff_per_my_last exactly. Variable-weight
+   files (400–700 in one file per subset) rather than one file per weight.
+   Three subsets cover the app's two UI languages: latin (English), latin-ext
+   + vietnamese (diacritics for Tiếng Việt). */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('fonts/PlusJakartaSans-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('fonts/PlusJakartaSans-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('fonts/PlusJakartaSans-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400 500;
+  font-display: swap;
+  src: url('fonts/JetBrainsMono-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  /* --- Colour: design_handoff_per_my_last palette (exact hex, high-fidelity) */
+  --vc-ink:            #17171a;
+  --vc-ink-soft:       #4a4a52;
+  --vc-muted:          #6b6b73;
+  --vc-white:          #ffffff;
+  --vc-paper:          #f7f7f9;
+  --vc-paper-2:        #f2f2f5;
+  --vc-border:         #e4e4e9;
+
+  --vc-label-muted:    #7a7a82;
+  --vc-label-subtle:   #8a8a92;
+  --vc-hint:           #9a9aa2;
+  --vc-hint-2:         #a0a0a8;
+  --vc-faint:          #b0b0b8;
+  --vc-faint-2:        #b6b6be;
+  --vc-faint-3:        #c3c3cb;
+  --vc-border-strong:  #dedee3;
+  --vc-border-btn:     #e0e0e5;
+  --vc-divider:        #ececf0;
+  --vc-divider-2:      #f0f0f3;
+  --vc-inset:          #f6f6f8;
+  --vc-inset-2:        #fafafb;
+  --vc-desktop:        #e9e9ec;
+
+  --vc-yellow:         #febc2e; /* traffic light — see also accent-warm below for chips */
+  --vc-yellow-soft:    #fdf8ec;
+  --vc-blue:           #2b6cf6;
+  --vc-blue-soft:      #f0f5ff;
+  --vc-green:          #127a52;
+  --vc-red:            #b3261e;
+  --vc-red-soft:       #fdf3f2;
+
+  --vc-dark:           #1b1b1d;
+  --vc-dark-2:         #1d1f23; /* [EST] */
+  --vc-on-dark:        #ffffff;
+  --vc-on-dark-muted:  #a6a9ae; /* [EST] */
+
+  /* design_handoff extras not covered by the roles above */
+  --edited-bg:         #fff4e0;
+  --edited-fg:         #8a5a00;
+  --success-bg:        #e7f4ed;
+  --success-fg:        #0f6b48;
+  --success-banner-bg: #f2faf6;
+  --success-banner-border: #cfe8dc;
+  --success-dot:       #127a52;
+  --warning-bg:        #fbeed3;
+  --warning-fg:        #8a6205;
+  --warning-banner-bg: #fdf8ec;
+  --warning-banner-border: #f0dfb4;
+  --warning-dot:       #b8860b;
+  --warning-card-border: #ecdcbc;
+  --wartime-chip:      #fbe2a7;
+  --wartime-note-bg:   #fdf8ec;
+  --wartime-rule:      #e5b94e;
+  --peacetime-chip:    #dbe6ff;
+  --peacetime-note-bg: #f0f5ff;
+  --peacetime-rule:    #8fb0ff;
+  --traffic-red:       #ff5f57;
+  --traffic-yellow:    #febc2e;
+  --traffic-green:     #28c840;
+
+  /* --- Colour: semantic aliases. Use THESE in components ----------------- */
+  --fg:            var(--vc-ink);
+  --fg-muted:      var(--vc-muted);
+  --bg:            var(--vc-white);
+  --bg-alt:        var(--vc-paper);
+  --bg-sunken:     var(--vc-paper-2);
+  --line:          var(--vc-border);
+  --accent-warm:   var(--vc-yellow);
+  --accent-cool:   var(--vc-blue);
+  --accent-cool-soft: var(--vc-blue-soft);
+  --success:       var(--vc-green);
+  --danger:        var(--vc-red);
+  --danger-soft:   var(--vc-red-soft);
+  --focus-ring:    var(--vc-blue);
+
+  /* --- Type -------------------------------------------------------------- */
+  --vc-font-display: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --vc-font-body:    var(--vc-font-display);
+  --vc-font-mono:    "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --fs-eyebrow: 0.875rem;
+  --fs-body-s:  0.9375rem;
+  --fs-body:    1.0625rem;
+  --fs-body-l:  1.1875rem;
+  --fs-h4:      1.25rem;
+  --fs-h3:      clamp(1.375rem, 1.1rem + 1vw, 1.75rem);
+  --fs-h2:      clamp(2rem, 1.4rem + 2.2vw, 3rem);
+  --fs-h1:      clamp(2.5rem, 1.6rem + 3.6vw, 4rem);
+  --fs-stat:    clamp(2.25rem, 1.5rem + 3vw, 3.5rem);
+
+  /* Exact px scale from design_handoff_per_my_last — use these for app-window
+     chrome (index.html / settings.html); the rem-based --fs-* scale above is
+     for marketing-page content and unrelated to these two windows. */
+  --t-page-title:   17px;  /* 700 */
+  --t-tab-preset:   15px;  /* 700, Tone Presets tab label */
+  --t-card-title:   14px;  /* 700 */
+  --t-tab-main:     14px;  /* 500–700, main app tabs */
+  --t-input:        13.5px; /* input & row label */
+  --t-select:       13px;  /* select / option */
+  --t-body:         12.5px; /* body & buttons */
+  --t-meta:         12px;
+  --t-hint:         11.5px;
+  --t-label:        11px;   /* 700 uppercase, letter-spacing .07em */
+  --t-badge:        10.5px; /* 700 uppercase, letter-spacing .04em */
+
+  --lh-tight: 1.08;
+  --lh-head:  1.18;
+  --lh-body:  1.6;
+  --ls-head:  -0.02em;
+  --ls-stat:  -0.03em;
+  --ls-eyebrow: 0.01em;
+
+  --measure-lead:  56ch;
+  --measure-prose: 70ch;
+
+  /* --- Space, 4px base --------------------------------------------------- */
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px; --s-5: 24px;
+  --s-6: 32px; --s-7: 48px; --s-8: 64px; --s-9: 96px; --s-10: 128px;
+
+  /* --- Layout ------------------------------------------------------------ */
+  --container: 1200px;
+  --gutter:    clamp(20px, 4vw, 48px);
+  --section-y: clamp(64px, 8vw, 128px);
+  --bp-md:     860px; /* single breakpoint: multi-column collapses to one */
+
+  /* --- Radius (design_handoff_per_my_last scale) -------------------------- */
+  --r-pill:    999px;
+  --r-chip:    999px;
+  --r-window:  12px;
+  --r-card:    10px;
+  --r-inset:   9px;
+  --r-input:   8px;
+  --r-btn:     7px;   /* small button */
+  --r-btn-sm:  7px;
+  --r-seg:     6px;   /* segmented item */
+  --r-badge:   5px;
+  --r-media:   28px; /* [EST] — legacy marketing token, unused by app windows */
+
+  /* --- Elevation (design_handoff_per_my_last) ----------------------------- */
+  --sh-window:  0 24px 60px rgba(0,0,0,.28);
+  --sh-card:    0 1px 2px rgba(0,0,0,.03);
+  --sh-card-lg: 0 6px 18px rgba(0,0,0,.07);
+  --sh-knob:    0 1px 2px rgba(0,0,0,.12);
+  --sh-toggle-knob: 0 1px 2px rgba(0,0,0,.25);
+  --sh-1: 0 1px 2px rgba(23, 24, 26, .05), 0 1px 1px rgba(23, 24, 26, .04);
+  --sh-2: 0 8px 24px -12px rgba(23, 24, 26, .14);
+  --sh-3: 0 28px 60px -28px rgba(23, 24, 26, .22);
+
+  /* --- Motion ------------------------------------------------------------ */
+  --ease:      cubic-bezier(.2, .8, .2, 1);
+  --dur-fast:  .18s;
+  --dur-base:  .24s;
+  --lift:      -1px;  /* hover translateY on buttons and cards */
+  --nudge:     3px;   /* hover translateX on the CTA arrow glyph */
+}
+
+/* Inverted section. Apply to a section wrapper, not to <html>.
+   There is no dark theme, only dark surfaces. */
+.on-dark {
+  --fg:       var(--vc-on-dark);
+  --fg-muted: var(--vc-on-dark-muted);
+  --bg:       var(--vc-dark);
+  --bg-alt:   var(--vc-dark-2);
+  --line:     rgba(255, 255, 255, .14);
+  background: var(--bg);
+  color: var(--fg);
+}
+
+/* --- Base ---------------------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--vc-font-body);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  margin: 0;
+  font-family: var(--vc-font-display);
+  letter-spacing: var(--ls-head);
+  line-height: var(--lh-head);
+}
+h1 { font-size: var(--fs-h1); font-weight: 800; line-height: var(--lh-tight); }
+h2 { font-size: var(--fs-h2); font-weight: 700; }
+h3 { font-size: var(--fs-h3); font-weight: 700; }
+h4 { font-size: var(--fs-h4); font-weight: 700; letter-spacing: normal; }
+
+p { margin: 0 0 var(--s-4); max-width: var(--measure-prose); }
+
+/* --- Layout primitives --------------------------------------------------- */
+.container { max-width: var(--container); margin-inline: auto; padding-inline: var(--gutter); }
+.section   { padding-block: var(--section-y); }
+.section--alt { background: var(--bg-alt); }
+
+/* --- Text primitives ----------------------------------------------------- */
+.eyebrow {
+  display: block;
+  font-size: var(--fs-eyebrow);
+  font-weight: 700;
+  letter-spacing: var(--ls-eyebrow);
+  margin-bottom: var(--s-3);
+  /* sentence case, never uppercase */
+}
+.lead   { font-size: var(--fs-body-l); color: var(--fg-muted); max-width: var(--measure-lead); }
+.muted  { color: var(--fg-muted); }
+
+/* --- Focus and motion floor ---------------------------------------------- */
+:where(a, button, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}

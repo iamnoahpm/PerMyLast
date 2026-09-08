@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body { margin:0; background:#EFEEEC; font-family:'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
+a { color:#1F5EFF; text-decoration:none; }
+a:hover { color:#0B3FC4; text-decoration:underline; }
+</style>
+</helmet>
+
+<div style="min-height:100vh; display:flex; align-items:flex-start; justify-content:center; padding:40px 24px;">
+  <div style="width:420px; background:#FFFFFF; border:1px solid #DCD9D3; border-radius:14px; box-shadow:0 18px 40px -24px rgba(20,19,18,0.45); overflow:hidden;">
+
+    <div style="padding:14px 14px 0;">
+      <div style="border:1.5px solid #1F5EFF; border-radius:9px; padding:11px 12px; min-height:78px; font-size:14px; line-height:1.5; color:#A5A29B; background:#fff; box-shadow:0 0 0 3px rgba(31,94,255,0.12);">Select text anywhere, then press ⌃⌘⇧S — or paste text here directly</div>
+    </div>
+
+    <div style="padding:14px; display:flex; flex-direction:column; gap:12px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div style="font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#8A8781; white-space:nowrap;">Help me</div>
+        <div style="display:flex; gap:3px; padding:3px; background:#F2F0EC; border-radius:9px; flex:1;">
+          <sc-for list="{{ tabs }}" as="tab" hint-placeholder-count="3">
+            <button onClick="{{ tab.onSelect }}" style="{{ tab.style }}">{{ tab.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:4px;">
+        <sc-for list="{{ tabActions }}" as="act" hint-placeholder-count="3">
+          <button onClick="{{ act.onSelect }}" style="{{ act.rowStyle }}" style-hover="background:#F2F0EC;">
+            <div style="display:flex; flex-direction:column; gap:2px; text-align:left;">
+              <div style="font-size:13px; font-weight:600; color:#141312;">{{ act.label }}</div>
+              <div style="font-size:12px; line-height:1.4; color:#807C76;">{{ act.blurb }}</div>
+            </div>
+            <div style="{{ act.tickStyle }}">✓</div>
+          </button>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="padding:0 14px 14px; display:flex; flex-direction:column; gap:10px;">
+      <div style="border:1px solid #E2DFD9; background:#FAF9F7; border-radius:9px; padding:10px 12px; display:flex; flex-direction:column; gap:5px;">
+        <div style="font-size:10px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:#9A968F;">Prompt</div>
+        <div style="font-size:13px; line-height:1.5; color:#3D3A35;">{{ prompt }}</div>
+      </div>
+      <button style="width:100%; background:#141312; color:#fff; border:none; border-radius:9px; padding:12px; font-size:14px; font-weight:600; font-family:inherit; cursor:pointer;" style-hover="background:#2C2A26;">Send to Claude&nbsp;&nbsp;⌘↵</button>
+    </div>
+
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:470,&quot;height&quot;:520}}">
+const CATS = [
+  { id:'reply', tab:'Reply', actions:[
+      { id:'reply-email', label:'Reply Email', blurb:'Workplace email reply in your tone', prompt:'You are an expert email writer who drafts clear, professional email replies for workplace contexts. Write the reply in a Direct tone. My reply intent:' },
+      { id:'reply-message', label:'Reply Message', blurb:'Short chat / DM reply', prompt:'Write a short, natural reply to this message. Keep it conversational and to the point. My reply intent:' },
+  ]},
+  { id:'write', tab:'Write', actions:[
+      { id:'rewrite', label:'Rewrite', blurb:'Clear, native English', prompt:'Rewrite this text in clear, native English with a professional tone:' },
+      { id:'grammar', label:'Fix Grammar', blurb:'Spelling and grammar only', prompt:'Fix grammar and spelling:' },
+      { id:'professional', label:'Professional', blurb:'Raise the register', prompt:'Make this more professional:' },
+  ]},
+  { id:'understand', tab:'Understand', actions:[
+      { id:'explain', label:'Explain', blurb:'Plain-language summary', prompt:'Explain this in simple terms:' },
+      { id:'translate', label:'Translate', blurb:'Into your language from Settings', prompt:'Translate this into my mother language (set in Settings):' },
+  ]},
+];
+
+class Component extends DCLogic {
+  state = { tab:'reply', sel:'reply-email' };
+
+  renderVals() {
+    const { tab, sel } = this.state;
+    const tabs = CATS.map(c => ({
+      label: c.tab,
+      onSelect: () => this.setState({ tab: c.id, sel: c.actions[0].id }),
+      style: 'flex:1; padding:7px 10px; border-radius:7px; border:none; font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; transition:all .12s; '
+        + (c.id === tab ? 'background:#FFFFFF; color:#141312; box-shadow:0 1px 3px rgba(20,19,18,0.18);' : 'background:transparent; color:#807C76;'),
+    }));
+    const active = CATS.find(c => c.id === tab) || CATS[0];
+    const tabActions = active.actions.map(a => ({
+      label: a.label, blurb: a.blurb,
+      rowStyle: 'width:100%; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 11px; border-radius:8px; font-family:inherit; cursor:pointer; text-align:left; transition:all .12s; '
+        + (a.id === sel ? 'background:#F7F5F2; border:1px solid #141312;' : 'background:transparent; border:1px solid transparent;'),
+      tickStyle: 'font-size:13px; font-weight:700; color:#141312; opacity:' + (a.id === sel ? '1' : '0') + ';',
+      onSelect: () => this.setState({ sel: a.id }),
+    }));
+    let prompt = '';
+    for (const c of CATS) for (const a of c.actions) if (a.id === sel) prompt = a.prompt;
+    return { tabs, tabActions, prompt };
+  }
+}
+
+</script>
+</body>
+</html>

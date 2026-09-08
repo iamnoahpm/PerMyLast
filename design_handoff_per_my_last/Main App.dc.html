@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #e9e9ec; font-family: "Plus Jakarta Sans", -apple-system, sans-serif; }
+  a { color: #2b6cf6; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  textarea, input { font-family: inherit; }
+  textarea:focus, input:focus { outline: none; border-color: #2b6cf6; }
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; justify-content: center; padding: 40px 24px">
+  <div style="width: 720px; border-radius: 12px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,.28); background: #fff; display: flex; flex-direction: column; height: 660px">
+
+    <div style="height: 38px; background: #1b1b1d; display: flex; align-items: center; padding: 0 12px; flex-shrink: 0; position: relative">
+      <div style="display: flex; gap: 7px">
+        <div style="width: 11px; height: 11px; border-radius: 50%; background: #ff5f57"></div>
+        <div style="width: 11px; height: 11px; border-radius: 50%; background: #febc2e"></div>
+        <div style="width: 11px; height: 11px; border-radius: 50%; background: #28c840"></div>
+      </div>
+      <div style="position: absolute; left: 0; right: 0; text-align: center; color: #fff; font-size: 13px; font-weight: 600; pointer-events: none">Per My Last</div>
+    </div>
+
+    <div style="flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 14px 16px 16px; gap: 12px; background: #fff">
+
+      <div style="display: flex; align-items: center; gap: 8px">
+        <div style="display: flex; align-items: end; gap: 3px; border-bottom: 1px solid #ececf0; flex: 1; min-width: 0">
+          <div style="display: flex; align-items: end; gap: 3px; flex: 1; min-width: 0; overflow-x: auto">
+            <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="3">
+              <button onClick="{{ t.onClick }}" style="{{ t.style }}">{{ t.label }}</button>
+            </sc-for>
+          </div>
+          <a href="#settings" title="Settings" style="display: inline-flex; align-items: center; gap: 6px; margin-bottom: 5px; height: 28px; padding: 0 10px; border-radius: 7px; border: 1px solid #e6e6eb; background: #fff; color: #6a6a72; font-size: 12px; font-weight: 600; flex-shrink: 0; text-decoration: none" style-hover="background: #f4f4f6; color: #17171a; border-color: #dcdce1; text-decoration: none">
+            <span style="font-size: 13px">⚙</span>
+            <span>Settings</span>
+          </a>
+        </div>
+      </div>
+
+      <div style="position: relative">
+        <textarea rows="3" value="{{ source }}" onChange="{{ onSource }}" placeholder="Select text anywhere, then press ⇧⌘W — or paste here" style="width: 100%; padding: 11px 12px; border: 1px solid #dedee3; border-radius: 9px; font-size: 13.5px; line-height: 1.55; color: #17171a; resize: none; display: block"></textarea>
+        <div style="position: absolute; right: 10px; bottom: 8px; font-size: 11px; color: #b0b0b8">{{ charCount }}</div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+        <sc-for list="{{ presets }}" as="p" hint-placeholder-count="2">
+          <button onClick="{{ p.onClick }}" style="{{ p.style }}">
+            <span style="font-size: 13px">{{ p.icon }}</span>
+            <span style="font-weight: 700">{{ p.name }}</span>
+            <span style="{{ p.summaryStyle }}">{{ p.summary }}</span>
+          </button>
+        </sc-for>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 10px; font-size: 12px; color: #7a7a82">
+        <button onClick="{{ onTogglePrompt }}" style="display: flex; align-items: center; gap: 5px; border: 0; background: transparent; padding: 0; color: #7a7a82; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer" style-hover="color: #17171a">
+          <span style="{{ caretStyle }}">›</span> Prompt
+        </button>
+        <span style="width: 1px; height: 12px; background: #e2e2e6"></span>
+        <span>Tone <strong style="color: #17171a; font-weight: 600">{{ tone }}</strong></span>
+        <sc-if value="{{ isEdited }}">
+          <span style="display: inline-flex; align-items: center; height: 18px; padding: 0 7px; border-radius: 999px; background: #fff4e0; color: #8a5a00; font-size: 10.5px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase">Edited</span>
+        </sc-if>
+        <sc-if value="{{ savedFlash }}">
+          <span style="color: #0f7b6c; font-weight: 600">Saved to {{ savedTarget }}</span>
+        </sc-if>
+      </div>
+
+      <sc-if value="{{ showPromptRead }}">
+        <div onClick="{{ onEditPrompt }}" onDoubleClick="{{ onEditPrompt }}" title="Click to edit this prompt" style="position: relative; padding: 10px 12px; border-radius: 9px; background: #f6f6f8; border: 1px solid #ececed; font-size: 12.5px; line-height: 1.55; color: #4a4a52; cursor: text" style-hover="border-color: #d6d6dd; background: #f2f2f5">
+          {{ prompt }}
+          <span style="position: absolute; right: 10px; bottom: 8px; font-size: 10.5px; font-weight: 600; color: #a0a0a8">Click to edit</span>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ editing }}">
+        <div style="border-radius: 9px; border: 1.5px solid #2b6cf6; background: #fff; overflow: hidden">
+          <textarea rows="4" value="{{ draft }}" onChange="{{ onDraft }}" onKeyDown="{{ onDraftKeys }}" style="width: 100%; padding: 10px 12px; border: 0; font-size: 12.5px; line-height: 1.55; color: #17171a; resize: none; display: block"></textarea>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-top: 1px solid #f0f0f3; background: #fafafb">
+            <span style="font-size: 11.5px; color: #9a9aa2">Saves to <strong style="color: #4a4a52; font-weight: 600">{{ savedTarget }}</strong> in Settings</span>
+            <span style="flex: 1"></span>
+            <sc-if value="{{ isEdited }}">
+              <button onClick="{{ onRevert }}" style="height: 27px; padding: 0 10px; border-radius: 6px; border: 0; background: transparent; color: #7a7a82; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer" style-hover="color: #17171a">Reset to original</button>
+            </sc-if>
+            <button onClick="{{ onCancelEdit }}" style="height: 27px; padding: 0 11px; border-radius: 6px; border: 1px solid #e0e0e5; background: #fff; color: #4a4a52; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer" style-hover="background: #f4f4f6">Cancel</button>
+            <button onClick="{{ onSavePrompt }}" style="{{ saveBtnStyle }}">Save &amp; overwrite</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <div style="display: flex; gap: 8px; align-items: stretch">
+        <sc-if value="{{ hasIntent }}" hint-placeholder-val="{{ true }}">
+          <input value="{{ intent }}" onChange="{{ onIntent }}" placeholder="{{ intentPlaceholder }}" style="flex: 1; height: 40px; padding: 0 12px; border: 1px solid #dedee3; border-radius: 9px; font-size: 13.5px; color: #17171a" />
+        </sc-if>
+        <button onClick="{{ onSend }}" style="{{ sendStyle }}">
+          <span>{{ sendLabel }}</span>
+          <span style="opacity: .6; font-size: 12px">⌘↵</span>
+        </button>
+      </div>
+
+      <div style="{{ outputStyle }}">
+        <sc-if value="{{ hasOutput }}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; flex-direction: column; height: 100%">
+            <div style="display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-bottom: 1px solid #ececf0; flex-shrink: 0">
+              <span style="font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #8a8a92">{{ outputLabel }}</span>
+              <span style="flex: 1"></span>
+              <button onClick="{{ onSend }}" style="height: 26px; padding: 0 10px; border-radius: 6px; border: 1px solid #e0e0e5; background: #fff; color: #4a4a52; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer" style-hover="background: #f4f4f6">Regenerate</button>
+              <button style="height: 26px; padding: 0 10px; border-radius: 6px; border: 1px solid #1b1b1d; background: #1b1b1d; color: #fff; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer" style-hover="opacity: .88">Copy</button>
+            </div>
+            <div style="padding: 12px; overflow-y: auto; font-size: 13.5px; line-height: 1.6; color: #17171a; white-space: pre-wrap">{{ output }}</div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ isEmpty }}">
+          <div style="height: 100%; display: grid; place-items: center; text-align: center; padding: 16px">
+            <div style="font-size: 12.5px; color: #a0a0a8; line-height: 1.6">Your draft appears here.<br />{{ emptyHint }}</div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 10px; padding: 0 16px; height: 34px; border-top: 1px solid #e5e5e8; background: #fff; font-size: 11.5px; color: #9a9aa2; flex-shrink: 0">
+      <span>Version 1.4.2</span>
+      <span style="width: 1px; height: 11px; background: #dcdce1"></span>
+      <a href="#feedback">Send feedback</a>
+      <span style="width: 1px; height: 11px; background: #dcdce1"></span>
+      <a href="#updates">Check for updates</a>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:780,&quot;height&quot;:740},&quot;accentColor&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#2b6cf6&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#2b6cf6&quot;,&quot;#17171a&quot;,&quot;#0f7b6c&quot;,&quot;#7c3aed&quot;]}}">
+const TABS = {
+  Reply: {
+    intent: "e.g. Confirm I can make it, but ask to push 30 minutes",
+    presets: [
+      { id: "r1", icon: "📧", name: "Email", summary: "Workplace email reply", tone: "Direct", prompt: "You are an expert email writer who drafts clear, professional email replies for workplace contexts. Write the reply in a Direct tone." },
+      { id: "r2", icon: "💬", name: "Message", summary: "Short chat / DM", tone: "Warm", prompt: "Write a short, natural reply to this message. Keep it conversational and to the point." }
+    ],
+    output: "Thanks for sending this over — I can make Thursday work.\n\nOne ask: could we push to 2:30pm? I have a hand-off that runs right up to 2:00 and I would rather come to this one with a clear head than half-listening.\n\nIf 2:30 does not work on your side, keep 2:00 and I will join a few minutes late.\n\nBest,\nJ"
+  },
+  Write: {
+    intent: "e.g. Keep it under 100 words, no exclamation marks",
+    presets: [
+      { id: "w1", icon: "✍️", name: "Rewrite like Native", summary: "Clear, native English", tone: "Neutral", prompt: "Rewrite this text like a native English speaker would, keeping the original meaning." },
+      { id: "w2", icon: "🧑", name: "Rewrite Like Me", summary: "Match my style, my English level", tone: "Personal", prompt: "Rewrite this text in my own voice, using my saved writing samples as reference." },
+      { id: "w3", icon: "🧓", name: "Fix Grammar", summary: "Spelling and grammar only", tone: "Neutral", prompt: "Fix only spelling and grammar. Do not change wording, tone, or structure." },
+      { id: "w4", icon: "👔", name: "Professional", summary: "Raise the register", tone: "Formal", prompt: "Rewrite this text at a more professional register, without making it stiff or wordy." }
+    ],
+    output: "Here is a cleaner version:\n\nWe are behind on the migration because the staging data was incomplete. I have flagged it to the platform team and expect a fix by Friday. If it slips, the launch moves a week — I will confirm either way on Thursday."
+  },
+  Understand: {
+    intent: "e.g. Tell me if there is a hidden deadline",
+    presets: [
+      { id: "u1", icon: "🔍", name: "What are they asking?", summary: "Plain-English read", tone: "Plain", prompt: "Explain what this message is actually asking for, in plain English. List any implied requests or deadlines." },
+      { id: "u2", icon: "🧭", name: "Read between the lines", summary: "Subtext and intent", tone: "Analytical", prompt: "Summarise the subtext of this message: tone, urgency, and what the sender likely wants but did not say." }
+    ],
+    output: "They are asking for two things:\n\n1. A decision on the vendor by end of week — this is the real request.\n2. The updated cost sheet, which they only mention in passing.\n\nImplied deadline: Friday, not \"next week\" as written — they reference the board pack, which locks Thursday night."
+  }
+};
+
+const INTENT_TABS = ["Reply"];
+
+class Component extends DCLogic {
+  state = { tab: "Reply", presetId: "r1", promptOpen: false, source: "", intent: "", sent: false,
+            overrides: {}, editing: false, draft: "", savedFlash: false };
+
+  accent() { return this.props.accentColor ?? "#2b6cf6"; }
+
+  setTab(tab) {
+    this.setState({ tab, presetId: TABS[tab].presets[0].id, sent: false, intent: "", editing: false, savedFlash: false });
+  }
+
+  openEditor(preset) {
+    const current = this.state.overrides[preset.id] ?? preset.prompt;
+    this.setState({ promptOpen: true, editing: true, draft: current, savedFlash: false });
+  }
+
+  savePrompt(preset) {
+    const next = { ...this.state.overrides };
+    const draft = this.state.draft.trim();
+    if (!draft || draft === preset.prompt) delete next[preset.id];
+    else next[preset.id] = draft;
+    this.setState({ overrides: next, editing: false, savedFlash: true });
+    clearTimeout(this._flash);
+    this._flash = setTimeout(() => this.setState({ savedFlash: false }), 2600);
+  }
+
+  revertPrompt(preset) {
+    const next = { ...this.state.overrides };
+    delete next[preset.id];
+    this.setState({ overrides: next, draft: preset.prompt });
+  }
+
+  renderVals() {
+    const { tab, presetId, promptOpen, source, intent, sent, overrides, editing, draft, savedFlash } = this.state;
+    const accent = this.accent();
+    const cfg = TABS[tab];
+    const preset = cfg.presets.find(p => p.id === presetId) || cfg.presets[0];
+
+    return {
+      tabs: Object.keys(TABS).map(label => {
+        const active = label === tab;
+        return {
+          label,
+          onClick: () => this.setTab(label),
+          style: `padding: 6px 10px 9px; border: 0; background: transparent; cursor: pointer; font-family: inherit; font-size: 14px; font-weight: ${active ? 700 : 500}; color: ${active ? "#17171a" : "#8a8a92"}; box-shadow: ${active ? "inset 0 -2px 0 " + accent : "none"}; flex-shrink: 0`
+        };
+      }),
+      presets: cfg.presets.map(p => {
+        const active = p.id === preset.id;
+        return {
+          ...p,
+          onClick: () => this.setState({ presetId: p.id, sent: false }),
+          style: `display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px; cursor: pointer; font-family: inherit; font-size: 12.5px; color: #17171a; background: ${active ? "#f4f4f6" : "#fff"}; border: 1.5px solid ${active ? "#17171a" : "#e4e4e9"}`,
+          summaryStyle: `color: ${active ? "#7a7a82" : "#9a9aa2"}; border-left: 1px solid #dcdce1; padding-left: 7px`
+        };
+      }),
+      source,
+      onSource: e => this.setState({ source: e.target.value, sent: false }),
+      charCount: source ? `${source.trim().split(/\s+/).length} words` : "",
+      intent,
+      hasIntent: INTENT_TABS.includes(tab),
+      emptyHint: INTENT_TABS.includes(tab)
+        ? "Pick a preset above, add your intent if you want, then press ⌘↵."
+        : "Pick a preset above, then press ⌘↵.",
+      intentPlaceholder: cfg.intent,
+      onIntent: e => this.setState({ intent: e.target.value }),
+      prompt: overrides[preset.id] ?? preset.prompt,
+      isEdited: !!overrides[preset.id],
+      savedTarget: `${tab} › ${preset.name}`,
+      savedFlash: savedFlash && !editing,
+      editing: promptOpen && editing,
+      showPromptRead: promptOpen && !editing,
+      draft,
+      onDraft: e => this.setState({ draft: e.target.value }),
+      onDraftKeys: e => {
+        if (e.key === "Escape") this.setState({ editing: false });
+        if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); this.savePrompt(preset); }
+      },
+      onEditPrompt: () => this.openEditor(preset),
+      onSavePrompt: () => this.savePrompt(preset),
+      onCancelEdit: () => this.setState({ editing: false }),
+      onRevert: () => this.revertPrompt(preset),
+      saveBtnStyle: `height: 27px; padding: 0 12px; border-radius: 6px; border: 0; background: ${accent}; color: #fff; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer`,
+      tone: preset.tone,
+      promptOpen,
+      caretStyle: `display: inline-block; transition: transform .15s; transform: rotate(${promptOpen ? 90 : 0}deg)`,
+      onTogglePrompt: () => this.setState({ promptOpen: !promptOpen, editing: false }),
+      sendLabel: sent ? "Send again" : "Send",
+      sendStyle: `display: flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 18px; border-radius: 9px; border: 0; cursor: pointer; font-family: inherit; font-size: 13.5px; font-weight: 700; color: #fff; background: ${accent}; ${INTENT_TABS.includes(tab) ? "flex-shrink: 0" : "flex: 1"}`,
+      onSend: () => this.setState({ sent: true }),
+      hasOutput: sent,
+      isEmpty: !sent,
+      output: cfg.output,
+      outputLabel: `${preset.name} · ${preset.tone}`,
+      outputStyle: `flex: 1; min-height: 0; border-radius: 10px; border: 1px solid ${sent ? "#e4e4e9" : "#ececed"}; background: ${sent ? "#fff" : "#fafafb"}; overflow: hidden`
+    };
+  }
+}
+</script>
+</body>
+</html>
