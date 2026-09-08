@@ -164,11 +164,10 @@ a { color: inherit; }
 .section__head .eyebrow-label,
 .hero .eyebrow-label { text-align: center; }
 
-/* --- Callout: a note with an accent left border --- */
+/* --- Callout: a plain-bordered note, label carries the emphasis --- */
 .callout {
   background: var(--bg);
   border: 1px solid var(--line);
-  border-left: 3px solid var(--accent);
   border-radius: 10px;
   padding: var(--s-4) var(--s-5);
   font-size: 0.875rem;
@@ -277,13 +276,6 @@ a { color: inherit; }
 }
 @media (max-width: 780px) { .steps { grid-template-columns: 1fr; } }
 
-.step__num {
-  font-family: var(--font-mono);
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--accent);
-  margin-bottom: var(--s-3);
-}
 .step h3 { margin-bottom: var(--s-2); }
 .step p { color: var(--fg-muted); margin-bottom: 0; }
 
@@ -368,14 +360,13 @@ a { color: inherit; }
 
 /* --- Privacy strip --- */
 .privacy {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--s-5);
-  flex-wrap: wrap;
-  justify-content: center;
   text-align: center;
 }
-.privacy__item { max-width: 28ch; }
+@media (max-width: 700px) { .privacy { grid-template-columns: 1fr; } }
+.privacy__item { max-width: 28ch; margin-inline: auto; }
 .privacy__item strong {
   display: flex;
   align-items: center;
@@ -416,9 +407,6 @@ a { color: inherit; }
   text-wrap: balance;
 }
 .pull-quote span { color: var(--accent-cool); }
-
-/* --- Features page: numbered feature rows (reuses .step layout) --- */
-.feature-row .step__num { color: var(--accent); }
 
 /* --- Footer --- */
 .footer {
