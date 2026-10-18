@@ -347,8 +347,21 @@ struct WriteTabDefaultsTests {
 
     @Test func theNewPromptsAreTheCasualTeamsWording() {
         let write = PresetLibrary.defaultPresets.filter { $0.category == "Write" }
-        #expect(write[0].prompt == "Rewrite this as a casual Teams message. Native English, direct and confident. Fix grammar, phrasing, and flow only — keep the original content intact. Only break lines where it genuinely helps readability. No em dashes.")
-        #expect(write[1].prompt == "Rewrite this as a casual Teams message. Direct and confident. Fix grammar, phrasing, and flow only — keep the original content intact. Only break lines where it genuinely helps readability. No em dashes.")
+        #expect(write[0].prompt == "Rewrite this as a casual Teams message. Native English, direct and confident. Fix grammar, phrasing, and flow only. Keep the original content intact. Only break lines where it genuinely helps readability. No em dashes.")
+        #expect(write[1].prompt == "Rewrite this as a casual Teams message. Direct and confident. Fix grammar, phrasing, and flow only. Keep the original content intact. Only break lines where it genuinely helps readability. No em dashes.")
+    }
+
+    @Test func theEarlierDashedWordingIsUpgradedAndTheNewPromptsHaveNoEmDash() throws {
+        for label in ["Like Brit.", "Like Me"] {
+            let current = try #require(PresetLibrary.defaultPresets.first { $0.label == label })
+            #expect(!current.prompt.contains("—"))
+        }
+        let dashed = "Rewrite this as a casual Teams message. Direct and confident. Fix grammar, phrasing, and flow only — keep the original content intact. Only break lines where it genuinely helps readability. No em dashes."
+        var list = PresetLibrary.defaultPresets
+        let i = list.firstIndex { $0.label == "Like Me" }!
+        list[i].prompt = dashed; list[i].originalPrompt = dashed
+        let upgraded = try #require(PresetLibrary.upgradeBuiltIns(list).first { $0.label == "Like Me" })
+        #expect(upgraded.prompt == PresetLibrary.likeMePrompt)
     }
 
     @Test func anEditedWritePromptSurvivesTheRename() throws {

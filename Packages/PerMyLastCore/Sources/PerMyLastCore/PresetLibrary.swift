@@ -57,9 +57,9 @@ REPLY INTENT:
 {reply_intent}
 """#
 
-    public static let likeBritPrompt = "Rewrite this as a casual Teams message. Native English, direct and confident. Fix grammar, phrasing, and flow only — keep the original content intact. Only break lines where it genuinely helps readability. No em dashes."
+    public static let likeBritPrompt = "Rewrite this as a casual Teams message. Native English, direct and confident. Fix grammar, phrasing, and flow only. Keep the original content intact. Only break lines where it genuinely helps readability. No em dashes."
 
-    public static let likeMePrompt = "Rewrite this as a casual Teams message. Direct and confident. Fix grammar, phrasing, and flow only — keep the original content intact. Only break lines where it genuinely helps readability. No em dashes."
+    public static let likeMePrompt = "Rewrite this as a casual Teams message. Direct and confident. Fix grammar, phrasing, and flow only. Keep the original content intact. Only break lines where it genuinely helps readability. No em dashes."
 
     /// Built-in prompts that earlier versions shipped, by preset label. Saved
     /// copies still carrying one of these are moved to the current default.
@@ -69,8 +69,10 @@ REPLY INTENT:
             "You are an expert email writer who drafts clear, professional email replies for workplace contexts. Write the reply in a direct tone. Don't ever use \"—\" in the output."
         ],
         "Message": ["Write a short, natural reply to this message. Keep it conversational and to the point."],
-        "Like Brit.": ["Rewrite this text like a native English."],
-        "Like Me": ["Rewrite this text like me."]
+        "Like Brit.": ["Rewrite this text like a native English.",
+                       "Rewrite this as a casual Teams message. Native English, direct and confident. Fix grammar, phrasing, and flow only — keep the original content intact. Only break lines where it genuinely helps readability. No em dashes."],
+        "Like Me": ["Rewrite this text like me.",
+                    "Rewrite this as a casual Teams message. Direct and confident. Fix grammar, phrasing, and flow only — keep the original content intact. Only break lines where it genuinely helps readability. No em dashes."]
     ]
 
     public static let defaultPresets: [Preset] = [
