@@ -261,7 +261,7 @@ final class AppModel {
     }
 
     /// Keeps the popup valid after presets or tabs changed underneath it.
-    private func presetsDidChange() {
+    func presetsDidChange() {
         if !modes.contains(activeMode) { activeMode = modes.first ?? PresetLibrary.defaultModes[0] }
         if currentPreset == nil { selectDefaultPreset() }
     }
@@ -320,6 +320,47 @@ final class AppModel {
         savePresets()
         presetsDidChange()
         return label
+    }
+
+    /// Applies one action's edit (everything else unchanged). Used by the live editor.
+    func updatePreset(originalLabel: String, edit: PresetEdit) {
+        let incoming = presets.map { p -> PresetEdit in
+            if p.label == originalLabel { return edit }
+            return PresetEdit(originalLabel: p.label, label: p.label, icon: p.icon, blurb: p.blurb,
+                              tone: p.tone, prompt: p.prompt, isDefault: p.isDefault)
+        }
+        applyPresetEdits(incoming)
+        flashSaved()
+    }
+
+    func presetLabelTaken(_ label: String, except original: String) -> Bool {
+        label != original && presets.contains { $0.label == label }
+    }
+
+    /// Drag-reorder inside one tab; other tabs keep their order.
+    func reorderActions(in mode: String, from: IndexSet, to: Int) {
+        var inMode = presets.filter { PresetLibrary.normalizeCategory($0.category, modes: modes) == mode }
+        inMode.move(fromOffsets: from, toOffset: to)
+        var next = inMode.makeIterator()
+        presets = presets.map { p in
+            PresetLibrary.normalizeCategory(p.category, modes: modes) == mode ? (next.next() ?? p) : p
+        }
+        savePresets()
+        flashSaved()
+    }
+
+    /// Makes `label` the action shown first when its tab opens.
+    func setDefaultPreset(_ label: String) {
+        guard let target = presets.first(where: { $0.label == label }) else { return }
+        let category = PresetLibrary.normalizeCategory(target.category, modes: modes)
+        presets = presets.map { p in
+            var q = p
+            if PresetLibrary.normalizeCategory(p.category, modes: modes) == category { q.isDefault = (p.label == label) }
+            return q
+        }
+        savePresets()
+        presetsDidChange()
+        flashSaved()
     }
 
     func deletePreset(_ label: String) {

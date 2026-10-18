@@ -1,190 +1,376 @@
 import PerMyLastCore
 import SwiftUI
 
-/// One editable row in the Tone Presets editor. Matched back to the stored
-/// preset by `originalLabel`, so renaming a row can't break its identity.
-private struct PresetRow: Identifiable, Equatable {
-    let id = UUID()
-    var originalLabel: String
-    var label: String
-    var icon: String
-    var blurb: String
-    var tone: String
-    var prompt: String
-    var isDefault: Bool
-    var uses: Int
-    var usesWriteMyWay: Bool
-    var matchesEnglishLevel: Bool
+/// Settings → Tone Presets, as pick-then-edit:
+/// tabs along the top, that tab's actions on the left, the chosen action's
+/// editor on the right. Edits save as you make them.
+struct PresetsSettingsView: View {
+    @Environment(AppModel.self) private var model
+    @State private var mode = ""
+    @State private var selected: String?
+    @State private var showTabManager = false
 
-    /// The label the preset will have once saved.
-    var savedLabel: String {
-        let trimmed = label.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? originalLabel : trimmed
+    private var actions: [Preset] {
+        model.presets.filter { PresetLibrary.normalizeCategory($0.category, modes: model.modes) == mode }
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            tabBar
+            Divider()
+            HStack(spacing: 0) {
+                sidebar.frame(width: 220)
+                Divider()
+                detail.frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .onAppear { if mode.isEmpty { mode = model.modes.first ?? "" }; ensureSelection() }
+        .onChange(of: mode) { ensureSelection() }
+        .onChange(of: model.modes) {
+            if !model.modes.contains(mode) { mode = model.modes.first ?? "" }
+        }
+        .onChange(of: actions.map(\.label)) { ensureSelection() }
+    }
+
+    // MARK: Tabs
+
+    private var tabBar: some View {
+        HStack(spacing: 10) {
+            Picker("Tab", selection: $mode) {
+                ForEach(model.modes, id: \.self) { Text($0).tag($0) }
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            Button("Edit tabs…") { showTabManager = true }
+                .popover(isPresented: $showTabManager, arrowEdge: .bottom) { TabManager() }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+    }
+
+    // MARK: Actions list
+
+    private var sidebar: some View {
+        VStack(spacing: 0) {
+            if actions.isEmpty {
+                Spacer()
+                Text("No actions here yet — add one below.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding()
+                Spacer()
+            } else {
+                List(selection: $selected) {
+                    ForEach(actions) { preset in
+                        ActionRow(preset: preset).tag(preset.label)
+                    }
+                    .onMove { from, to in model.reorderActions(in: mode, from: from, to: to) }
+                }
+                .listStyle(.sidebar)
+            }
+            Divider()
+            Button {
+                selected = model.addPreset(to: mode)
+            } label: {
+                Text("+ Add to \(mode)")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .buttonStyle(.plain)
+            .padding(10)
+        }
+    }
+
+    // MARK: Editor
+
+    @ViewBuilder private var detail: some View {
+        if let selected, actions.contains(where: { $0.label == selected }) {
+            ActionEditor(label: selected, mode: mode, onRenamed: { self.selected = $0 }, onDeleted: { self.selected = nil })
+        } else {
+            Text("Select an action to edit it.")
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private func ensureSelection() {
+        guard !mode.isEmpty else { return }
+        if let selected, actions.contains(where: { $0.label == selected }) { return }
+        selected = (actions.first(where: \.isDefault) ?? actions.first)?.label
     }
 }
 
-struct PresetsSettingsView: View {
-    @Environment(AppModel.self) private var model
-    @State private var rowsByMode: [String: [PresetRow]] = [:]
-    @State private var editingMode = ""
-    @State private var status: String?
-    @State private var modePendingDelete: String?
-    @State private var rowPendingDelete: UUID?
+private struct ActionRow: View {
+    let preset: Preset
 
     var body: some View {
-        List {
-            Section {
-                ForEach(model.modes, id: \.self) { mode in
-                    TabNameRow(mode: mode, canDelete: model.modes.count > 1,
-                               onRename: { newName in
-                                   commitEdits()
-                                   let ok = model.renameMode(from: mode, to: newName)
-                                   if ok { reload() }
-                                   return ok
-                               },
-                               onDelete: { modePendingDelete = mode })
+        HStack(spacing: 8) {
+            Text(preset.icon.isEmpty ? "•" : preset.icon)
+                .frame(width: 22)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(preset.label).fontWeight(.medium).lineLimit(1)
+                if !preset.blurb.isEmpty {
+                    Text(preset.blurb).font(.caption).foregroundStyle(.secondary).lineLimit(1)
                 }
-                .onMove { from, to in model.moveModes(from: from, to: to) }
-                Button("+ New tab") {
-                    commitEdits()
-                    model.addMode()
-                    reload()
-                }
-            } header: {
-                Text("Tone Preset Tabs")
-            } footer: {
-                Text("Drag to reorder tabs. Click a tab's name to rename it.")
             }
-
-            Section {
-                if model.modes.count > 1 {
-                    Picker("Tab", selection: $editingMode) {
-                        ForEach(model.modes, id: \.self) { Text($0).tag($0) }
-                    }
-                    .pickerStyle(.segmented)
-                    .labelsHidden()
-                }
-                let rows = rowsByMode[editingMode] ?? []
-                if rows.isEmpty {
-                    Text("No actions here yet — add one below.").foregroundStyle(.secondary)
-                }
-                ForEach(bindingRows) { $row in
-                    PresetRowEditor(
-                        row: $row,
-                        canDelete: !row.isDefault && rows.count > 1,
-                        onSetDefault: { setDefault(row.id) },
-                        onDelete: { rowPendingDelete = row.id })
-                }
-                .onMove { from, to in rowsByMode[editingMode]?.move(fromOffsets: from, toOffset: to) }
-                HStack {
-                    Button("+ Add to \(editingMode)") { addPreset() }
-                    Spacer()
-                    if let status { Text(status).font(.caption).foregroundStyle(.secondary) }
-                    Button("Save Preset Changes") { save() }.buttonStyle(.borderedProminent)
-                }
-            } header: {
-                Text("Actions")
-            } footer: {
-                Text("Drag to reorder. The starred action is the default shown when this tab opens.")
+            Spacer(minLength: 4)
+            if preset.isDefault {
+                Image(systemName: "star.fill").font(.caption).foregroundStyle(Color.accentColor).help("Default")
             }
         }
-        .onAppear(perform: reload)
-        .onChange(of: model.modes) { reload() }
+        .padding(.vertical, 2)
+    }
+}
+
+// MARK: - Editor for one action
+
+private struct Draft: Equatable {
+    var icon = "", label = "", blurb = "", tone = "", prompt = ""
+    var usesWriteMyWay = false, matchesEnglishLevel = false
+
+    init() {}
+    init(_ p: Preset) {
+        icon = p.icon; label = p.label; blurb = p.blurb; tone = p.tone; prompt = p.prompt
+        usesWriteMyWay = p.usesWriteMyWay; matchesEnglishLevel = p.matchesEnglishLevel
+    }
+}
+
+private struct ActionEditor: View {
+    @Environment(AppModel.self) private var model
+    /// The saved label of the action being edited.
+    let label: String
+    let mode: String
+    let onRenamed: (String) -> Void
+    let onDeleted: () -> Void
+
+    @State private var draft = Draft()
+    @State private var originalLabel = ""
+    @State private var saveTask: Task<Void, Never>?
+    @State private var confirmDelete = false
+    @FocusState private var nameFocused: Bool
+
+    private var preset: Preset? { model.presets.first { $0.label == originalLabel } }
+    private var trimmedName: String { draft.label.trimmingCharacters(in: .whitespacesAndNewlines) }
+    private var nameTaken: Bool { model.presetLabelTaken(trimmedName, except: originalLabel) }
+    private var promptBlank: Bool { draft.prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    private var isEdited: Bool { preset.map { draft.prompt != $0.originalPrompt } ?? false }
+
+    var body: some View {
+        ScrollView {
+            if let preset {
+                VStack(alignment: .leading, spacing: 18) {
+                    identity
+                    promptSection(preset)
+                    writeMyWaySection
+                    footer(preset)
+                }
+                .padding(20)
+            }
+        }
+        .onAppear { load(label); if draft.prompt.isEmpty { nameFocused = true } }
+        .onChange(of: label) { flush(); load(label) }
+        .onChange(of: draft) { scheduleSave() }
+        .onDisappear { flush() }
         .confirmationDialog(
-            "Delete the \"\(modePendingDelete ?? "")\" tab and all its actions? This can't be undone.",
-            isPresented: Binding(get: { modePendingDelete != nil }, set: { if !$0 { modePendingDelete = nil } }),
+            "Delete preset \"\(preset?.label ?? "")\"?",
+            isPresented: $confirmDelete, titleVisibility: .visible
+        ) {
+            Button("Delete preset", role: .destructive) {
+                if let preset { model.deletePreset(preset.label) }
+                onDeleted()
+            }
+        }
+    }
+
+    // MARK: Sections
+
+    private var identity: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .bottom, spacing: 10) {
+                field("Icon") {
+                    TextField("", text: $draft.icon)
+                        .textFieldStyle(.roundedBorder)
+                        .multilineTextAlignment(.center)
+                        .frame(width: 56)
+                        .help("Icon shown in the main popup — leave blank for none")
+                }
+                field("Name") {
+                    TextField("Name", text: $draft.label)
+                        .textFieldStyle(.roundedBorder)
+                        .focused($nameFocused)
+                }
+            }
+            if nameTaken {
+                Text("Name already used").font(.caption).foregroundStyle(.red)
+            }
+            HStack(alignment: .bottom, spacing: 10) {
+                field("Tone") {
+                    TextField("Tone (e.g. Direct, Warm)", text: $draft.tone)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 150)
+                }
+                field("Description") {
+                    TextField("Short description shown under the name", text: $draft.blurb)
+                        .textFieldStyle(.roundedBorder)
+                }
+            }
+        }
+    }
+
+    private func promptSection(_ preset: Preset) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 8) {
+                Text("Prompt").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                if isEdited {
+                    Text("Edited")
+                        .font(.caption2.weight(.bold))
+                        .padding(.horizontal, 6).padding(.vertical, 2)
+                        .background(Color.orange.opacity(0.2), in: Capsule())
+                }
+                Spacer()
+                if isEdited {
+                    Button("Reset to original") { draft.prompt = preset.originalPrompt }
+                        .buttonStyle(.link)
+                        .font(.caption)
+                }
+            }
+            TextEditor(text: $draft.prompt)
+                .font(.callout)
+                .scrollContentBackground(.hidden)
+                .padding(8)
+                .frame(minHeight: 150)
+                .background(Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 8))
+                .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color.primary.opacity(0.15)))
+            if promptBlank {
+                Text("A prompt is needed. The previous one stays until you write a new one.")
+                    .font(.caption).foregroundStyle(.red)
+            }
+        }
+    }
+
+    private var writeMyWaySection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Write My Way").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 8) {
+                Toggle("Use my Write My Way settings", isOn: $draft.usesWriteMyWay)
+                Text("Adds your tone, length and format from Advanced → Write My Way.")
+                    .font(.caption).foregroundStyle(.secondary)
+                if draft.usesWriteMyWay {
+                    Toggle("Match my English level", isOn: $draft.matchesEnglishLevel)
+                        .padding(.leading, 20)
+                }
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 8))
+        }
+    }
+
+    private func footer(_ preset: Preset) -> some View {
+        let onlyOne = model.presets.filter {
+            PresetLibrary.normalizeCategory($0.category, modes: model.modes) == mode
+        }.count <= 1
+        return VStack(alignment: .leading, spacing: 12) {
+            Divider()
+            HStack {
+                if preset.isDefault {
+                    Label("Default for \(mode)", systemImage: "star.fill")
+                        .foregroundStyle(Color.accentColor)
+                } else {
+                    Button { model.setDefaultPreset(preset.label) } label: {
+                        Label("Set as default for \(mode)", systemImage: "star")
+                    }
+                }
+                Spacer()
+                Button("Delete action", role: .destructive) { confirmDelete = true }
+                    .disabled(preset.isDefault || onlyOne)
+                    .help("The default action, or the last one in a tab, can't be deleted")
+            }
+            Text("used \(preset.uses) times").font(.caption).foregroundStyle(.tertiary)
+        }
+    }
+
+    private func field<Content: View>(_ title: LocalizedStringKey, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title).font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+            content()
+        }
+    }
+
+    // MARK: Saving (live, a moment after you stop typing)
+
+    private func load(_ saved: String) {
+        originalLabel = saved
+        if let p = model.presets.first(where: { $0.label == saved }) { draft = Draft(p) }
+    }
+
+    private func scheduleSave() {
+        saveTask?.cancel()
+        saveTask = Task {
+            try? await Task.sleep(for: .seconds(0.5))
+            if !Task.isCancelled { commit() }
+        }
+    }
+
+    private func flush() {
+        saveTask?.cancel()
+        commit()
+    }
+
+    private func commit() {
+        guard let preset, draft != Draft(preset) else { return }
+        guard !trimmedName.isEmpty, !nameTaken else { return }
+        // A blank prompt isn't saved (the stored one is kept), but the rest of the edit is.
+        let prompt = promptBlank ? preset.prompt : draft.prompt
+        model.updatePreset(originalLabel: originalLabel, edit: PresetEdit(
+            originalLabel: originalLabel, label: trimmedName, icon: draft.icon, blurb: draft.blurb,
+            tone: draft.tone, prompt: prompt, isDefault: preset.isDefault,
+            usesWriteMyWay: draft.usesWriteMyWay,
+            matchesEnglishLevel: draft.usesWriteMyWay ? draft.matchesEnglishLevel : false))
+        let renamed = trimmedName != originalLabel
+        originalLabel = trimmedName
+        if renamed { onRenamed(trimmedName) }
+    }
+}
+
+// MARK: - Tab manager (popover)
+
+private struct TabManager: View {
+    @Environment(AppModel.self) private var model
+    @State private var pendingDelete: String?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Tone Preset Tabs").font(.headline)
+            List {
+                ForEach(model.modes, id: \.self) { mode in
+                    TabNameRow(mode: mode, canDelete: model.modes.count > 1,
+                               onRename: { model.renameMode(from: mode, to: $0) },
+                               onDelete: { pendingDelete = mode })
+                }
+                .onMove { from, to in model.moveModes(from: from, to: to) }
+            }
+            .frame(height: min(CGFloat(model.modes.count) * 30 + 12, 240))
+            HStack {
+                Button("+ New tab") { model.addMode() }
+                Spacer()
+            }
+            Text("Drag to reorder tabs. Click a tab's name to rename it.")
+                .font(.caption).foregroundStyle(.secondary)
+        }
+        .padding(16)
+        .frame(width: 320)
+        .confirmationDialog(
+            "Delete the \"\(pendingDelete ?? "")\" tab and all its actions? This can't be undone.",
+            isPresented: Binding(get: { pendingDelete != nil }, set: { if !$0 { pendingDelete = nil } }),
             titleVisibility: .visible
         ) {
             Button("Delete tab", role: .destructive) {
-                if let name = modePendingDelete { model.deleteMode(name); reload() }
-                modePendingDelete = nil
+                if let name = pendingDelete { model.deleteMode(name) }
+                pendingDelete = nil
             }
-        }
-        .confirmationDialog(
-            "Delete preset \"\(pendingRow?.savedLabel ?? "")\"?",
-            isPresented: Binding(get: { rowPendingDelete != nil }, set: { if !$0 { rowPendingDelete = nil } }),
-            titleVisibility: .visible
-        ) {
-            Button("Delete preset", role: .destructive) {
-                if let row = pendingRow {
-                    commitEdits()
-                    model.deletePreset(row.savedLabel)
-                    reload()
-                }
-                rowPendingDelete = nil
-            }
-        }
-    }
-
-    // MARK: Helpers
-
-    private var bindingRows: Binding<[PresetRow]> {
-        Binding(get: { rowsByMode[editingMode] ?? [] }, set: { rowsByMode[editingMode] = $0 })
-    }
-
-    private var pendingRow: PresetRow? {
-        guard let id = rowPendingDelete else { return nil }
-        return rowsByMode.values.flatMap { $0 }.first { $0.id == id }
-    }
-
-    private func reload() {
-        var groups: [String: [PresetRow]] = [:]
-        for p in model.presets {
-            let category = PresetLibrary.normalizeCategory(p.category, modes: model.modes)
-            groups[category, default: []].append(PresetRow(
-                originalLabel: p.label, label: p.label, icon: p.icon, blurb: p.blurb,
-                tone: p.tone, prompt: p.prompt, isDefault: p.isDefault, uses: p.uses,
-                usesWriteMyWay: p.usesWriteMyWay, matchesEnglishLevel: p.matchesEnglishLevel))
-        }
-        rowsByMode = groups
-        if !model.modes.contains(editingMode) { editingMode = model.modes.first ?? "" }
-    }
-
-    private func edits() -> [PresetEdit] {
-        model.modes.flatMap { rowsByMode[$0] ?? [] }.map {
-            PresetEdit(originalLabel: $0.originalLabel, label: $0.label, icon: $0.icon, blurb: $0.blurb,
-                       tone: $0.tone, prompt: $0.prompt, isDefault: $0.isDefault,
-                       usesWriteMyWay: $0.usesWriteMyWay, matchesEnglishLevel: $0.matchesEnglishLevel)
-        }
-    }
-
-    /// Applies pending edits before an operation that rebuilds the list, so a
-    /// delete or add never throws away what was typed.
-    private func commitEdits() {
-        guard !rowsByMode.isEmpty else { return }
-        model.applyPresetEdits(edits())
-        reload()
-    }
-
-    private func save() {
-        model.applyPresetEdits(edits())
-        reload()
-        flash("Saved.")
-    }
-
-    private func setDefault(_ id: UUID) {
-        guard var rows = rowsByMode[editingMode] else { return }
-        for i in rows.indices { rows[i].isDefault = rows[i].id == id }
-        rowsByMode[editingMode] = rows
-    }
-
-    private func addPreset() {
-        commitEdits()
-        let label = model.addPreset(to: editingMode)
-        reload()
-        flash("Added \"\(label)\" to \(editingMode) — set its name and prompt, then Save.")
-    }
-
-    private func flash(_ message: String) {
-        status = message
-        Task {
-            try? await Task.sleep(for: .seconds(3))
-            if status == message { status = nil }
         }
     }
 }
-
-// MARK: - Rows
 
 private struct TabNameRow: View {
     let mode: String
@@ -221,54 +407,5 @@ private struct TabNameRow: View {
     private func commit() {
         guard name != mode else { return }
         if !onRename(name) { name = mode }
-    }
-}
-
-private struct PresetRowEditor: View {
-    @Binding var row: PresetRow
-    let canDelete: Bool
-    let onSetDefault: () -> Void
-    let onDelete: () -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 8) {
-                Image(systemName: "line.3.horizontal").foregroundStyle(.tertiary).help("Drag to reorder")
-                TextField("", text: $row.icon)
-                    .frame(width: 40)
-                    .multilineTextAlignment(.center)
-                    .help("Icon shown in the main popup — leave blank for none")
-                TextField("Name", text: $row.label).fontWeight(.semibold)
-                Button(action: onSetDefault) {
-                    Label(LocalizedStringKey(row.isDefault ? "Default" : "Set default"), systemImage: row.isDefault ? "star.fill" : "star")
-                }
-                .buttonStyle(.borderless)
-                .disabled(row.isDefault)
-                .help(LocalizedStringKey(row.isDefault ? "Shown by default when this tab opens" : "Make this the default for this tab"))
-                Button(action: onDelete) { Image(systemName: "trash") }
-                    .buttonStyle(.borderless)
-                    .disabled(!canDelete)
-                    .help(LocalizedStringKey(canDelete ? "Delete preset" : "The default action, or the last one in a tab, can't be deleted"))
-            }
-            HStack {
-                TextField("Tone (e.g. Direct, Warm)", text: $row.tone).frame(maxWidth: 170)
-                TextField("Short description shown under the name", text: $row.blurb)
-            }
-            TextEditor(text: $row.prompt)
-                .font(.callout)
-                .scrollContentBackground(.hidden)
-                .padding(6)
-                .frame(minHeight: 72)
-                .background(Color.primary.opacity(0.06), in: RoundedRectangle(cornerRadius: 8))
-            Toggle("Use my Write My Way settings", isOn: $row.usesWriteMyWay)
-                .controlSize(.small)
-            if row.usesWriteMyWay {
-                Toggle("Match my English level", isOn: $row.matchesEnglishLevel)
-                    .controlSize(.small)
-                    .padding(.leading, 18)
-            }
-            Text("used \(row.uses) times").font(.caption2).foregroundStyle(.tertiary)
-        }
-        .padding(.vertical, 6)
     }
 }

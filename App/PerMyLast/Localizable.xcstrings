@@ -474,17 +474,6 @@
         }
       }
     },
-    "Your shortcut (%@) is known to conflict with %@'s %@ — it may not always reach Per My Last there. Consider choosing a different combo in Settings.": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Phím tắt của bạn (%1$@) được biết là trùng với %3$@ của %2$@ — có thể không phải lúc nào cũng đến được Per My Last ở đó. Hãy cân nhắc chọn tổ hợp khác trong Cài đặt."
-          }
-        }
-      }
-    },
     "General": {
       "extractionState": "manual",
       "localizations": {
@@ -1057,17 +1046,6 @@
         }
       }
     },
-    "Actions": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hành động"
-          }
-        }
-      }
-    },
     "No actions here yet — add one below.": {
       "extractionState": "manual",
       "localizations": {
@@ -1090,50 +1068,6 @@
         }
       }
     },
-    "Save Preset Changes": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lưu thay đổi tông giọng"
-          }
-        }
-      }
-    },
-    "Drag to reorder. The starred action is the default shown when this tab opens.": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kéo để sắp xếp lại. Hành động được đánh dấu mặc định sẽ hiện khi mở tab này."
-          }
-        }
-      }
-    },
-    "Delete the \"%@\" tab and all its actions? This can't be undone.": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Xóa tab \"%@\" và toàn bộ hành động trong đó? Không thể hoàn tác."
-          }
-        }
-      }
-    },
-    "Delete preset \"%@\"?": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Xóa tùy chọn \"%@\"?"
-          }
-        }
-      }
-    },
     "Delete preset": {
       "extractionState": "manual",
       "localizations": {
@@ -1141,28 +1075,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Xóa tùy chọn"
-          }
-        }
-      }
-    },
-    "Saved.": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Đã lưu."
-          }
-        }
-      }
-    },
-    "Added \"%@\" to %@ — set its name and prompt, then Save.": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Đã thêm \"%1$@\" vào %2$@ — đặt tên và câu lệnh, sau đó Lưu."
           }
         }
       }
@@ -1207,39 +1119,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mặc định"
-          }
-        }
-      }
-    },
-    "Set default": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Đặt làm mặc định"
-          }
-        }
-      }
-    },
-    "Shown by default when this tab opens": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hiển thị mặc định khi mở tab này"
-          }
-        }
-      }
-    },
-    "Make this the default for this tab": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Đặt làm mặc định cho tab này"
           }
         }
       }
@@ -1878,6 +1757,149 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kèm cài đặt Viết Theo Cách Của Tôi của bạn"
+          }
+        }
+      }
+    },
+    "Edit tabs…": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chỉnh sửa tab…"
+          }
+        }
+      }
+    },
+    "Select an action to edit it.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chọn một hành động để chỉnh sửa."
+          }
+        }
+      }
+    },
+    "Description": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mô tả"
+          }
+        }
+      }
+    },
+    "Icon": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Biểu tượng"
+          }
+        }
+      }
+    },
+    "Adds your tone, length and format from Advanced → Write My Way.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thêm giọng điệu, độ dài và định dạng từ Nâng cao → Viết Theo Cách Của Tôi."
+          }
+        }
+      }
+    },
+    "Default for %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mặc định của %@"
+          }
+        }
+      }
+    },
+    "Set as default for %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đặt làm mặc định cho %@"
+          }
+        }
+      }
+    },
+    "Delete action": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xóa hành động"
+          }
+        }
+      }
+    },
+    "Name already used": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tên này đã được dùng"
+          }
+        }
+      }
+    },
+    "A prompt is needed. The previous one stays until you write a new one.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cần có câu lệnh. Câu lệnh cũ được giữ cho đến khi bạn viết câu mới."
+          }
+        }
+      }
+    },
+    "Your shortcut (%@) is known to conflict with %@'s %@ — it may not always reach Per My Last there. Consider choosing a different combo in Settings.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phím tắt của bạn (%1$@) được biết là trùng với %3$@ của %2$@ — có thể không phải lúc nào cũng đến được Per My Last ở đó. Hãy cân nhắc chọn tổ hợp khác trong Cài đặt."
+          }
+        }
+      }
+    },
+    "Delete the \"%@\" tab and all its actions? This can't be undone.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xóa tab \"%@\" và toàn bộ hành động trong đó? Không thể hoàn tác."
+          }
+        }
+      }
+    },
+    "Delete preset \"%@\"?": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xóa tùy chọn \"%@\"?"
           }
         }
       }

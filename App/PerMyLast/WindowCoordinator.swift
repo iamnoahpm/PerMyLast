@@ -80,7 +80,7 @@ final class WindowCoordinator: NSObject, NSWindowDelegate {
         window.contentViewController = NSHostingController(rootView: LocalizedRoot { SettingsView() }.environment(AppModel.shared))
         window.isReleasedWhenClosed = false
         window.collectionBehavior = [.moveToActiveSpace]
-        window.minSize = NSSize(width: 420, height: 520)
+        window.minSize = NSSize(width: 620, height: 520)
         window.delegate = self
         return window
     }

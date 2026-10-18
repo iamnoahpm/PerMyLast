@@ -40,7 +40,7 @@ Status: ✅ done · 🟡 partial · ⬜ missing · ➖ intentionally different
 | 28 | Feedback → opens mail client (footer "Send feedback"; the Settings form was removed as noise) | ✅ |
 | 29 | Explicit Save with "Saved! Using {model}" confirmation, validation errors | ➖ (autosave + "Saved" flash; API key and shortcut are validated as you type) |
 | 30 | **Tone Presets tab**: add / rename / delete / reorder tabs | ✅ |
-| 31 | Edit presets: name, icon, blurb, tone, prompt; default star; delete; drag to reorder; "used N times"; "+ Add to {tab}" | ✅ |
+| 31 | Edit presets: name, icon, description, tone, prompt (with Edited + Reset to original), default, delete, drag to reorder, "used N times", add — now a pick-then-edit layout with live saving | ✅ |
 | 32 | Intent-takes-a-tab setting (`intentModes`) kept in sync on rename/delete | 🟡 (model only, not editable) |
 | 33 | Permissions tab (Accessibility / Automation status) | ➖ (not needed in clipboard mode) |
 | 34 | Advanced → Tools list (Write My Way, VIP Contacts, Wartime/Peacetime) | ✅ |
