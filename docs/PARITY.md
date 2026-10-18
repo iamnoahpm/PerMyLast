@@ -71,7 +71,7 @@ Status: ✅ done · 🟡 partial · ⬜ missing · ➖ intentionally different
 - Write My Way is connected (it was a mockup in Electron): when enabled, its tone, length, format (and English level for "Like Me") are added to the prompt of every action that has "Use my Write My Way settings" on. Like Brit. and Like Me have it on by default.
 - Vietnamese UI strings live in `App/PerMyLast/Localizable.xcstrings`; the wording reuses the Electron app's.
   Shortcut-conflict descriptions and the Wartime/Peacetime content stay English (as before).
-- **Ask** (new, not in Electron): a fixed fourth tab with no preset. A prompt box and an optional text box go straight to the model
+- **Ask** (new, not in Electron): a fixed fourth tab with no preset. A single "Your question" box goes straight to the model
   (system prompt: helpful assistant; answers up to 4096 tokens). It is not one of the user's tabs, so it can't be renamed, deleted or
   collide with a tab the user names "Ask".
 - Translate translates into the Mother language setting (`{{motherLanguage}}`), as in Electron; that setting starts as Vietnamese on a Mac set to Vietnamese.

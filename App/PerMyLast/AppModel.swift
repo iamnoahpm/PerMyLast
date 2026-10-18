@@ -173,7 +173,7 @@ final class AppModel {
 
     var canSend: Bool {
         if isAsk {
-            return !isSending && !(askPrompt + inputText).trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            return !isSending && !askPrompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         }
         return !isSending && currentPreset != nil && !motherLanguageMissing
             && !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -387,7 +387,7 @@ final class AppModel {
         guard enabled else { return }
         guard let text = NSPasteboard.general.string(forType: .string),
               !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-        inputText = TextCleanup.beautify(text)
+        if isAsk { askPrompt = TextCleanup.beautify(text) } else { inputText = TextCleanup.beautify(text) }
         output = ""
         errorMessage = nil
         hasResult = false
@@ -436,19 +436,18 @@ final class AppModel {
         }
     }
 
-    /// Ask: the user's own prompt and text, straight to the model.
+    /// Ask: the user's own question, straight to the model.
     private func sendAsk() async {
         let prompt = askPrompt.trimmingCharacters(in: .whitespacesAndNewlines)
-        let input = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !(prompt.isEmpty && input.isEmpty) else {
-            errorMessage = L("Type a prompt or paste some text first")
+        guard !prompt.isEmpty else {
+            errorMessage = L("Type your question first")
             return
         }
         isSending = true
         errorMessage = nil
         defer { isSending = false }
         do {
-            output = TextCleanup.beautify(try await client.ask(config: makeConfig(), prompt: prompt, input: input))
+            output = TextCleanup.beautify(try await client.ask(config: makeConfig(), prompt: prompt, input: ""))
             hasResult = true
         } catch {
             hasResult = false

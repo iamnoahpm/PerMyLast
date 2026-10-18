@@ -1915,68 +1915,46 @@
         }
       }
     },
-    "Your prompt": {
+    "Your question": {
       "extractionState": "manual",
       "localizations": {
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Câu lệnh của bạn"
+            "value": "Câu hỏi của bạn"
           }
         }
       }
     },
-    "Ask anything, or say what to do with the text below.": {
+    "Ask anything…": {
       "extractionState": "manual",
       "localizations": {
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hỏi bất cứ điều gì, hoặc cho biết cần làm gì với văn bản bên dưới."
+            "value": "Hỏi bất cứ điều gì…"
           }
         }
       }
     },
-    "Your text (optional)": {
+    "Type your question above, then press ⌘↵.": {
       "extractionState": "manual",
       "localizations": {
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Văn bản của bạn (tùy chọn)"
+            "value": "Nhập câu hỏi ở trên, rồi nhấn ⌘↵."
           }
         }
       }
     },
-    "Paste or type your text here (optional)": {
+    "Type your question first": {
       "extractionState": "manual",
       "localizations": {
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dán hoặc gõ văn bản vào đây (tùy chọn)"
-          }
-        }
-      }
-    },
-    "Type your prompt above, then press ⌘↵.": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nhập câu lệnh ở trên, rồi nhấn ⌘↵."
-          }
-        }
-      }
-    },
-    "Type a prompt or paste some text first": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hãy nhập câu lệnh hoặc dán văn bản trước"
+            "value": "Hãy nhập câu hỏi trước"
           }
         }
       }
