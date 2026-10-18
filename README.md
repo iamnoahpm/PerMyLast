@@ -10,17 +10,24 @@ as the base for any future Windows/Linux port.
 - `Packages/PerMyLastCore` — shared logic, no UI: Anthropic client, presets and
   tabs, prompt building, language list, wartime/peacetime profiles. Builds for
   macOS 14+, iOS 17+, watchOS 10+.
-- `App/` — (not created yet) the Xcode project: macOS menu bar app first.
+- `App/PerMyLast.xcodeproj` — the macOS menu bar app (SwiftUI + AppKit), sandboxed,
+  using the package above. Hotkey ⌘⇧W opens the popup with the clipboard text.
 
 ## Develop
 
 ```bash
-cd Packages/PerMyLastCore
-swift test
+# logic tests
+cd Packages/PerMyLastCore && swift test
+
+# build the Mac app (ad-hoc signed, sandboxed)
+cd App && xcodebuild -project PerMyLast.xcodeproj -scheme PerMyLast -configuration Debug -derivedDataPath build build
+open -n "build/Build/Products/Debug/Per My Last.app"
 ```
+
+If the old Electron app is running it already owns ⌘⇧W; quit it first.
 
 ## Not ported yet
 
 From the Electron app: the "Write my way" settings (tone, length, format,
 English level), shortcut-conflict detection, English/Vietnamese UI strings
-(`renderer/i18n.js`), settings storage, and all UI.
+(`renderer/i18n.js`), a preset editor, a shortcut recorder, auto-capture, and Vietnamese UI.
