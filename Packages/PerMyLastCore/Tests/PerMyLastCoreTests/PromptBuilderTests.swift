@@ -17,11 +17,14 @@ struct PromptBuilderTests {
         #expect(r.content == "Make this more professional:\n\nText: Hi there")
     }
 
-    @Test func translateResolvesMotherLanguage() throws {
-        let translate = try #require(PresetLibrary.defaultPresets.first { $0.label == "Translate" })
-        #expect(PromptBuilder.resolvedPrompt(translate, motherLanguage: " Vietnamese ") == "Translate this into Vietnamese")
-        #expect(PromptBuilder.resolvedBlurb(translate, motherLanguage: "Vietnamese") == "Into Vietnamese")
-        #expect(PromptBuilder.resolvedBlurb(translate, motherLanguage: "  ") == "Into your language from Settings")
+    /// The built-in Translate no longer uses the token, but a preset that does (an older
+    /// saved one, or a user's own) must still be resolved.
+    @Test func aPresetWithTheMotherLanguageTokenIsResolved() {
+        let custom = Preset(label: "Translate", category: "Understand", blurb: "Into {{motherLanguage}}",
+                            prompt: "Translate this into {{motherLanguage}}", requiresMotherLanguage: true)
+        #expect(PromptBuilder.resolvedPrompt(custom, motherLanguage: " Vietnamese ") == "Translate this into Vietnamese")
+        #expect(PromptBuilder.resolvedBlurb(custom, motherLanguage: "Vietnamese") == "Into Vietnamese")
+        #expect(PromptBuilder.resolvedBlurb(custom, motherLanguage: "  ") == "Into your language from Settings")
     }
 
     @Test func nonTranslatePromptsAreUntouched() throws {
@@ -101,6 +104,72 @@ struct BuiltInPromptTests {
         let request = PromptBuilder.buildRequest(text: "Can you join?", prompt: "Reply briefly.", isEmail: true)
         #expect(request.system.contains("email writing assistant"))
         #expect(request.content.hasPrefix("Email to reply to:\nCan you join?"))
+    }
+}
+
+@Suite("Understand defaults and Ask")
+struct UnderstandAndAskTests {
+    private func preset(_ label: String) throws -> Preset {
+        try #require(PresetLibrary.defaultPresets.first { $0.label == label })
+    }
+
+    @Test func explainAndTranslateHaveTheNewPrompts() throws {
+        #expect(try preset("Explain").prompt == "Explain this in simple terms. Don't ever use \"—\" in the output.")
+        let translate = try preset("Translate")
+        #expect(translate.prompt == "Translate this into Vietnamese. Don't ever use \"—\" in the output.")
+        #expect(!translate.requiresMotherLanguage)           // nothing to fill in, so Send isn't blocked
+        #expect(translate.blurb == "Into Vietnamese")
+        #expect(PromptBuilder.finalPrompt(preset: translate, motherLanguage: "", intent: nil, tabTakesIntent: false) == translate.prompt)
+    }
+
+    @Test func oldCopiesAreUpgradedAndTheMotherLanguageRequirementDropped() throws {
+        var saved = PresetLibrary.defaultPresets
+        let e = saved.firstIndex { $0.label == "Explain" }!, t = saved.firstIndex { $0.label == "Translate" }!
+        saved[e].prompt = "Explain this in simple terms."; saved[e].originalPrompt = "Explain this in simple terms."
+        saved[t].prompt = "Translate this into {{motherLanguage}}"; saved[t].originalPrompt = "Translate this into {{motherLanguage}}"
+        saved[t].blurb = "Into {{motherLanguage}}"; saved[t].requiresMotherLanguage = true; saved[t].uses = 4
+        let result = PresetLibrary.upgradeBuiltIns(saved)
+        #expect(result[e].prompt == PresetLibrary.explainPrompt)
+        let translate = result[t]
+        #expect(translate.prompt == PresetLibrary.translatePrompt)
+        #expect(translate.originalPrompt == PresetLibrary.translatePrompt)
+        #expect(translate.requiresMotherLanguage == false)
+        #expect(translate.blurb == "Into Vietnamese")
+        #expect(translate.uses == 4)
+    }
+
+    @Test func aTranslatePromptTheUserEditedKeepsItsMotherLanguageBehaviour() throws {
+        var saved = PresetLibrary.defaultPresets
+        let t = saved.firstIndex { $0.label == "Translate" }!
+        saved[t].prompt = "Translate into {{motherLanguage}} and keep the tone."
+        saved[t].originalPrompt = "Translate this into {{motherLanguage}}"
+        saved[t].requiresMotherLanguage = true
+        let translate = PresetLibrary.upgradeBuiltIns(saved)[t]
+        #expect(translate.prompt == "Translate into {{motherLanguage}} and keep the tone.")
+        #expect(translate.requiresMotherLanguage)
+        #expect(translate.originalPrompt == PresetLibrary.translatePrompt)
+    }
+
+    // MARK: Ask
+
+    @Test func askSendsThePromptThenTheTextWithNoPresetWording() {
+        let both = PromptBuilder.buildAskRequest(prompt: "  Summarise in 3 bullets  ", input: "Long text here.\n")
+        #expect(both.content == "Summarise in 3 bullets\n\nLong text here.")
+        #expect(both.system.contains("helpful assistant"))
+        #expect(!both.content.contains("Text:"))
+        #expect(!both.system.contains("text processing assistant"))
+    }
+
+    @Test func askWorksWithOnlyAPromptOrOnlyText() {
+        #expect(PromptBuilder.buildAskRequest(prompt: "What is a monad?", input: "").content == "What is a monad?")
+        #expect(PromptBuilder.buildAskRequest(prompt: "   ", input: "What is a monad?").content == "What is a monad?")
+        #expect(PromptBuilder.buildAskRequest(prompt: "", input: "").content == "")
+    }
+
+    @Test func askIsNotInTheDefaultTabsOrPresets() {
+        #expect(!PresetLibrary.defaultModes.contains("Ask"))
+        #expect(!PresetLibrary.defaultPresets.contains { $0.label == "Ask" })
+        #expect(PromptBuilder.askTabID != "Ask")      // can't collide with a tab the user names "Ask"
     }
 }
 

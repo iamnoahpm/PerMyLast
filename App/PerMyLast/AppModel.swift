@@ -29,6 +29,8 @@ final class AppModel {
     var selectedLabel: String?
     var inputText = ""
     var intent = ""
+    /// The Ask tab's free-form prompt (that tab has no preset behind it).
+    var askPrompt = ""
     var output = ""
     var errorMessage: String?
     var isSending = false
@@ -159,13 +161,21 @@ final class AppModel {
 
     var activeModeTakesIntent: Bool { intentModes.contains(activeMode) }
 
+    static let askTab = PromptBuilder.askTabID
+
+    /// The Ask tab is on: a plain prompt box instead of preset actions.
+    var isAsk: Bool { activeMode == Self.askTab }
+
     var motherLanguageMissing: Bool {
         guard let preset = currentPreset, preset.requiresMotherLanguage else { return false }
         return settings.motherLanguage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     var canSend: Bool {
-        !isSending && currentPreset != nil && !motherLanguageMissing
+        if isAsk {
+            return !isSending && !(askPrompt + inputText).trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+        return !isSending && currentPreset != nil && !motherLanguageMissing
             && !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
@@ -262,7 +272,7 @@ final class AppModel {
 
     /// Keeps the popup valid after presets or tabs changed underneath it.
     func presetsDidChange() {
-        if !modes.contains(activeMode) { activeMode = modes.first ?? PresetLibrary.defaultModes[0] }
+        if !isAsk, !modes.contains(activeMode) { activeMode = modes.first ?? PresetLibrary.defaultModes[0] }
         if currentPreset == nil { selectDefaultPreset() }
     }
 
@@ -388,8 +398,17 @@ final class AppModel {
 
     // MARK: Sending
 
+    private func makeConfig() -> AnthropicConfig {
+        AnthropicConfig(
+            apiKey: apiKey.trimmingCharacters(in: .whitespacesAndNewlines),
+            model: settings.model, effort: settings.effort,
+            workspaceId: settings.workspaceId.trimmingCharacters(in: .whitespacesAndNewlines))
+    }
+
     func send() async {
-        guard let preset = currentPreset, !isSending else { return }
+        guard !isSending else { return }
+        if isAsk { await sendAsk(); return }
+        guard let preset = currentPreset else { return }
         let text = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { errorMessage = L("Select or paste text first"); return }
         if motherLanguageMissing {
@@ -405,16 +424,32 @@ final class AppModel {
             preset: preset, motherLanguage: settings.motherLanguage,
             intent: intent, tabTakesIntent: activeModeTakesIntent,
             writeMyWay: writeMyWay)
-        let config = AnthropicConfig(
-            apiKey: apiKey.trimmingCharacters(in: .whitespacesAndNewlines),
-            model: settings.model, effort: settings.effort,
-            workspaceId: settings.workspaceId.trimmingCharacters(in: .whitespacesAndNewlines))
         do {
-            let result = try await client.process(config: config, text: text, prompt: prompt, isEmail: preset.isEmail)
+            let result = try await client.process(config: makeConfig(), text: text, prompt: prompt, isEmail: preset.isEmail)
             output = TextCleanup.beautify(result)
             hasResult = true
             presets = PresetLibrary.incrementUses(presets, label: preset.label)
             savePresets()
+        } catch {
+            hasResult = false
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    /// Ask: the user's own prompt and text, straight to the model.
+    private func sendAsk() async {
+        let prompt = askPrompt.trimmingCharacters(in: .whitespacesAndNewlines)
+        let input = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !(prompt.isEmpty && input.isEmpty) else {
+            errorMessage = L("Type a prompt or paste some text first")
+            return
+        }
+        isSending = true
+        errorMessage = nil
+        defer { isSending = false }
+        do {
+            output = TextCleanup.beautify(try await client.ask(config: makeConfig(), prompt: prompt, input: input))
+            hasResult = true
         } catch {
             hasResult = false
             errorMessage = error.localizedDescription

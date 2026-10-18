@@ -14,6 +14,21 @@ public enum PromptBuilder {
     /// Stand-in when a template needs an intent and none was typed.
     static let noIntentPlaceholder = "(none given: write a short, natural reply that fits the message)"
 
+    /// "Ask" is a tab, not a preset: the user writes the whole prompt themselves.
+    /// Its identifier inside the app, kept out of the user's own tab names.
+    public static let askTabID = "__ask__"
+
+    private static let askSystemPrompt = "You are a helpful assistant. Answer the user's request directly and clearly."
+
+    /// A free-form request: the user's prompt, then their text if they gave any.
+    /// Either alone is enough (a bare prompt is a question; bare text is the question).
+    public static func buildAskRequest(prompt: String, input: String) -> ClaudeRequestContent {
+        let parts = [prompt, input]
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        return ClaudeRequestContent(system: askSystemPrompt, content: parts.joined(separator: "\n\n"))
+    }
+
     private static let textSystemPrompt = "You are a text processing assistant. Respond ONLY with the processed result, no preamble, explanation, or surrounding quotation marks."
 
     public static func buildRequest(text: String, prompt: String, isEmail: Bool) -> ClaudeRequestContent {

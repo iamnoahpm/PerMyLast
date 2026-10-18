@@ -50,6 +50,8 @@ public struct AnthropicClient: Sendable {
     public static let endpoint = URL(string: "https://api.anthropic.com/v1/messages")!
     public static let apiVersion = "2023-06-01"
     public static let maxTokens = 1024
+    /// Free-form answers can be long; the preset actions stay short.
+    public static let askMaxTokens = 4096
 
     private let transport: any HTTPTransport
 
@@ -58,12 +60,16 @@ public struct AnthropicClient: Sendable {
     }
 
     public func makeRequest(config: AnthropicConfig, text: String, prompt: String, isEmail: Bool) throws -> URLRequest {
+        try makeRequest(config: config, content: PromptBuilder.buildRequest(text: text, prompt: prompt, isEmail: isEmail),
+                        maxTokens: Self.maxTokens)
+    }
+
+    public func makeRequest(config: AnthropicConfig, content built: ClaudeRequestContent, maxTokens: Int) throws -> URLRequest {
         guard !config.apiKey.isEmpty else { throw AnthropicError.missingAPIKey }
-        let built = PromptBuilder.buildRequest(text: text, prompt: prompt, isEmail: isEmail)
 
         var body: [String: Any] = [
             "model": config.model,
-            "max_tokens": Self.maxTokens,
+            "max_tokens": maxTokens,
             "system": built.system,
             "messages": [["role": "user", "content": built.content]]
         ]
@@ -87,7 +93,16 @@ public struct AnthropicClient: Sendable {
 
     /// Sends the text through the chosen prompt and returns the model's reply.
     public func process(config: AnthropicConfig, text: String, prompt: String, isEmail: Bool) async throws -> String {
-        let request = try makeRequest(config: config, text: text, prompt: prompt, isEmail: isEmail)
+        try await send(try makeRequest(config: config, text: text, prompt: prompt, isEmail: isEmail))
+    }
+
+    /// The Ask tab: the user's own prompt and (optionally) their text, no preset.
+    public func ask(config: AnthropicConfig, prompt: String, input: String) async throws -> String {
+        let content = PromptBuilder.buildAskRequest(prompt: prompt, input: input)
+        return try await send(try makeRequest(config: config, content: content, maxTokens: Self.askMaxTokens))
+    }
+
+    private func send(_ request: URLRequest) async throws -> String {
         let data: Data
         let response: URLResponse
         do {

@@ -64,6 +64,17 @@ struct AnthropicClientTests {
         #expect(content.hasSuffix("Text: hey can u join the call at 3"))   // the user's text still comes last
     }
 
+    @Test func askUsesItsOwnSystemPromptAndAHigherTokenLimit() async throws {
+        let transport = FakeTransport()
+        transport.body = json(["content": [["type": "text", "text": "A monad is..."]]])
+        let out = try await AnthropicClient(transport: transport).ask(config: config, prompt: "What is a monad?", input: "")
+        #expect(out == "A monad is...")
+        let body = try requestBody(try #require(transport.lastRequest))
+        #expect(body["max_tokens"] as? Int == AnthropicClient.askMaxTokens)
+        #expect((body["system"] as? String)?.contains("helpful assistant") == true)
+        #expect((body["messages"] as? [[String: String]]) == [["role": "user", "content": "What is a monad?"]])
+    }
+
     @Test func sendsWorkspaceHeaderWhenSet() throws {
         var c = config
         c.workspaceId = "wrkspc_123"

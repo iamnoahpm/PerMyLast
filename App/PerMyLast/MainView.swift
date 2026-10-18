@@ -4,6 +4,7 @@ import SwiftUI
 struct MainView: View {
     @Environment(AppModel.self) private var model
     @FocusState private var inputFocused: Bool
+    @FocusState private var askFocused: Bool
 
     var body: some View {
         @Bindable var model = model
@@ -13,8 +14,12 @@ struct MainView: View {
                     ShortcutWarningBanner()
                     header
                     tabs(selection: $model.activeMode)
-                    chips
-                    PromptPanel()
+                    if model.isAsk {
+                        askBox(text: $model.askPrompt)
+                    } else {
+                        chips
+                        PromptPanel()
+                    }
                     inputBox(text: $model.inputText)
                     if model.activeModeTakesIntent {
                         intentRow(text: $model.intent)
@@ -30,8 +35,13 @@ struct MainView: View {
         }
         .frame(minWidth: 380, minHeight: 460)
         .navigationTitle("Per My Last")
-        .onChange(of: model.activeMode) { model.selectDefaultPreset() }
-        .onChange(of: model.focusToken) { inputFocused = true }
+        .onChange(of: model.activeMode) {
+            model.selectDefaultPreset()
+            if model.isAsk { askFocused = true }
+        }
+        .onChange(of: model.focusToken) {
+            if model.isAsk && model.askPrompt.isEmpty { askFocused = true } else { inputFocused = true }
+        }
         .onExitCommand { WindowCoordinator.shared.hidePopup() }
     }
 
@@ -53,6 +63,8 @@ struct MainView: View {
         HStack {
             Picker("Mode", selection: selection) {
                 ForEach(model.modes, id: \.self) { Text($0).tag($0) }
+                // Ask isn't one of the user's tabs: it's always last, and can't be renamed or removed.
+                Text("Ask").tag(AppModel.askTab)
             }
             .pickerStyle(.segmented)
             .labelsHidden()
@@ -104,15 +116,46 @@ struct MainView: View {
         }
     }
 
+    /// The Ask tab's prompt: a plain box, like a chat app's message field.
+    private func askBox(text: Binding<String>) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Your prompt").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+            ZStack(alignment: .topLeading) {
+                TextEditor(text: text)
+                    .font(.body)
+                    .scrollContentBackground(.hidden)
+                    .focused($askFocused)
+                    .padding(8)
+                if text.wrappedValue.isEmpty {
+                    Text("Ask anything, or say what to do with the text below.")
+                        .foregroundStyle(.tertiary)
+                        .padding(.horizontal, 13).padding(.vertical, 16)
+                        .allowsHitTesting(false)
+                }
+            }
+            .frame(minHeight: 110)
+            .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 10))
+            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color.accentColor.opacity(askFocused ? 0.6 : 0), lineWidth: 1.5))
+        }
+    }
+
     private func inputBox(text: Binding<String>) -> some View {
         VStack(alignment: .leading, spacing: 4) {
+            if model.isAsk {
+                Text("Your text (optional)").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+            }
             ZStack(alignment: .topLeading) {
                 TextEditor(text: text)
                     .font(.body)
                     .scrollContentBackground(.hidden)
                     .focused($inputFocused)
                     .padding(8)
-                if text.wrappedValue.isEmpty {
+                if text.wrappedValue.isEmpty && model.isAsk {
+                    Text("Paste or type your text here (optional)")
+                        .foregroundStyle(.tertiary)
+                        .padding(.horizontal, 13).padding(.vertical, 16)
+                        .allowsHitTesting(false)
+                } else if text.wrappedValue.isEmpty {
                     Text("Copy some text, then press \(model.shortcutDisplay) — or paste it here.")
                         .foregroundStyle(.tertiary)
                         .padding(.horizontal, 13).padding(.vertical, 16)
@@ -158,6 +201,7 @@ struct MainView: View {
 
     private var sendTooltip: String {
         if model.motherLanguageMissing { return L("Set your mother language in Settings first") }
+        if model.isAsk { return (model.askPrompt + model.inputText).trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? L("Type a prompt or paste some text first") : "" }
         if model.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return L("Select or paste text first") }
         return ""
     }
@@ -285,9 +329,11 @@ struct OutputPanel: View {
     private var emptyState: some View {
         VStack(spacing: 4) {
             Text("Your draft appears here.").font(.callout.weight(.semibold))
-            Text(LocalizedStringKey(model.activeModeTakesIntent
-                 ? "Pick a preset above, add your intent if you want, then press ⌘↵."
-                 : "Pick a preset above, then press ⌘↵."))
+            Text(LocalizedStringKey(model.isAsk
+                 ? "Type your prompt above, then press ⌘↵."
+                 : (model.activeModeTakesIntent
+                    ? "Pick a preset above, add your intent if you want, then press ⌘↵."
+                    : "Pick a preset above, then press ⌘↵.")))
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -338,6 +384,7 @@ struct OutputPanel: View {
     }
 
     private var resultTitle: String {
+        if model.isAsk { return L("Ask") }
         guard let preset = model.currentPreset else { return L("Result") }
         return preset.tone.isEmpty ? preset.label : "\(preset.label) · \(preset.tone)"
     }

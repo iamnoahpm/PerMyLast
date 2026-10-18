@@ -61,6 +61,10 @@ REPLY INTENT:
 
     public static let likeMePrompt = "Rewrite this as a casual Teams message. Direct and confident. Fix grammar, phrasing, and flow only. Keep the original content intact. Only break lines where it genuinely helps readability. No em dashes."
 
+    public static let explainPrompt = "Explain this in simple terms. Don't ever use \"—\" in the output."
+
+    public static let translatePrompt = "Translate this into Vietnamese. Don't ever use \"—\" in the output."
+
     /// Built-in prompts that earlier versions shipped, by preset label. Saved
     /// copies still carrying one of these are moved to the current default.
     static let retiredDefaultPrompts: [String: [String]] = [
@@ -71,6 +75,8 @@ REPLY INTENT:
         "Message": ["Write a short, natural reply to this message. Keep it conversational and to the point."],
         "Like Brit.": ["Rewrite this text like a native English.",
                        "Rewrite this as a casual Teams message. Native English, direct and confident. Fix grammar, phrasing, and flow only — keep the original content intact. Only break lines where it genuinely helps readability. No em dashes."],
+        "Explain": ["Explain this in simple terms."],
+        "Translate": ["Translate this into {{motherLanguage}}"],
         "Like Me": ["Rewrite this text like me.",
                     "Rewrite this as a casual Teams message. Direct and confident. Fix grammar, phrasing, and flow only — keep the original content intact. Only break lines where it genuinely helps readability. No em dashes."]
     ]
@@ -86,9 +92,9 @@ REPLY INTENT:
         Preset(label: "Like Me", category: "Write", icon: "🫆", blurb: "Casual Teams message, in my voice", tone: "Casual",
                prompt: likeMePrompt, usesWriteMyWay: true, matchesEnglishLevel: true),
         Preset(label: "Explain", category: "Understand", icon: "💡", blurb: "Plain-language summary", tone: "Plain",
-               prompt: "Explain this in simple terms.", isDefault: true),
-        Preset(label: "Translate", category: "Understand", icon: "🌐", blurb: "Into {{motherLanguage}}", tone: "Neutral",
-               prompt: "Translate this into {{motherLanguage}}", requiresMotherLanguage: true)
+               prompt: explainPrompt, isDefault: true),
+        Preset(label: "Translate", category: "Understand", icon: "🌐", blurb: "Into Vietnamese", tone: "Neutral",
+               prompt: translatePrompt)
     ]
 
     /// Built-ins that were renamed (and given a new icon). Matched by the old label.
@@ -101,7 +107,8 @@ REPLY INTENT:
     /// copy still showing one is moved to the current text.
     static let retiredWriteMeta: [String: (blurbs: [String], tones: [String])] = [
         "Like Brit.": (["Clear, native English level"], ["Neutral"]),
-        "Like Me": (["Match my style, my English level"], ["Personal"])
+        "Like Me": (["Match my style, my English level"], ["Personal"]),
+        "Translate": (["Into {{motherLanguage}}"], [])
     ]
 
     /// Built-ins that were dropped from the defaults, with the prompt they shipped
@@ -133,7 +140,11 @@ REPLY INTENT:
             var q = p
             guard let current = defaultPresets.first(where: { $0.label == p.label }) else { return p }
             if let retired = retiredDefaultPrompts[p.label], retired.contains(p.originalPrompt) {
-                if retired.contains(p.prompt) { q.prompt = current.prompt }
+                if retired.contains(p.prompt) {
+                    q.prompt = current.prompt
+                    // The old Translate prompt named the user's mother language; the new one doesn't.
+                    q.requiresMotherLanguage = current.requiresMotherLanguage
+                }
                 q.originalPrompt = current.originalPrompt
             }
             if let meta = retiredWriteMeta[p.label] {
