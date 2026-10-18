@@ -57,6 +57,10 @@ REPLY INTENT:
 {reply_intent}
 """#
 
+    public static let likeBritPrompt = "Rewrite this as a casual Teams message. Native English, direct and confident. Fix grammar, phrasing, and flow only — keep the original content intact. Only break lines where it genuinely helps readability. No em dashes."
+
+    public static let likeMePrompt = "Rewrite this as a casual Teams message. Direct and confident. Fix grammar, phrasing, and flow only — keep the original content intact. Only break lines where it genuinely helps readability. No em dashes."
+
     /// Built-in prompts that earlier versions shipped, by preset label. Saved
     /// copies still carrying one of these are moved to the current default.
     static let retiredDefaultPrompts: [String: [String]] = [
@@ -64,7 +68,9 @@ REPLY INTENT:
             "You are an expert email writer who drafts clear, professional email replies for workplace contexts. Write the reply in a Direct tone.",
             "You are an expert email writer who drafts clear, professional email replies for workplace contexts. Write the reply in a direct tone. Don't ever use \"—\" in the output."
         ],
-        "Message": ["Write a short, natural reply to this message. Keep it conversational and to the point."]
+        "Message": ["Write a short, natural reply to this message. Keep it conversational and to the point."],
+        "Like Brit.": ["Rewrite this text like a native English."],
+        "Like Me": ["Rewrite this text like me."]
     ]
 
     public static let defaultPresets: [Preset] = [
@@ -74,9 +80,9 @@ REPLY INTENT:
         Preset(label: "Message", category: "Reply", icon: "💬", blurb: "Short chat / DM reply", tone: "Warm",
                prompt: messagePrompt),
         Preset(label: "Like Brit.", category: "Write", icon: "🤴", blurb: "Clear, native English level", tone: "Neutral",
-               prompt: "Rewrite this text like a native English.", isDefault: true),
+               prompt: likeBritPrompt, isDefault: true),
         Preset(label: "Like Me", category: "Write", icon: "🫆", blurb: "Match my style, my English level", tone: "Personal",
-               prompt: "Rewrite this text like me."),
+               prompt: likeMePrompt),
         Preset(label: "Explain", category: "Understand", icon: "💡", blurb: "Plain-language summary", tone: "Plain",
                prompt: "Explain this in simple terms.", isDefault: true),
         Preset(label: "Translate", category: "Understand", icon: "🌐", blurb: "Into {{motherLanguage}}", tone: "Neutral",

@@ -337,9 +337,26 @@ struct WriteTabDefaultsTests {
         let brit = try #require(result.first)
         #expect(brit.icon == "🤴")
         #expect(brit.uses == 5)          // history is kept
+        #expect(brit.prompt == PresetLibrary.likeBritPrompt)
         #expect(brit.isDefault)
         #expect(result[1].icon == "🫆")
         #expect(result[1].uses == 2)
+        #expect(result[1].prompt == PresetLibrary.likeMePrompt)
+        #expect(result[1].originalPrompt == PresetLibrary.likeMePrompt)
+    }
+
+    @Test func theNewPromptsAreTheCasualTeamsWording() {
+        let write = PresetLibrary.defaultPresets.filter { $0.category == "Write" }
+        #expect(write[0].prompt == "Rewrite this as a casual Teams message. Native English, direct and confident. Fix grammar, phrasing, and flow only — keep the original content intact. Only break lines where it genuinely helps readability. No em dashes.")
+        #expect(write[1].prompt == "Rewrite this as a casual Teams message. Direct and confident. Fix grammar, phrasing, and flow only — keep the original content intact. Only break lines where it genuinely helps readability. No em dashes.")
+    }
+
+    @Test func anEditedWritePromptSurvivesTheRename() throws {
+        var list = oldWriteTab()
+        list[0].prompt = "My own rewrite rules."
+        let brit = try #require(PresetLibrary.upgradeBuiltIns(list).first { $0.label == "Like Brit." })
+        #expect(brit.prompt == "My own rewrite rules.")
+        #expect(brit.originalPrompt == PresetLibrary.likeBritPrompt)   // Reset to original gives the new default
     }
 
     @Test func aDroppedPresetTheUserEditedIsKept() throws {
