@@ -5,9 +5,6 @@ import SwiftUI
 struct GeneralSettingsView: View {
     @Environment(AppModel.self) private var model
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
-    @State private var feedbackText = ""
-    @State private var feedbackStatus: String?
-    @FocusState private var feedbackFocused: Bool
 
     private var isStandardModel: Bool {
         ModelCatalog.standardModels.contains { $0.id == model.settings.model }
@@ -15,21 +12,14 @@ struct GeneralSettingsView: View {
 
     var body: some View {
         @Bindable var model = model
-        ScrollViewReader { proxy in
-            Form {
-                anthropicSection(model: $model)
-                modelSection(model: $model)
-                Section { ShortcutRecorderRow() }
-                languageSection(model: $model)
-                generalSection(model: $model)
-                feedbackSection.id("feedback")
-            }
-            .formStyle(.grouped)
-            .onChange(of: model.feedbackFocusToken) {
-                withAnimation { proxy.scrollTo("feedback", anchor: .center) }
-                feedbackFocused = true
-            }
+        Form {
+            anthropicSection(model: $model)
+            modelSection(model: $model)
+            Section { ShortcutRecorderRow() }
+            languageSection(model: $model)
+            generalSection(model: $model)
         }
+        .formStyle(.grouped)
     }
 
     // MARK: Sections
@@ -89,7 +79,7 @@ struct GeneralSettingsView: View {
             Picker("App Language", selection: model.settings.appLanguage) {
                 ForEach(AppLanguage.allCases) { Text($0.displayName).tag($0) }
             }
-            Text("Only English and Vietnamese are available today. Want Per My Last in your own language? We'd love the help — use the Feedback form below to volunteer translating it.")
+            Text("Only English and Vietnamese are available today. Want Per My Last in your own language? We'd love the help — use Send feedback at the bottom of the app to volunteer translating it.")
                 .font(.caption).foregroundStyle(.secondary)
         }
     }
@@ -105,39 +95,6 @@ struct GeneralSettingsView: View {
                     catch { launchAtLogin = SMAppService.mainApp.status == .enabled }
                 }
             Text("Starts Per My Last automatically when you log in to your Mac.")
-                .font(.caption).foregroundStyle(.secondary)
-        }
-    }
-
-    private var feedbackSection: some View {
-        Section("Feedback") {
-            ZStack(alignment: .topLeading) {
-                TextEditor(text: $feedbackText)
-                    .scrollContentBackground(.hidden)
-                    .focused($feedbackFocused)
-                    .padding(6)
-                if feedbackText.isEmpty {
-                    Text("Bugs, feature ideas, language requests — anything.")
-                        .foregroundStyle(.tertiary)
-                        .padding(.horizontal, 11).padding(.vertical, 14)
-                        .allowsHitTesting(false)
-                }
-            }
-            .frame(minHeight: 80)
-            .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 8))
-            HStack {
-                Button("Send Feedback") {
-                    let body = feedbackText.trimmingCharacters(in: .whitespacesAndNewlines)
-                    if body.isEmpty {
-                        feedbackStatus = L("Please write something first.")
-                    } else {
-                        model.sendFeedback(body: body)
-                        feedbackStatus = L("Opening your email app…")
-                    }
-                }
-                if let feedbackStatus { Text(feedbackStatus).font(.caption).foregroundStyle(.secondary) }
-            }
-            Text("Opens your email app with this addressed to us — review it and hit send there.")
                 .font(.caption).foregroundStyle(.secondary)
         }
     }

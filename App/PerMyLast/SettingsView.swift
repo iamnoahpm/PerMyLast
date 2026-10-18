@@ -33,10 +33,7 @@ struct SettingsView: View {
     private var footer: some View {
         HStack(spacing: 14) {
             Text("Version \(model.appVersion)").foregroundStyle(.secondary)
-            Button("Send feedback") {
-                tab = .general
-                model.feedbackFocusToken += 1
-            }
+            Button("Send feedback") { model.sendFeedback() }
             Spacer()
             if model.settingsSavedFlash {
                 Label("Saved", systemImage: "checkmark").foregroundStyle(.green)

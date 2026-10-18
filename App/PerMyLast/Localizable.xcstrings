@@ -859,17 +859,6 @@
         }
       }
     },
-    "Only English and Vietnamese are available today. Want Per My Last in your own language? We'd love the help — use the Feedback form below to volunteer translating it.": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hiện chỉ hỗ trợ Tiếng Anh và Tiếng Việt. Muốn có Per My Last bằng ngôn ngữ của bạn? Chúng tôi rất cần sự giúp đỡ — dùng biểu mẫu Góp ý bên dưới để đăng ký hỗ trợ dịch thuật."
-          }
-        }
-      }
-    },
     "On by default. Turn off to run Per My Last from the menu bar only, with no Dock icon (also toggleable from the tray menu).": {
       "extractionState": "manual",
       "localizations": {
@@ -899,72 +888,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tự động khởi chạy Per My Last khi bạn đăng nhập vào Mac."
-          }
-        }
-      }
-    },
-    "Feedback": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Góp ý"
-          }
-        }
-      }
-    },
-    "Bugs, feature ideas, language requests — anything.": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lỗi, ý tưởng tính năng, yêu cầu ngôn ngữ — bất cứ điều gì."
-          }
-        }
-      }
-    },
-    "Send Feedback": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Gửi góp ý"
-          }
-        }
-      }
-    },
-    "Please write something first.": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vui lòng nhập nội dung trước."
-          }
-        }
-      }
-    },
-    "Opening your email app…": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Đang mở ứng dụng email của bạn…"
-          }
-        }
-      }
-    },
-    "Opens your email app with this addressed to us — review it and hit send there.": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mở ứng dụng email của bạn với nội dung đã điền sẵn gửi cho chúng tôi — xem lại rồi bấm gửi ở đó."
           }
         }
       }
@@ -1911,6 +1834,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kiểm tra cập nhật…"
+          }
+        }
+      }
+    },
+    "Only English and Vietnamese are available today. Want Per My Last in your own language? We'd love the help — use Send feedback at the bottom of the app to volunteer translating it.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hiện chỉ hỗ trợ Tiếng Anh và Tiếng Việt. Muốn có Per My Last bằng ngôn ngữ của bạn? Chúng tôi rất cần sự giúp đỡ — dùng nút Gửi góp ý ở cuối ứng dụng để đăng ký hỗ trợ dịch thuật."
           }
         }
       }

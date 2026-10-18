@@ -37,7 +37,7 @@ Status: ✅ done · 🟡 partial · ⬜ missing · ➖ intentionally different
 | 25 | Show in Dock, Launch at login (with hints) | ✅ |
 | 26 | Mother language (searchable, flags) | ✅ |
 | 27 | App language: English (US/UK) + Vietnamese, applied to the whole UI | ✅ |
-| 28 | Feedback form → opens mail client | ✅ |
+| 28 | Feedback → opens mail client (footer "Send feedback"; the Settings form was removed as noise) | ✅ |
 | 29 | Explicit Save with "Saved! Using {model}" confirmation, validation errors | ➖ (autosave + "Saved" flash; API key and shortcut are validated as you type) |
 | 30 | **Tone Presets tab**: add / rename / delete / reorder tabs | ✅ |
 | 31 | Edit presets: name, icon, blurb, tone, prompt; default star; delete; drag to reorder; "used N times"; "+ Add to {tab}" | ✅ |

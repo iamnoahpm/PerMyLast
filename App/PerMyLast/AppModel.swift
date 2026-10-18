@@ -22,8 +22,6 @@ final class AppModel {
     // MARK: Session (not persisted)
     var hotKeyError: String?
     var shortcutBannerDismissed = false
-    /// Bumped by the Settings footer to jump to the feedback box.
-    var feedbackFocusToken = 0
     /// Briefly true after a settings change was saved (drives the "Saved" flash).
     var settingsSavedFlash = false
     var writeMyWay: WriteMyWaySettings
