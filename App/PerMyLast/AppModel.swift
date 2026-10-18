@@ -10,7 +10,10 @@ final class AppModel {
 
     // MARK: Settings (persisted)
     var settings: AppSettings
-    var apiKey: String
+    var apiKey = ""
+    /// False until the Keychain read finishes (it can block on a system dialog,
+    /// so it never runs on the main thread during launch).
+    var apiKeyLoaded = false
     var modes: [String]
     var presets: [Preset]
     var intentModes: [String]
@@ -39,7 +42,6 @@ final class AppModel {
         self.presets = PresetLibrary.normalize(loaded, modes: modes)
         self.intentModes = Persistence.load("intentModes", as: [String].self) ?? ["Reply"]
         self.settings = Persistence.load("settings", as: AppSettings.self) ?? AppSettings()
-        self.apiKey = KeychainStore.read(account: apiKeyAccount) ?? ""
         self.activeMode = modes.first ?? PresetLibrary.defaultModes[0]
         self.selectedLabel = nil
         selectDefaultPreset()
@@ -48,7 +50,27 @@ final class AppModel {
     // MARK: Persistence
 
     func saveSettings() { Persistence.save(settings, key: "settings") }
-    func saveAPIKey() { KeychainStore.write(apiKey.trimmingCharacters(in: .whitespacesAndNewlines), account: apiKeyAccount) }
+    private var savedAPIKey = ""
+
+    /// Reads the key from the Keychain off the main thread.
+    func loadAPIKey() async {
+        let account = apiKeyAccount
+        let stored = await Task.detached(priority: .userInitiated) { KeychainStore.read(account: account) ?? "" }.value
+        savedAPIKey = stored
+        if apiKey.isEmpty { apiKey = stored }
+        apiKeyLoaded = true
+    }
+
+    /// Writes the key to the Keychain, skipping no-op saves (including the one
+    /// triggered by `loadAPIKey` filling the field).
+    func saveAPIKey() {
+        guard apiKeyLoaded else { return }
+        let trimmed = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed != savedAPIKey else { return }
+        savedAPIKey = trimmed
+        let account = apiKeyAccount
+        Task.detached(priority: .userInitiated) { KeychainStore.write(trimmed, account: account) }
+    }
 
     // MARK: Presets
 

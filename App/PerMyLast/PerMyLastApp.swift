@@ -37,7 +37,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         Task { @MainActor in
+            await AppModel.shared.loadAPIKey()
             if AppModel.shared.apiKey.isEmpty { WindowCoordinator.shared.showSettings() }
+            // Dev aid: PML_SHOW_POPUP=1 opens the popup at launch.
+            if ProcessInfo.processInfo.environment["PML_SHOW_POPUP"] == "1" { WindowCoordinator.shared.showPopup() }
         }
+    }
+
+    /// A menu bar app has no Dock icon to click, so opening it again (Finder,
+    /// Spotlight, `open`) should show something instead of silently doing nothing.
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        Task { @MainActor in
+            if AppModel.shared.apiKeyLoaded && AppModel.shared.apiKey.isEmpty {
+                WindowCoordinator.shared.showSettings()
+            } else {
+                WindowCoordinator.shared.showPopup()
+            }
+        }
+        return false
     }
 }
