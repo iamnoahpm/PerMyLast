@@ -29,7 +29,7 @@ Status: ✅ done · 🟡 partial · ⬜ missing · ➖ intentionally different
 
 | # | Feature | Status |
 |---|---|---|
-| 20 | API key (Keychain), "Get one at console.anthropic.com" link, `sk-ant-` validation | ✅ |
+| 20 | API key (app preferences, no Keychain), "Get one at console.anthropic.com" link, `sk-ant-` validation | ✅ |
 | 21 | Workspace ID + hint | ✅ |
 | 22 | Model picker + custom model + "Selected model", effort levels + hints/notes | ✅ |
 | 23 | **Global shortcut recorder** (click, press combo, Esc cancels, clear) | ✅ |

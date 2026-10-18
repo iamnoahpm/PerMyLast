@@ -13,10 +13,7 @@ final class AppModel {
 
     // MARK: Settings (persisted)
     var settings: AppSettings
-    var apiKey = ""
-    /// False until the Keychain read finishes (it can block on a system dialog,
-    /// so it never runs on the main thread during launch).
-    var apiKeyLoaded = false
+    var apiKey: String
     var modes: [String]
     var presets: [Preset]
     var intentModes: [String]
@@ -49,8 +46,10 @@ final class AppModel {
     private var flashTask: Task<Void, Never>?
 
     private let client = AnthropicClient()
-    private let apiKeyAccount = "anthropic-api-key"
-    private var savedAPIKey = ""
+    /// Where the key lives: the app's own preferences, inside its sandbox
+    /// container (same idea as the Electron app's config file). Not the Keychain,
+    /// which prompts for a password whenever the app is rebuilt or re-signed.
+    private static let apiKeyDefaultsKey = "anthropicAPIKey"
 
     private init() {
         let modes = Persistence.load("modes", as: [String].self) ?? PresetLibrary.defaultModes
@@ -59,6 +58,7 @@ final class AppModel {
         self.presets = PresetLibrary.normalize(loaded, modes: modes)
         self.intentModes = Persistence.load("intentModes", as: [String].self) ?? (modes.contains("Reply") ? ["Reply"] : [])
         self.settings = Persistence.load("settings", as: AppSettings.self) ?? AppSettings()
+        self.apiKey = UserDefaults.standard.string(forKey: Self.apiKeyDefaultsKey) ?? ""
         self.enabled = UserDefaults.standard.object(forKey: "isEnabled") as? Bool ?? true
         self.writeMyWay = Persistence.load("writeMyWay", as: WriteMyWaySettings.self) ?? WriteMyWaySettings()
         self.activeMode = modes.first ?? PresetLibrary.defaultModes[0]
@@ -120,33 +120,17 @@ final class AppModel {
         if NSApp.activationPolicy() != policy { NSApp.setActivationPolicy(policy) }
     }
 
-    /// Reads the key from the Keychain off the main thread.
-    func loadAPIKey() async {
-        let account = apiKeyAccount
-        let stored = await Task.detached(priority: .userInitiated) { KeychainStore.read(account: account) ?? "" }.value
-        savedAPIKey = stored
-        if apiKey.isEmpty { apiKey = stored }
-        apiKeyLoaded = true
-    }
-
-    private var apiKeyWriteTask: Task<Void, Never>?
-
-    /// Writes the key to the Keychain shortly after typing stops. Skips no-op
-    /// saves (including the one `loadAPIKey` triggers by filling the field) and
-    /// anything that isn't an Anthropic key, as the Electron app did.
+    /// Saves the key as it's typed. Skips anything that isn't an Anthropic key
+    /// (the field can still show it, flagged), as the Electron app did.
     func saveAPIKey() {
-        guard apiKeyLoaded else { return }
         let trimmed = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmed != savedAPIKey, trimmed.isEmpty || trimmed.hasPrefix("sk-ant-") else { return }
-        apiKeyWriteTask?.cancel()
-        apiKeyWriteTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(0.6))
-            guard !Task.isCancelled, let self else { return }
-            savedAPIKey = trimmed
-            let account = apiKeyAccount
-            await Task.detached(priority: .userInitiated) { KeychainStore.write(trimmed, account: account) }.value
-            flashSaved()
+        guard trimmed.isEmpty || trimmed.hasPrefix("sk-ant-") else { return }
+        if trimmed.isEmpty {
+            UserDefaults.standard.removeObject(forKey: Self.apiKeyDefaultsKey)
+        } else {
+            UserDefaults.standard.set(trimmed, forKey: Self.apiKeyDefaultsKey)
         }
+        flashSaved()
     }
 
     var apiKeyLooksInvalid: Bool {
