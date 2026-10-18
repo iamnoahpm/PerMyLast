@@ -229,6 +229,11 @@ struct PromptPanel: View {
                 .contentShape(Rectangle())
                 .onTapGesture(perform: model.openPromptEditor)
                 .help("Click to edit")
+            if model.writeMyWayApplies(to: preset) {
+                Label("Plus your Write My Way settings", systemImage: "wand.and.stars")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
             if model.motherLanguageMissing {
                 Button("your mother language — set it in Settings") { WindowCoordinator.shared.showSettings() }
                     .buttonStyle(.link)

@@ -34,38 +34,6 @@ struct AppSettings: Codable, Equatable {
     }
 }
 
-/// Advanced → Write My Way. Like the Electron app, this is a preview: the
-/// choices are remembered but aren't sent with rewrites yet.
-struct WriteMyWaySettings: Codable, Equatable {
-    var enabled = false
-    var englishLevelEnabled = false
-    var testType = "TOEIC"
-    var testScore = ""
-    var tone = "professional"
-    var customTone = ""
-    var length = "short"
-    var customLength = ""
-    var customLengthUnit = "words"
-    var format = "bullets"
-
-    init() {}
-
-    init(from decoder: Decoder) throws {
-        let c = try decoder.container(keyedBy: CodingKeys.self)
-        let d = WriteMyWaySettings()
-        enabled = try c.decodeIfPresent(Bool.self, forKey: .enabled) ?? d.enabled
-        englishLevelEnabled = try c.decodeIfPresent(Bool.self, forKey: .englishLevelEnabled) ?? d.englishLevelEnabled
-        testType = try c.decodeIfPresent(String.self, forKey: .testType) ?? d.testType
-        testScore = try c.decodeIfPresent(String.self, forKey: .testScore) ?? d.testScore
-        tone = try c.decodeIfPresent(String.self, forKey: .tone) ?? d.tone
-        customTone = try c.decodeIfPresent(String.self, forKey: .customTone) ?? d.customTone
-        length = try c.decodeIfPresent(String.self, forKey: .length) ?? d.length
-        customLength = try c.decodeIfPresent(String.self, forKey: .customLength) ?? d.customLength
-        customLengthUnit = try c.decodeIfPresent(String.self, forKey: .customLengthUnit) ?? d.customLengthUnit
-        format = try c.decodeIfPresent(String.self, forKey: .format) ?? d.format
-    }
-}
-
 /// Small JSON-in-UserDefaults store for everything except the API key.
 enum Persistence {
     static func load<T: Decodable>(_ key: String, as type: T.Type) -> T? {

@@ -1464,17 +1464,6 @@
         }
       }
     },
-    "Mockup preview — not yet connected to your rewrites. Tell Per My Last how you write, so future rewrites already sound like you.": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bản xem trước — chưa được kết nối vào nội dung viết lại. Cho Per My Last biết bạn viết như thế nào, để những lần viết lại sau này đã mang đúng chất của bạn."
-          }
-        }
-      }
-    },
     "English Level": {
       "extractionState": "manual",
       "localizations": {
@@ -1845,6 +1834,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "Hiện chỉ hỗ trợ Tiếng Anh và Tiếng Việt. Muốn có Per My Last bằng ngôn ngữ của bạn? Chúng tôi rất cần sự giúp đỡ — dùng nút Gửi góp ý ở cuối ứng dụng để đăng ký hỗ trợ dịch thuật."
+          }
+        }
+      }
+    },
+    "Choose how you write. Actions with \"Use my Write My Way settings\" turned on (Like Brit. and Like Me by default) follow these choices, so rewrites already sound like you.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chọn cách bạn viết. Các hành động bật \"Dùng cài đặt Viết Theo Cách Của Tôi\" (mặc định là Like Brit. và Like Me) sẽ làm theo các lựa chọn này, để bản viết lại mang đúng chất của bạn."
+          }
+        }
+      }
+    },
+    "Use my Write My Way settings": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dùng cài đặt Viết Theo Cách Của Tôi"
+          }
+        }
+      }
+    },
+    "Match my English level": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Khớp trình độ tiếng Anh của tôi"
+          }
+        }
+      }
+    },
+    "Plus your Write My Way settings": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kèm cài đặt Viết Theo Cách Của Tôi của bạn"
           }
         }
       }

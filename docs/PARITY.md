@@ -68,6 +68,6 @@ Status: ✅ done · 🟡 partial · ⬜ missing · ➖ intentionally different
 
 - Display order of shortcut symbols follows Apple's HIG (⌃⌥⇧⌘), so ⌘⇧W shows as ⇧⌘W.
   (The Electron code's comment claimed ⌃⌘⇧ but its code produced the same order.)
-- Write My Way is a preview, exactly like the Electron one: choices are saved but not yet used in prompts.
+- Write My Way is connected (it was a mockup in Electron): when enabled, its tone, length, format (and English level for "Like Me") are added to the prompt of every action that has "Use my Write My Way settings" on. Like Brit. and Like Me have it on by default.
 - Vietnamese UI strings live in `App/PerMyLast/Localizable.xcstrings`; the wording reuses the Electron app's.
   Shortcut-conflict descriptions and the Wartime/Peacetime content stay English (as before).

@@ -167,7 +167,7 @@ private struct WriteMyWayCard: View {
         @Bindable var model = model
         VStack(alignment: .leading, spacing: 14) {
             Text("Write My Way").font(.headline)
-            Text("Mockup preview — not yet connected to your rewrites. Tell Per My Last how you write, so future rewrites already sound like you.")
+            Text("Choose how you write. Actions with \"Use my Write My Way settings\" turned on (Like Brit. and Like Me by default) follow these choices, so rewrites already sound like you.")
                 .font(.caption).foregroundStyle(.secondary)
 
             englishLevel(settings: $model.writeMyWay)

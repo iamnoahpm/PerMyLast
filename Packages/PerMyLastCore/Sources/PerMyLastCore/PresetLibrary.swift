@@ -81,10 +81,10 @@ REPLY INTENT:
                isEmail: true, isDefault: true),
         Preset(label: "Message", category: "Reply", icon: "💬", blurb: "Short chat / DM reply", tone: "Warm",
                prompt: messagePrompt),
-        Preset(label: "Like Brit.", category: "Write", icon: "🤴", blurb: "Clear, native English level", tone: "Neutral",
-               prompt: likeBritPrompt, isDefault: true),
-        Preset(label: "Like Me", category: "Write", icon: "🫆", blurb: "Match my style, my English level", tone: "Personal",
-               prompt: likeMePrompt),
+        Preset(label: "Like Brit.", category: "Write", icon: "🤴", blurb: "Casual Teams message, native English", tone: "Casual",
+               prompt: likeBritPrompt, isDefault: true, usesWriteMyWay: true),
+        Preset(label: "Like Me", category: "Write", icon: "🫆", blurb: "Casual Teams message, in my voice", tone: "Casual",
+               prompt: likeMePrompt, usesWriteMyWay: true, matchesEnglishLevel: true),
         Preset(label: "Explain", category: "Understand", icon: "💡", blurb: "Plain-language summary", tone: "Plain",
                prompt: "Explain this in simple terms.", isDefault: true),
         Preset(label: "Translate", category: "Understand", icon: "🌐", blurb: "Into {{motherLanguage}}", tone: "Neutral",
@@ -95,6 +95,13 @@ REPLY INTENT:
     static let renamedBuiltIns: [(from: String, to: String, oldIcon: String, newIcon: String)] = [
         ("Rewrite like Native", "Like Brit.", "\u{270D}\u{FE0F}", "🤴"),
         ("Rewrite Like Me", "Like Me", "\u{1F64B}\u{200D}\u{2642}", "🫆")
+    ]
+
+    /// Descriptions and tones the two Write-tab presets used to ship with. A saved
+    /// copy still showing one is moved to the current text.
+    static let retiredWriteMeta: [String: (blurbs: [String], tones: [String])] = [
+        "Like Brit.": (["Clear, native English level"], ["Neutral"]),
+        "Like Me": (["Match my style, my English level"], ["Personal"])
     ]
 
     /// Built-ins that were dropped from the defaults, with the prompt they shipped
@@ -123,11 +130,29 @@ REPLY INTENT:
             if result[i].icon == rename.oldIcon { result[i].icon = rename.newIcon }
         }
         return result.map { p in
-            guard let retired = retiredDefaultPrompts[p.label], retired.contains(p.originalPrompt),
-                  let current = defaultPresets.first(where: { $0.label == p.label }) else { return p }
             var q = p
-            if retired.contains(p.prompt) { q.prompt = current.prompt }
-            q.originalPrompt = current.originalPrompt
+            guard let current = defaultPresets.first(where: { $0.label == p.label }) else { return p }
+            if let retired = retiredDefaultPrompts[p.label], retired.contains(p.originalPrompt) {
+                if retired.contains(p.prompt) { q.prompt = current.prompt }
+                q.originalPrompt = current.originalPrompt
+            }
+            if let meta = retiredWriteMeta[p.label] {
+                if meta.blurbs.contains(p.blurb) { q.blurb = current.blurb }
+                if meta.tones.contains(p.tone) { q.tone = current.tone }
+            }
+            return q
+        }
+    }
+
+    /// One-time step for installs that saved presets before Write My Way was
+    /// connected: switches it on for the built-in rewrite actions (the fields
+    /// didn't exist then, so they read as off). The caller runs this once.
+    public static func enableWriteMyWayDefaults(_ list: [Preset]) -> [Preset] {
+        list.map { p in
+            guard let current = defaultPresets.first(where: { $0.label == p.label }), current.usesWriteMyWay else { return p }
+            var q = p
+            q.usesWriteMyWay = current.usesWriteMyWay
+            q.matchesEnglishLevel = current.matchesEnglishLevel
             return q
         }
     }
@@ -191,7 +216,9 @@ REPLY INTENT:
             uses: stored?.uses ?? 0,
             isEmail: draft.isEmail,
             isDefault: draft.isDefault,
-            requiresMotherLanguage: draft.requiresMotherLanguage
+            requiresMotherLanguage: draft.requiresMotherLanguage,
+            usesWriteMyWay: draft.usesWriteMyWay,
+            matchesEnglishLevel: draft.matchesEnglishLevel
         )
         var next = list
         if let idx { next[idx] = entry } else { next.append(entry) }
@@ -244,7 +271,9 @@ REPLY INTENT:
                 uses: base.uses,
                 isEmail: base.isEmail,
                 isDefault: entry.isDefault,
-                requiresMotherLanguage: base.requiresMotherLanguage
+                requiresMotherLanguage: base.requiresMotherLanguage,
+                usesWriteMyWay: entry.usesWriteMyWay ?? base.usesWriteMyWay,
+                matchesEnglishLevel: entry.matchesEnglishLevel ?? base.matchesEnglishLevel
             ))
         }
         for p in stored where !seen.contains(p.label) { result.append(p) }

@@ -13,6 +13,8 @@ private struct PresetRow: Identifiable, Equatable {
     var prompt: String
     var isDefault: Bool
     var uses: Int
+    var usesWriteMyWay: Bool
+    var matchesEnglishLevel: Bool
 
     /// The label the preset will have once saved.
     var savedLabel: String {
@@ -131,7 +133,8 @@ struct PresetsSettingsView: View {
             let category = PresetLibrary.normalizeCategory(p.category, modes: model.modes)
             groups[category, default: []].append(PresetRow(
                 originalLabel: p.label, label: p.label, icon: p.icon, blurb: p.blurb,
-                tone: p.tone, prompt: p.prompt, isDefault: p.isDefault, uses: p.uses))
+                tone: p.tone, prompt: p.prompt, isDefault: p.isDefault, uses: p.uses,
+                usesWriteMyWay: p.usesWriteMyWay, matchesEnglishLevel: p.matchesEnglishLevel))
         }
         rowsByMode = groups
         if !model.modes.contains(editingMode) { editingMode = model.modes.first ?? "" }
@@ -140,7 +143,8 @@ struct PresetsSettingsView: View {
     private func edits() -> [PresetEdit] {
         model.modes.flatMap { rowsByMode[$0] ?? [] }.map {
             PresetEdit(originalLabel: $0.originalLabel, label: $0.label, icon: $0.icon, blurb: $0.blurb,
-                       tone: $0.tone, prompt: $0.prompt, isDefault: $0.isDefault)
+                       tone: $0.tone, prompt: $0.prompt, isDefault: $0.isDefault,
+                       usesWriteMyWay: $0.usesWriteMyWay, matchesEnglishLevel: $0.matchesEnglishLevel)
         }
     }
 
@@ -256,6 +260,13 @@ private struct PresetRowEditor: View {
                 .padding(6)
                 .frame(minHeight: 72)
                 .background(Color.primary.opacity(0.06), in: RoundedRectangle(cornerRadius: 8))
+            Toggle("Use my Write My Way settings", isOn: $row.usesWriteMyWay)
+                .controlSize(.small)
+            if row.usesWriteMyWay {
+                Toggle("Match my English level", isOn: $row.matchesEnglishLevel)
+                    .controlSize(.small)
+                    .padding(.leading, 18)
+            }
             Text("used \(row.uses) times").font(.caption2).foregroundStyle(.tertiary)
         }
         .padding(.vertical, 6)

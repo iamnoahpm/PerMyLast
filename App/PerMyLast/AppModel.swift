@@ -52,7 +52,12 @@ final class AppModel {
     private init() {
         let modes = Persistence.load("modes", as: [String].self) ?? PresetLibrary.defaultModes
         let loaded = Persistence.load("presets", as: [Preset].self) ?? PresetLibrary.defaultPresets
-        let upgraded = PresetLibrary.upgradeBuiltIns(loaded)
+        var upgraded = PresetLibrary.upgradeBuiltIns(loaded)
+        // Presets saved before Write My Way was connected: switch it on for the built-in rewrite actions, once.
+        if UserDefaults.standard.integer(forKey: "presetSchemaVersion") < 1 {
+            upgraded = PresetLibrary.enableWriteMyWayDefaults(upgraded)
+            UserDefaults.standard.set(1, forKey: "presetSchemaVersion")
+        }
         self.modes = modes
         let normalized = PresetLibrary.normalize(upgraded, modes: modes)
         self.presets = normalized
@@ -195,6 +200,11 @@ final class AppModel {
 
     func isEdited(_ preset: Preset) -> Bool { preset.prompt != preset.originalPrompt }
 
+    /// True when the user's Write My Way choices will be added to this action's prompt.
+    func writeMyWayApplies(to preset: Preset) -> Bool {
+        PromptBuilder.appliesWriteMyWay(preset, writeMyWay)
+    }
+
     func savedTargetLabel(_ preset: Preset) -> String { "\(preset.category) › \(preset.label)" }
 
     // MARK: Prompt panel
@@ -227,7 +237,8 @@ final class AppModel {
         presets = PresetLibrary.upsert(presets, draft: PresetDraft(
             label: preset.label, category: preset.category, icon: preset.icon, blurb: preset.blurb,
             tone: preset.tone, prompt: next, isEmail: preset.isEmail, isDefault: preset.isDefault,
-            requiresMotherLanguage: preset.requiresMotherLanguage), modes: modes)
+            requiresMotherLanguage: preset.requiresMotherLanguage,
+            usesWriteMyWay: preset.usesWriteMyWay, matchesEnglishLevel: preset.matchesEnglishLevel), modes: modes)
         savePresets()
         editingPrompt = false
         flash(L("Saved to \(savedTargetLabel(preset))"))
@@ -351,7 +362,8 @@ final class AppModel {
 
         let prompt = PromptBuilder.finalPrompt(
             preset: preset, motherLanguage: settings.motherLanguage,
-            intent: intent, tabTakesIntent: activeModeTakesIntent)
+            intent: intent, tabTakesIntent: activeModeTakesIntent,
+            writeMyWay: writeMyWay)
         let config = AnthropicConfig(
             apiKey: apiKey.trimmingCharacters(in: .whitespacesAndNewlines),
             model: settings.model, effort: settings.effort,

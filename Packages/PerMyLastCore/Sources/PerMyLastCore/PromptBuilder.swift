@@ -57,15 +57,26 @@ public enum PromptBuilder {
 
     /// The prompt actually sent: the resolved preset prompt, plus the user's
     /// reply intent when the active tab takes one.
-    public static func finalPrompt(preset: Preset, motherLanguage: String, intent: String?, tabTakesIntent: Bool) -> String {
+    public static func finalPrompt(preset: Preset, motherLanguage: String, intent: String?, tabTakesIntent: Bool,
+                                   writeMyWay: WriteMyWaySettings? = nil) -> String {
         var prompt = resolvedPrompt(preset, motherLanguage: motherLanguage)
         let typed = tabTakesIntent ? (intent ?? "").trimmingCharacters(in: .whitespacesAndNewlines) : ""
         // A template places the intent itself; anything else gets it appended.
         if prompt.contains(replyIntentToken) {
-            return prompt.replacingOccurrences(of: replyIntentToken, with: typed.isEmpty ? noIntentPlaceholder : typed)
+            prompt = prompt.replacingOccurrences(of: replyIntentToken, with: typed.isEmpty ? noIntentPlaceholder : typed)
+        } else if !typed.isEmpty {
+            prompt += " " + typed
         }
-        if !typed.isEmpty { prompt += " " + typed }
+        if preset.usesWriteMyWay,
+           let block = writeMyWay?.promptBlock(includeEnglishLevel: preset.matchesEnglishLevel) {
+            prompt += "\n\n" + block
+        }
         return prompt
+    }
+
+    /// Whether Write My Way will add anything to this action right now (for the popup's hint).
+    public static func appliesWriteMyWay(_ preset: Preset, _ settings: WriteMyWaySettings) -> Bool {
+        preset.usesWriteMyWay && settings.promptBlock(includeEnglishLevel: preset.matchesEnglishLevel) != nil
     }
 
     private static func replacingFirst(_ target: String, in string: String, with replacement: String) -> String {

@@ -46,6 +46,24 @@ struct AnthropicClientTests {
         #expect(messages == [["role": "user", "content": "Fix grammar.\n\nText: hello"]])
     }
 
+    @Test func writeMyWayChoicesReachTheRequestThatIsActuallySent() throws {
+        var wmw = WriteMyWaySettings()
+        wmw.enabled = true; wmw.englishLevelEnabled = true; wmw.testType = "TOEIC"; wmw.testScore = "850"
+        wmw.tone = "friendly"; wmw.length = "custom"; wmw.customLength = "40"; wmw.format = "message"
+        let like = try #require(PresetLibrary.defaultPresets.first { $0.label == "Like Me" })
+        let prompt = PromptBuilder.finalPrompt(preset: like, motherLanguage: "", intent: nil, tabTakesIntent: false, writeMyWay: wmw)
+
+        let request = try AnthropicClient().makeRequest(config: config, text: "hey can u join the call at 3", prompt: prompt, isEmail: like.isEmail)
+        let body = try requestBody(request)
+        let content = try #require((body["messages"] as? [[String: String]])?.first?["content"])
+        #expect(content.hasPrefix(PresetLibrary.likeMePrompt))
+        #expect(content.contains("- Tone: friendly."))
+        #expect(content.contains("- Length: no more than 40 words."))
+        #expect(content.contains("- Format: a chat message (Teams or Slack style)."))
+        #expect(content.contains("English level: the writer's English is around TOEIC 850"))
+        #expect(content.hasSuffix("Text: hey can u join the call at 3"))   // the user's text still comes last
+    }
+
     @Test func sendsWorkspaceHeaderWhenSet() throws {
         var c = config
         c.workspaceId = "wrkspc_123"

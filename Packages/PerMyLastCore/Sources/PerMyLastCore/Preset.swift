@@ -15,13 +15,18 @@ public struct Preset: Codable, Equatable, Sendable, Identifiable {
     public var isEmail: Bool
     public var isDefault: Bool
     public var requiresMotherLanguage: Bool
+    /// Adds the user's Advanced → Write My Way choices (tone, length, format) to this action's prompt.
+    public var usesWriteMyWay: Bool
+    /// With the above, also tells the model the user's English level, so the result stays at it.
+    public var matchesEnglishLevel: Bool
 
     public var id: String { label }
 
     public init(
         label: String, category: String, icon: String = "", blurb: String = "",
         tone: String = "", prompt: String, originalPrompt: String? = nil, uses: Int = 0,
-        isEmail: Bool = false, isDefault: Bool = false, requiresMotherLanguage: Bool = false
+        isEmail: Bool = false, isDefault: Bool = false, requiresMotherLanguage: Bool = false,
+        usesWriteMyWay: Bool = false, matchesEnglishLevel: Bool = false
     ) {
         self.label = label
         self.category = category
@@ -34,11 +39,13 @@ public struct Preset: Codable, Equatable, Sendable, Identifiable {
         self.isEmail = isEmail
         self.isDefault = isDefault
         self.requiresMotherLanguage = requiresMotherLanguage
+        self.usesWriteMyWay = usesWriteMyWay
+        self.matchesEnglishLevel = matchesEnglishLevel
     }
 
     private enum CodingKeys: String, CodingKey {
         case label, category, icon, blurb, tone, prompt, originalPrompt, uses
-        case isEmail, isDefault, requiresMotherLanguage
+        case isEmail, isDefault, requiresMotherLanguage, usesWriteMyWay, matchesEnglishLevel
     }
 
     /// Tolerant on purpose: presets saved by older versions of the app lack most
@@ -58,7 +65,9 @@ public struct Preset: Codable, Equatable, Sendable, Identifiable {
             uses: (try? c.decodeIfPresent(Int.self, forKey: .uses)) ?? 0,
             isEmail: (try? c.decodeIfPresent(Bool.self, forKey: .isEmail)) ?? false,
             isDefault: (try? c.decodeIfPresent(Bool.self, forKey: .isDefault)) ?? false,
-            requiresMotherLanguage: (try? c.decodeIfPresent(Bool.self, forKey: .requiresMotherLanguage)) ?? false
+            requiresMotherLanguage: (try? c.decodeIfPresent(Bool.self, forKey: .requiresMotherLanguage)) ?? false,
+            usesWriteMyWay: (try? c.decodeIfPresent(Bool.self, forKey: .usesWriteMyWay)) ?? false,
+            matchesEnglishLevel: (try? c.decodeIfPresent(Bool.self, forKey: .matchesEnglishLevel)) ?? false
         )
     }
 }
@@ -75,11 +84,14 @@ public struct PresetDraft: Sendable {
     public var isEmail: Bool
     public var isDefault: Bool
     public var requiresMotherLanguage: Bool
+    public var usesWriteMyWay: Bool
+    public var matchesEnglishLevel: Bool
 
     public init(
         label: String, category: String, icon: String = "", blurb: String = "",
         tone: String? = nil, prompt: String, isEmail: Bool = false,
-        isDefault: Bool = false, requiresMotherLanguage: Bool = false
+        isDefault: Bool = false, requiresMotherLanguage: Bool = false,
+        usesWriteMyWay: Bool = false, matchesEnglishLevel: Bool = false
     ) {
         self.label = label
         self.category = category
@@ -90,6 +102,8 @@ public struct PresetDraft: Sendable {
         self.isEmail = isEmail
         self.isDefault = isDefault
         self.requiresMotherLanguage = requiresMotherLanguage
+        self.usesWriteMyWay = usesWriteMyWay
+        self.matchesEnglishLevel = matchesEnglishLevel
     }
 }
 
@@ -104,10 +118,13 @@ public struct PresetEdit: Sendable {
     public var tone: String?
     public var prompt: String?
     public var isDefault: Bool
+    public var usesWriteMyWay: Bool?
+    public var matchesEnglishLevel: Bool?
 
     public init(
         originalLabel: String, label: String? = nil, icon: String? = nil, blurb: String? = nil,
-        tone: String? = nil, prompt: String? = nil, isDefault: Bool = false
+        tone: String? = nil, prompt: String? = nil, isDefault: Bool = false,
+        usesWriteMyWay: Bool? = nil, matchesEnglishLevel: Bool? = nil
     ) {
         self.originalLabel = originalLabel
         self.label = label
@@ -116,5 +133,7 @@ public struct PresetEdit: Sendable {
         self.tone = tone
         self.prompt = prompt
         self.isDefault = isDefault
+        self.usesWriteMyWay = usesWriteMyWay
+        self.matchesEnglishLevel = matchesEnglishLevel
     }
 }
