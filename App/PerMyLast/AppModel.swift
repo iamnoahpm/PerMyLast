@@ -49,7 +49,16 @@ final class AppModel {
 
     // MARK: Persistence
 
-    func saveSettings() { Persistence.save(settings, key: "settings") }
+    func saveSettings() {
+        Persistence.save(settings, key: "settings")
+        applyDockVisibility()
+    }
+
+    /// Dock icon on (regular app) or off (menu bar only).
+    func applyDockVisibility() {
+        let policy: NSApplication.ActivationPolicy = settings.showInDock ? .regular : .accessory
+        if NSApp.activationPolicy() != policy { NSApp.setActivationPolicy(policy) }
+    }
     private var savedAPIKey = ""
 
     /// Reads the key from the Keychain off the main thread.

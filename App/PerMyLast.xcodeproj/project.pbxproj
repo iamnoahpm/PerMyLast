@@ -178,7 +178,6 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "Per My Last";
 				INFOPLIST_KEY_ITSAppUseNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
-				INFOPLIST_KEY_LSUIElement = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -207,7 +206,6 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "Per My Last";
 				INFOPLIST_KEY_ITSAppUseNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
-				INFOPLIST_KEY_LSUIElement = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",

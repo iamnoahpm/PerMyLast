@@ -27,6 +27,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var hotKey: HotKey?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        Task { @MainActor in AppModel.shared.applyDockVisibility() }
         let hotKey = HotKey { Task { @MainActor in AppModel.shared.handleHotKey() } }
         // ⌘⇧W, same default as the Electron app. A shortcut recorder comes later.
         let ok = hotKey.register(keyCode: kVK_ANSI_W, modifiers: cmdKey | shiftKey)
@@ -44,8 +45,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    /// A menu bar app has no Dock icon to click, so opening it again (Finder,
-    /// Spotlight, `open`) should show something instead of silently doing nothing.
+    /// Closing the popup or Settings must not quit the app; it lives in the menu bar.
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
+
+    /// Clicking the Dock icon, or opening the app again (Finder, Spotlight, `open`),
+    /// should show a window instead of silently doing nothing.
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         Task { @MainActor in
             if AppModel.shared.apiKeyLoaded && AppModel.shared.apiKey.isEmpty {

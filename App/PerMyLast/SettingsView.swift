@@ -46,6 +46,7 @@ struct SettingsView: View {
             }
 
             Section("General") {
+                Toggle("Show in Dock", isOn: $model.settings.showInDock)
                 Toggle("Open at login", isOn: $launchAtLogin)
                     .onChange(of: launchAtLogin) { _, on in
                         do { if on { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() } }
