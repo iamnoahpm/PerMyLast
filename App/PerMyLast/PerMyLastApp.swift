@@ -38,10 +38,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         Task { @MainActor in
-            await AppModel.shared.loadAPIKey()
-            if AppModel.shared.apiKey.isEmpty { WindowCoordinator.shared.showSettings() }
             // Dev aid: PML_SHOW_POPUP=1 opens the popup at launch.
             if ProcessInfo.processInfo.environment["PML_SHOW_POPUP"] == "1" { WindowCoordinator.shared.showPopup() }
+            await AppModel.shared.loadAPIKey()
+            if AppModel.shared.apiKey.isEmpty { WindowCoordinator.shared.showSettings() }
         }
     }
 

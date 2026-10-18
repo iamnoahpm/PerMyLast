@@ -61,7 +61,7 @@ struct SettingsView: View {
         }
         .formStyle(.grouped)
         .onChange(of: model.settings) { model.saveSettings() }
-        .frame(minWidth: 480, minHeight: 520)
+        .frame(minWidth: 420, minHeight: 520)
     }
 
     /// Picker selection that maps any non-standard model ID to the "Other" row.
