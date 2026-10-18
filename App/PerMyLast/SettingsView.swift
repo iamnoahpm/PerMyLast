@@ -37,7 +37,6 @@ struct SettingsView: View {
                 tab = .general
                 model.feedbackFocusToken += 1
             }
-            Button("Check for updates") { model.checkForUpdates() }
             Spacer()
             if model.settingsSavedFlash {
                 Label("Saved", systemImage: "checkmark").foregroundStyle(.green)

@@ -16,6 +16,7 @@ struct PerMyLastApp: App {
             Divider()
             Button("Settings…") { WindowCoordinator.shared.showSettings() }
                 .keyboardShortcut(",")
+            Button("Check for Updates…") { model.checkForUpdates() }
             Divider()
             Button("Quit Per My Last") { NSApp.terminate(nil) }
                 .keyboardShortcut("q")

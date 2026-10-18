@@ -419,17 +419,6 @@
         }
       }
     },
-    "Check for updates": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kiểm tra cập nhật"
-          }
-        }
-      }
-    },
     "Select or paste text first": {
       "extractionState": "manual",
       "localizations": {
@@ -1922,6 +1911,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "— sắp ra mắt"
+          }
+        }
+      }
+    },
+    "Check for Updates…": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kiểm tra cập nhật…"
           }
         }
       }

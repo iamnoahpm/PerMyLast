@@ -348,7 +348,6 @@ struct FooterBar: View {
             Text("Version \(model.appVersion)").foregroundStyle(.secondary)
             Spacer()
             Button("Send feedback") { model.sendFeedback() }
-            Button("Check for updates") { model.checkForUpdates() }
         }
         .font(.caption)
         .buttonStyle(.link)

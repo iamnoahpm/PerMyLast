@@ -18,7 +18,7 @@ Status: ✅ done · 🟡 partial · ⬜ missing · ➖ intentionally different
 | 8 | Mother-language missing → inline "set it in Settings" link, Send disabled with tooltip | ✅ |
 | 9 | Output panel: empty-state hint, result header (label · tone), Copy → "Copied!" | ✅ |
 | 10 | Regenerate, Send again, error box with Retry | ✅ |
-| 11 | Footer: version, Send feedback (mailto), Check for updates | ✅ |
+| 11 | Footer: version, Send feedback (mailto). Check for Updates moved to the menu bar menu | ✅ |
 | 12 | Header eyebrow "What are you trying to do?" + tagline | ✅ |
 | 13 | Shortcut-conflict warning banner (with Settings / Dismiss) | ✅ |
 | 14 | Popup opens on launch when an API key exists | ✅ |
