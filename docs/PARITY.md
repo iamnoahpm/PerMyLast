@@ -74,4 +74,4 @@ Status: ✅ done · 🟡 partial · ⬜ missing · ➖ intentionally different
 - **Ask** (new, not in Electron): a fixed fourth tab with no preset. A prompt box and an optional text box go straight to the model
   (system prompt: helpful assistant; answers up to 4096 tokens). It is not one of the user's tabs, so it can't be renamed, deleted or
   collide with a tab the user names "Ask".
-- Translate now says "Vietnamese" in its prompt, so the Mother language setting no longer feeds any built-in action.
+- Translate translates into the Mother language setting (`{{motherLanguage}}`), as in Electron; that setting starts as Vietnamese on a Mac set to Vietnamese.

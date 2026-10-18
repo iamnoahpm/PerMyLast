@@ -5,8 +5,9 @@ struct AppSettings: Codable, Equatable {
     var model = ModelCatalog.defaultModel
     var effort = ModelCatalog.defaultEffort
     var workspaceId = ""
-    /// Language that "Translate" targets, e.g. "Vietnamese".
-    var motherLanguage = ""
+    /// Language that "Translate" targets, e.g. "Vietnamese". A Mac set to Vietnamese starts with
+    /// Vietnamese so Translate works straight away; anyone else picks theirs in Settings.
+    var motherLanguage = AppLanguage.detectDefault() == .vi ? "Vietnamese" : ""
     /// Whether the app also shows in the Dock (like the Electron version).
     var showInDock = true
     /// Advanced → Wartime / Peacetime mode configurator.

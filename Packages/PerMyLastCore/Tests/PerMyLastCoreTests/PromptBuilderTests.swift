@@ -116,34 +116,43 @@ struct UnderstandAndAskTests {
     @Test func explainAndTranslateHaveTheNewPrompts() throws {
         #expect(try preset("Explain").prompt == "Explain this in simple terms. Don't ever use \"—\" in the output.")
         let translate = try preset("Translate")
-        #expect(translate.prompt == "Translate this into Vietnamese. Don't ever use \"—\" in the output.")
-        #expect(!translate.requiresMotherLanguage)           // nothing to fill in, so Send isn't blocked
-        #expect(translate.blurb == "Into Vietnamese")
-        #expect(PromptBuilder.finalPrompt(preset: translate, motherLanguage: "", intent: nil, tabTakesIntent: false) == translate.prompt)
+        #expect(translate.prompt == "Translate this into {{motherLanguage}}. Don't ever use \"—\" in the output.")
+        #expect(translate.requiresMotherLanguage)
+        #expect(translate.blurb == "Into {{motherLanguage}}")
     }
 
-    @Test func oldCopiesAreUpgradedAndTheMotherLanguageRequirementDropped() throws {
-        var saved = PresetLibrary.defaultPresets
-        let e = saved.firstIndex { $0.label == "Explain" }!, t = saved.firstIndex { $0.label == "Translate" }!
-        saved[e].prompt = "Explain this in simple terms."; saved[e].originalPrompt = "Explain this in simple terms."
-        saved[t].prompt = "Translate this into {{motherLanguage}}"; saved[t].originalPrompt = "Translate this into {{motherLanguage}}"
-        saved[t].blurb = "Into {{motherLanguage}}"; saved[t].requiresMotherLanguage = true; saved[t].uses = 4
-        let result = PresetLibrary.upgradeBuiltIns(saved)
-        #expect(result[e].prompt == PresetLibrary.explainPrompt)
-        let translate = result[t]
-        #expect(translate.prompt == PresetLibrary.translatePrompt)
-        #expect(translate.originalPrompt == PresetLibrary.translatePrompt)
-        #expect(translate.requiresMotherLanguage == false)
-        #expect(translate.blurb == "Into Vietnamese")
-        #expect(translate.uses == 4)
+    @Test func translateFollowsTheMotherLanguageSetting() throws {
+        let translate = try preset("Translate")
+        let vi = PromptBuilder.finalPrompt(preset: translate, motherLanguage: " Vietnamese ", intent: nil, tabTakesIntent: false)
+        #expect(vi == "Translate this into Vietnamese. Don't ever use \"—\" in the output.")
+        let fr = PromptBuilder.finalPrompt(preset: translate, motherLanguage: "French", intent: nil, tabTakesIntent: false)
+        #expect(fr == "Translate this into French. Don't ever use \"—\" in the output.")
+        #expect(PromptBuilder.resolvedBlurb(translate, motherLanguage: "French") == "Into French")
+        #expect(PromptBuilder.resolvedBlurb(translate, motherLanguage: "  ") == "Into your language from Settings")
     }
 
-    @Test func aTranslatePromptTheUserEditedKeepsItsMotherLanguageBehaviour() throws {
+    @Test func everyEarlierTranslateWordingIsUpgraded() throws {
+        for old in ["Translate this into {{motherLanguage}}",
+                    "Translate this into Vietnamese. Don't ever use \"—\" in the output."] {
+            var saved = PresetLibrary.defaultPresets
+            let t = saved.firstIndex { $0.label == "Translate" }!
+            saved[t].prompt = old; saved[t].originalPrompt = old; saved[t].uses = 4
+            // The short-lived Vietnamese wording also dropped the requirement and changed the blurb.
+            if old.contains("Vietnamese") { saved[t].requiresMotherLanguage = false; saved[t].blurb = "Into Vietnamese" }
+            let translate = PresetLibrary.upgradeBuiltIns(saved)[t]
+            #expect(translate.prompt == PresetLibrary.translatePrompt)
+            #expect(translate.originalPrompt == PresetLibrary.translatePrompt)
+            #expect(translate.requiresMotherLanguage)
+            #expect(translate.blurb == "Into {{motherLanguage}}")
+            #expect(translate.uses == 4)
+        }
+    }
+
+    @Test func aTranslatePromptTheUserEditedIsKept() throws {
         var saved = PresetLibrary.defaultPresets
         let t = saved.firstIndex { $0.label == "Translate" }!
         saved[t].prompt = "Translate into {{motherLanguage}} and keep the tone."
         saved[t].originalPrompt = "Translate this into {{motherLanguage}}"
-        saved[t].requiresMotherLanguage = true
         let translate = PresetLibrary.upgradeBuiltIns(saved)[t]
         #expect(translate.prompt == "Translate into {{motherLanguage}} and keep the tone.")
         #expect(translate.requiresMotherLanguage)

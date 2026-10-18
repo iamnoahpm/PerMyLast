@@ -63,7 +63,7 @@ REPLY INTENT:
 
     public static let explainPrompt = "Explain this in simple terms. Don't ever use \"—\" in the output."
 
-    public static let translatePrompt = "Translate this into Vietnamese. Don't ever use \"—\" in the output."
+    public static let translatePrompt = "Translate this into {{motherLanguage}}. Don't ever use \"—\" in the output."
 
     /// Built-in prompts that earlier versions shipped, by preset label. Saved
     /// copies still carrying one of these are moved to the current default.
@@ -76,7 +76,9 @@ REPLY INTENT:
         "Like Brit.": ["Rewrite this text like a native English.",
                        "Rewrite this as a casual Teams message. Native English, direct and confident. Fix grammar, phrasing, and flow only — keep the original content intact. Only break lines where it genuinely helps readability. No em dashes."],
         "Explain": ["Explain this in simple terms."],
-        "Translate": ["Translate this into {{motherLanguage}}"],
+        // the original, and the short-lived wording that named Vietnamese directly
+        "Translate": ["Translate this into {{motherLanguage}}",
+                      "Translate this into Vietnamese. Don't ever use \"—\" in the output."],
         "Like Me": ["Rewrite this text like me.",
                     "Rewrite this as a casual Teams message. Direct and confident. Fix grammar, phrasing, and flow only — keep the original content intact. Only break lines where it genuinely helps readability. No em dashes."]
     ]
@@ -93,8 +95,8 @@ REPLY INTENT:
                prompt: likeMePrompt, usesWriteMyWay: true, matchesEnglishLevel: true),
         Preset(label: "Explain", category: "Understand", icon: "💡", blurb: "Plain-language summary", tone: "Plain",
                prompt: explainPrompt, isDefault: true),
-        Preset(label: "Translate", category: "Understand", icon: "🌐", blurb: "Into Vietnamese", tone: "Neutral",
-               prompt: translatePrompt)
+        Preset(label: "Translate", category: "Understand", icon: "🌐", blurb: "Into {{motherLanguage}}", tone: "Neutral",
+               prompt: translatePrompt, requiresMotherLanguage: true)
     ]
 
     /// Built-ins that were renamed (and given a new icon). Matched by the old label.
@@ -108,7 +110,7 @@ REPLY INTENT:
     static let retiredWriteMeta: [String: (blurbs: [String], tones: [String])] = [
         "Like Brit.": (["Clear, native English level"], ["Neutral"]),
         "Like Me": (["Match my style, my English level"], ["Personal"]),
-        "Translate": (["Into {{motherLanguage}}"], [])
+        "Translate": (["Into Vietnamese"], [])
     ]
 
     /// Built-ins that were dropped from the defaults, with the prompt they shipped
