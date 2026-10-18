@@ -280,6 +280,14 @@ struct UpgradeBuiltInPromptTests {
         #expect(email.uses == 7)   // everything else about the preset is kept
     }
 
+    @Test func theEarlierNewEmailWordingIsUpgradedToo() throws {
+        let previous = "You are an expert email writer who drafts clear, professional email replies for workplace contexts. Write the reply in a direct tone. Don't ever use \"—\" in the output."
+        let list = saved("Email", prompt: previous, original: previous)
+        let email = try #require(PresetLibrary.upgradeBuiltInPrompts(list).first { $0.label == "Email" })
+        #expect(email.prompt == PresetLibrary.emailPrompt)
+        #expect(email.prompt.contains("{reply_intent}"))
+    }
+
     @Test func aUserEditedPromptIsKeptButResetGoesToTheNewDefault() throws {
         let list = saved("Message", prompt: "My own message prompt", original: oldMessage)
         let message = try #require(PresetLibrary.upgradeBuiltInPrompts(list).first { $0.label == "Message" })

@@ -31,11 +31,11 @@ struct PromptBuilderTests {
     }
 
     @Test func finalPromptAppendsIntentOnlyWhenTheTabTakesIt() throws {
-        let email = try #require(PresetLibrary.defaultPresets.first { $0.label == "Email" })
-        let withIntent = PromptBuilder.finalPrompt(preset: email, motherLanguage: "", intent: "  say no politely ", tabTakesIntent: true)
-        #expect(withIntent == email.prompt + " say no politely")
-        #expect(PromptBuilder.finalPrompt(preset: email, motherLanguage: "", intent: "ignored", tabTakesIntent: false) == email.prompt)
-        #expect(PromptBuilder.finalPrompt(preset: email, motherLanguage: "", intent: "   ", tabTakesIntent: true) == email.prompt)
+        let fix = try #require(PresetLibrary.defaultPresets.first { $0.label == "Fix Grammar" })
+        let withIntent = PromptBuilder.finalPrompt(preset: fix, motherLanguage: "", intent: "  say no politely ", tabTakesIntent: true)
+        #expect(withIntent == fix.prompt + " say no politely")
+        #expect(PromptBuilder.finalPrompt(preset: fix, motherLanguage: "", intent: "ignored", tabTakesIntent: false) == fix.prompt)
+        #expect(PromptBuilder.finalPrompt(preset: fix, motherLanguage: "", intent: "   ", tabTakesIntent: true) == fix.prompt)
     }
 }
 
@@ -45,8 +45,12 @@ struct BuiltInPromptTests {
         try #require(PresetLibrary.defaultPresets.first { $0.label == label })
     }
 
-    @Test func emailPromptIsTheNewWording() throws {
-        #expect(try preset("Email").prompt == "You are an expert email writer who drafts clear, professional email replies for workplace contexts. Write the reply in a direct tone. Don't ever use \"—\" in the output.")
+    @Test func emailPromptIsATemplateStartingWithTheExpertWriterLine() throws {
+        let prompt = try preset("Email").prompt
+        #expect(prompt.hasPrefix("You are an expert email writer who drafts clear, professional email replies for workplace contexts. Write the reply in a direct tone. Don't ever use \"—\" in the output.\n\nYou will be given:"))
+        #expect(prompt.hasSuffix("REPLY INTENT:\n{reply_intent}"))
+        #expect(prompt.contains("ORIGINAL MESSAGE:\n{original_message}"))
+        #expect(prompt.contains("8. Output only the reply text."))
     }
 
     @Test func messagePromptIsATemplateWithBothSlots() throws {
@@ -80,11 +84,21 @@ struct BuiltInPromptTests {
         #expect(!stale.contains("old text"))
     }
 
-    @Test func emailKeepsTheEmailLayoutAndAppendsTheIntent() throws {
+    @Test func emailIsFilledInLikeMessageAndNotSentInTheOldEmailLayout() throws {
         let email = try preset("Email")
         let prompt = PromptBuilder.finalPrompt(preset: email, motherLanguage: "", intent: "decline politely", tabTakesIntent: true)
-        #expect(prompt.hasSuffix("in the output. decline politely"))
-        let request = PromptBuilder.buildRequest(text: "Can you join?", prompt: prompt, isEmail: true)
+        #expect(prompt.hasSuffix("REPLY INTENT:\ndecline politely"))
+        let request = PromptBuilder.buildRequest(text: "Can you join?", prompt: prompt, isEmail: email.isEmail)
+        #expect(request.content.contains("ORIGINAL MESSAGE:\nCan you join?"))
+        #expect(!request.content.contains("Email to reply to:"))
+        #expect(!request.content.contains("{original_message}"))
+        // The template carries its own rules (greeting, length, no preamble), so the
+        // older "start with a greeting, end with a sign-off" system prompt must not apply.
+        #expect(!request.system.contains("sign-off"))
+    }
+
+    @Test func aPromptWithoutSlotsStillUsesTheEmailLayoutWhenFlaggedAsEmail() {
+        let request = PromptBuilder.buildRequest(text: "Can you join?", prompt: "Reply briefly.", isEmail: true)
         #expect(request.system.contains("email writing assistant"))
         #expect(request.content.hasPrefix("Email to reply to:\nCan you join?"))
     }

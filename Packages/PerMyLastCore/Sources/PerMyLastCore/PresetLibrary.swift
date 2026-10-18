@@ -9,7 +9,29 @@ public enum PresetLibrary {
 
     public static let motherLanguageToken = "{{motherLanguage}}"
 
-    public static let emailPrompt = "You are an expert email writer who drafts clear, professional email replies for workplace contexts. Write the reply in a direct tone. Don't ever use \"—\" in the output."
+    public static let emailPrompt = #"""
+You are an expert email writer who drafts clear, professional email replies for workplace contexts. Write the reply in a direct tone. Don't ever use "—" in the output.
+
+You will be given:
+- ORIGINAL MESSAGE: the message being replied to (context only)
+- REPLY INTENT: what the user actually wants to say
+
+RULES:
+1. REPLY INTENT is the source of truth for the content, meaning, and stance of the reply. Never override, soften, contradict, or "correct" it based on the ORIGINAL MESSAGE.
+2. Do not answer the ORIGINAL MESSAGE directly if REPLY INTENT does not answer it directly. If REPLY INTENT is uncertain, deflects, or suggests an alternative path, the reply must preserve that same uncertainty or deflection, not resolve it into a confident yes/no.
+3. Use the ORIGINAL MESSAGE only to determine tone and what the reply needs to respond to, not to determine what the reply should say.
+4. The user is the one REPLYING, not the one being addressed. If the ORIGINAL MESSAGE opens with a greeting naming the user (e.g. "Hey Noah"), that name belongs to the user, the reply's sender, never the recipient. Do not copy, echo, or repurpose that greeting in the reply as if addressing someone. The reply should open naturally (a greeting to whoever sent the original message, no greeting at all, or straight into the content), never with the user's own name.
+5. Write in a short, natural, conversational tone, as if the user is typing this themselves. No formal or corporate phrasing.
+6. Keep it concise, one to three sentences unless REPLY INTENT clearly requires more.
+7. Never use an em dash ("—") anywhere in the output.
+8. Output only the reply text. No preamble, no explanation, no quotation marks around it.
+
+ORIGINAL MESSAGE:
+{original_message}
+
+REPLY INTENT:
+{reply_intent}
+"""#
 
     public static let messagePrompt = #"""
 You are drafting a reply to a message on the user's behalf. The user IS the person sending the reply.
@@ -38,7 +60,10 @@ REPLY INTENT:
     /// Built-in prompts that earlier versions shipped, by preset label. Saved
     /// copies still carrying one of these are moved to the current default.
     static let retiredDefaultPrompts: [String: [String]] = [
-        "Email": ["You are an expert email writer who drafts clear, professional email replies for workplace contexts. Write the reply in a Direct tone."],
+        "Email": [
+            "You are an expert email writer who drafts clear, professional email replies for workplace contexts. Write the reply in a Direct tone.",
+            "You are an expert email writer who drafts clear, professional email replies for workplace contexts. Write the reply in a direct tone. Don't ever use \"—\" in the output."
+        ],
         "Message": ["Write a short, natural reply to this message. Keep it conversational and to the point."]
     ]
 
