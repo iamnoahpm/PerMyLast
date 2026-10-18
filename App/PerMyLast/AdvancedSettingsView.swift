@@ -55,7 +55,7 @@ private struct WartimePeacetimeCard: View {
             HStack {
                 Text("Wartime / Peacetime Mode").font(.headline)
                 Spacer()
-                Button(compare ? "Hide the other mode" : "Compare modes") { compare.toggle() }
+                Button(LocalizedStringKey(compare ? "Hide the other mode" : "Compare modes")) { compare.toggle() }
                     .controlSize(.small)
             }
             Text("This reflects your company's current situation — not a universal standard. Based on your own observation of business pressure, deadlines, and leadership behavior, judge which mode feels closer to reality right now and pick it below. Not sure, or would rather not categorize it? Turn this off from the Tools list above.")
@@ -128,7 +128,7 @@ private struct WartimePeacetimeCard: View {
                     Text(row.label).font(.caption).foregroundStyle(.secondary)
                     Text(row.value).font(.caption.weight(.medium))
                     if compare, let match = otherProfile.groups.first(where: { $0.title == group.title })?.rows.first(where: { $0.label == row.label }) {
-                        Text("\(other.rawValue.capitalized): \(match.value)").font(.caption).foregroundStyle(.tertiary)
+                        Text(verbatim: "\(other.rawValue.capitalized): \(match.value)").font(.caption).foregroundStyle(.tertiary)
                     }
                 }
             }

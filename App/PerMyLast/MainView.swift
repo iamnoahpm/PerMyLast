@@ -29,6 +29,7 @@ struct MainView: View {
             FooterBar()
         }
         .frame(minWidth: 380, minHeight: 460)
+        .navigationTitle("Per My Last")
         .onChange(of: model.activeMode) { model.selectDefaultPreset() }
         .onChange(of: model.focusToken) { inputFocused = true }
         .onExitCommand { WindowCoordinator.shared.hidePopup() }
@@ -144,7 +145,7 @@ struct MainView: View {
             } label: {
                 HStack(spacing: 6) {
                     if model.isSending { ProgressView().controlSize(.small) }
-                    Text(model.isSending ? "Sending…" : (model.hasResult ? "Send again" : "Send"))
+                    Text(LocalizedStringKey(model.isSending ? "Sending…" : (model.hasResult ? "Send again" : "Send")))
                 }
             }
             .keyboardShortcut(.return, modifiers: .command)
@@ -279,9 +280,9 @@ struct OutputPanel: View {
     private var emptyState: some View {
         VStack(spacing: 4) {
             Text("Your draft appears here.").font(.callout.weight(.semibold))
-            Text(model.activeModeTakesIntent
+            Text(LocalizedStringKey(model.activeModeTakesIntent
                  ? "Pick a preset above, add your intent if you want, then press ⌘↵."
-                 : "Pick a preset above, then press ⌘↵.")
+                 : "Pick a preset above, then press ⌘↵."))
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -317,7 +318,7 @@ struct OutputPanel: View {
                 Spacer()
                 Button("Regenerate") { Task { await model.send() } }
                     .disabled(!model.canSend)
-                Button(copied ? "✅ Copied!" : "📋 Copy") {
+                Button(LocalizedStringKey(copied ? "✅ Copied!" : "📋 Copy")) {
                     model.copyOutput()
                     copied = true
                     Task { try? await Task.sleep(for: .seconds(1.5)); copied = false }

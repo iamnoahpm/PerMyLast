@@ -236,15 +236,15 @@ private struct PresetRowEditor: View {
                     .help("Icon shown in the main popup — leave blank for none")
                 TextField("Name", text: $row.label).fontWeight(.semibold)
                 Button(action: onSetDefault) {
-                    Label(row.isDefault ? "Default" : "Set default", systemImage: row.isDefault ? "star.fill" : "star")
+                    Label(LocalizedStringKey(row.isDefault ? "Default" : "Set default"), systemImage: row.isDefault ? "star.fill" : "star")
                 }
                 .buttonStyle(.borderless)
                 .disabled(row.isDefault)
-                .help(row.isDefault ? "Shown by default when this tab opens" : "Make this the default for this tab")
+                .help(LocalizedStringKey(row.isDefault ? "Shown by default when this tab opens" : "Make this the default for this tab"))
                 Button(action: onDelete) { Image(systemName: "trash") }
                     .buttonStyle(.borderless)
                     .disabled(!canDelete)
-                    .help(canDelete ? "Delete preset" : "The default action, or the last one in a tab, can't be deleted")
+                    .help(LocalizedStringKey(canDelete ? "Delete preset" : "The default action, or the last one in a tab, can't be deleted"))
             }
             HStack {
                 TextField("Tone (e.g. Direct, Warm)", text: $row.tone).frame(maxWidth: 170)

@@ -99,6 +99,7 @@
 			knownRegions = (
 				en,
 				Base,
+				vi,
 			);
 			mainGroup = AA0000000000000000000005;
 			packageReferences = (

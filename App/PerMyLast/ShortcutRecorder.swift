@@ -88,8 +88,11 @@ struct ShortcutRecorderRow: View {
                 Button {
                     recorder.toggle()
                 } label: {
-                    Text(recorder.recording ? "Press a key combo… (Esc to cancel)" : model.shortcutDisplay)
-                        .frame(minWidth: 160)
+                    Group {
+                        if recorder.recording { Text("Press a key combo… (Esc to cancel)") }
+                        else { Text(verbatim: model.shortcutDisplay) }
+                    }
+                    .frame(minWidth: 160)
                 }
                 .help("Click here, then press a key combo…")
                 Button { recorder.clear() } label: { Image(systemName: "xmark.circle.fill") }

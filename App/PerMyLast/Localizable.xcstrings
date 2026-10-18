@@ -1,0 +1,1931 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "Open Per My Last": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mở Per My Last"
+          }
+        }
+      }
+    },
+    "Enabled": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã bật"
+          }
+        }
+      }
+    },
+    "Show in Dock": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hiện trên Dock"
+          }
+        }
+      }
+    },
+    "Settings…": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cài đặt…"
+          }
+        }
+      }
+    },
+    "Quit Per My Last": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thoát Per My Last"
+          }
+        }
+      }
+    },
+    "What are you trying to do?": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bạn đang muốn làm gì?"
+          }
+        }
+      }
+    },
+    "Say what you mean, but professionally. Saving careers, one email, one message at a time.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nói điều bạn muốn nói, nhưng vẫn chuyên nghiệp. Cứu sự nghiệp, từng email, từng tin nhắn một."
+          }
+        }
+      }
+    },
+    "Settings": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cài đặt"
+          }
+        }
+      }
+    },
+    "Mode": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chế độ"
+          }
+        }
+      }
+    },
+    "Your reply intent": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ý bạn muốn trả lời"
+          }
+        }
+      }
+    },
+    "e.g. Confirm I can make it, but ask to push 30 minutes": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vd: Xác nhận tôi có thể tham dự, nhưng xin dời lại 30 phút"
+          }
+        }
+      }
+    },
+    "Copy some text, then press %@ — or paste it here.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sao chép văn bản, rồi nhấn %@ — hoặc dán vào đây."
+          }
+        }
+      }
+    },
+    "%lld words": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld từ"
+          }
+        }
+      }
+    },
+    "Send": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gửi"
+          }
+        }
+      }
+    },
+    "Send again": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gửi lại"
+          }
+        }
+      }
+    },
+    "Sending…": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đang gửi…"
+          }
+        }
+      }
+    },
+    "Prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Câu lệnh"
+          }
+        }
+      }
+    },
+    "Edited": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã sửa"
+          }
+        }
+      }
+    },
+    "Tone": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Giọng điệu"
+          }
+        }
+      }
+    },
+    "Click to edit": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bấm để sửa"
+          }
+        }
+      }
+    },
+    "your mother language — set it in Settings": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "tiếng mẹ đẻ của bạn — đặt trong Cài đặt"
+          }
+        }
+      }
+    },
+    "Saves to %@ in Settings": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lưu vào %@ trong Cài đặt"
+          }
+        }
+      }
+    },
+    "Cancel": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hủy"
+          }
+        }
+      }
+    },
+    "Reset to original": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Khôi phục bản gốc"
+          }
+        }
+      }
+    },
+    "Save & overwrite": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lưu & ghi đè"
+          }
+        }
+      }
+    },
+    "Your draft appears here.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bản nháp sẽ hiện ở đây."
+          }
+        }
+      }
+    },
+    "Pick a preset above, add your intent if you want, then press ⌘↵.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chọn một tùy chọn ở trên, thêm ý định nếu muốn, rồi nhấn ⌘↵."
+          }
+        }
+      }
+    },
+    "Pick a preset above, then press ⌘↵.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chọn một tùy chọn ở trên, rồi nhấn ⌘↵."
+          }
+        }
+      }
+    },
+    "Error: %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lỗi: %@"
+          }
+        }
+      }
+    },
+    "Retry": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thử lại"
+          }
+        }
+      }
+    },
+    "Open Settings →": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mở Cài đặt →"
+          }
+        }
+      }
+    },
+    "Dismiss": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bỏ qua"
+          }
+        }
+      }
+    },
+    "Regenerate": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tạo lại"
+          }
+        }
+      }
+    },
+    "✅ Copied!": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✅ Đã sao chép!"
+          }
+        }
+      }
+    },
+    "📋 Copy": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "📋 Sao chép"
+          }
+        }
+      }
+    },
+    "Result": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kết quả"
+          }
+        }
+      }
+    },
+    "Version %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phiên bản %@"
+          }
+        }
+      }
+    },
+    "Send feedback": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gửi góp ý"
+          }
+        }
+      }
+    },
+    "Check for updates": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kiểm tra cập nhật"
+          }
+        }
+      }
+    },
+    "Select or paste text first": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hãy chọn hoặc dán văn bản trước"
+          }
+        }
+      }
+    },
+    "Set your mother language in Settings first": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hãy đặt tiếng mẹ đẻ trong Cài đặt trước"
+          }
+        }
+      }
+    },
+    "Saved to %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã lưu vào %@"
+          }
+        }
+      }
+    },
+    "%@ is already used by another app.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ đã được ứng dụng khác sử dụng."
+          }
+        }
+      }
+    },
+    "You're on version %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bạn đang dùng phiên bản %@"
+          }
+        }
+      }
+    },
+    "Automatic update checking isn't set up yet. For now, download new builds from wherever you got this one.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chưa thiết lập tự động kiểm tra cập nhật. Hiện tại, hãy tải bản mới từ nơi bạn đã tải bản này."
+          }
+        }
+      }
+    },
+    "Your shortcut (%@) is known to conflict with %@'s %@ — it may not always reach Per My Last there. Consider choosing a different combo in Settings.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phím tắt của bạn (%1$@) được biết là trùng với %3$@ của %2$@ — có thể không phải lúc nào cũng đến được Per My Last ở đó. Hãy cân nhắc chọn tổ hợp khác trong Cài đặt."
+          }
+        }
+      }
+    },
+    "General": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chung"
+          }
+        }
+      }
+    },
+    "Tone Presets": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tông giọng"
+          }
+        }
+      }
+    },
+    "Advanced": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nâng cao"
+          }
+        }
+      }
+    },
+    "Per My Last Settings": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cài đặt Per My Last"
+          }
+        }
+      }
+    },
+    "Saved": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã lưu"
+          }
+        }
+      }
+    },
+    "Changes save as you make them": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thay đổi được lưu ngay khi bạn thực hiện"
+          }
+        }
+      }
+    },
+    "Claude API Key": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Khóa API Claude"
+          }
+        }
+      }
+    },
+    "Get one at": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lấy khóa tại"
+          }
+        }
+      }
+    },
+    "API key must start with \"sk-ant-\"": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Khóa API phải bắt đầu bằng \"sk-ant-\""
+          }
+        }
+      }
+    },
+    "Workspace ID (optional)": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Workspace ID (tùy chọn)"
+          }
+        }
+      }
+    },
+    "Only needed if you see \"anthropic-workspace-id is required\" — that means your key is linked to your identity within an org, not a standalone workspace key.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chỉ cần điền nếu bạn thấy lỗi \"anthropic-workspace-id is required\" — nghĩa là khóa của bạn gắn với tài khoản cá nhân trong một tổ chức, không phải khóa workspace độc lập."
+          }
+        }
+      }
+    },
+    "Model": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mô hình"
+          }
+        }
+      }
+    },
+    "Claude Sonnet 5 — Recommended": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude Sonnet 5 — Khuyên dùng"
+          }
+        }
+      }
+    },
+    "Claude Opus 5 (Most Capable)": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude Opus 5 (Mạnh nhất)"
+          }
+        }
+      }
+    },
+    "Claude Haiku 4.5 (Fastest)": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude Haiku 4.5 (Nhanh nhất)"
+          }
+        }
+      }
+    },
+    "Claude Fable 5 (Frontier)": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude Fable 5 (Tiên phong)"
+          }
+        }
+      }
+    },
+    "Other (custom)": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Khác (tùy chỉnh)"
+          }
+        }
+      }
+    },
+    "Selected model: %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mô hình đã chọn: %@"
+          }
+        }
+      }
+    },
+    "Custom model name": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tên mô hình tùy chỉnh"
+          }
+        }
+      }
+    },
+    "Enter the exact model string from Anthropic's docs.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhập đúng chuỗi tên mô hình theo tài liệu của Anthropic."
+          }
+        }
+      }
+    },
+    "Effort": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mức độ nỗ lực"
+          }
+        }
+      }
+    },
+    "Low": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thấp"
+          }
+        }
+      }
+    },
+    "Medium": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vừa"
+          }
+        }
+      }
+    },
+    "High": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cao"
+          }
+        }
+      }
+    },
+    "Extra": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rất cao"
+          }
+        }
+      }
+    },
+    "Max": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tối đa"
+          }
+        }
+      }
+    },
+    "Higher effort produces more thorough results, but takes longer and uses more tokens on your API key.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mức độ nỗ lực càng cao thì kết quả càng kỹ càng, nhưng mất nhiều thời gian hơn và dùng nhiều token hơn trên khóa API của bạn."
+          }
+        }
+      }
+    },
+    "Claude Haiku 4.5 doesn't support Effort — this only applies to Sonnet, Opus, and Fable models.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude Haiku 4.5 không hỗ trợ Mức độ nỗ lực — tùy chọn này chỉ áp dụng cho các mô hình Sonnet, Opus và Fable."
+          }
+        }
+      }
+    },
+    "This custom model may or may not support Effort — if requests start failing, try turning it off.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mô hình tùy chỉnh này có thể không hỗ trợ Mức độ nỗ lực — nếu yêu cầu bắt đầu lỗi, hãy thử tắt tùy chọn này."
+          }
+        }
+      }
+    },
+    "Language": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ngôn ngữ"
+          }
+        }
+      }
+    },
+    "Mother language": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiếng mẹ đẻ"
+          }
+        }
+      }
+    },
+    "Type to search — e.g. Spanish, Japanese, French": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gõ để tìm — vd: Tây Ban Nha, Nhật, Pháp"
+          }
+        }
+      }
+    },
+    "Used by the \"Translate\" action under Help me → Understand.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Được dùng bởi hành động \"Dịch\" trong Trợ giúp → Diễn giải."
+          }
+        }
+      }
+    },
+    "App Language": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ngôn ngữ ứng dụng"
+          }
+        }
+      }
+    },
+    "Only English and Vietnamese are available today. Want Per My Last in your own language? We'd love the help — use the Feedback form below to volunteer translating it.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hiện chỉ hỗ trợ Tiếng Anh và Tiếng Việt. Muốn có Per My Last bằng ngôn ngữ của bạn? Chúng tôi rất cần sự giúp đỡ — dùng biểu mẫu Góp ý bên dưới để đăng ký hỗ trợ dịch thuật."
+          }
+        }
+      }
+    },
+    "On by default. Turn off to run Per My Last from the menu bar only, with no Dock icon (also toggleable from the tray menu).": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mặc định bật. Tắt để Per My Last chỉ chạy từ thanh menu, không hiện biểu tượng trên Dock (cũng có thể bật/tắt từ menu khay hệ thống)."
+          }
+        }
+      }
+    },
+    "Launch at login": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Khởi chạy khi đăng nhập"
+          }
+        }
+      }
+    },
+    "Starts Per My Last automatically when you log in to your Mac.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tự động khởi chạy Per My Last khi bạn đăng nhập vào Mac."
+          }
+        }
+      }
+    },
+    "Feedback": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Góp ý"
+          }
+        }
+      }
+    },
+    "Bugs, feature ideas, language requests — anything.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lỗi, ý tưởng tính năng, yêu cầu ngôn ngữ — bất cứ điều gì."
+          }
+        }
+      }
+    },
+    "Send Feedback": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gửi góp ý"
+          }
+        }
+      }
+    },
+    "Please write something first.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vui lòng nhập nội dung trước."
+          }
+        }
+      }
+    },
+    "Opening your email app…": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đang mở ứng dụng email của bạn…"
+          }
+        }
+      }
+    },
+    "Opens your email app with this addressed to us — review it and hit send there.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mở ứng dụng email của bạn với nội dung đã điền sẵn gửi cho chúng tôi — xem lại rồi bấm gửi ở đó."
+          }
+        }
+      }
+    },
+    "Global shortcut": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phím tắt toàn cục"
+          }
+        }
+      }
+    },
+    "Press a key combo… (Esc to cancel)": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đang chờ tổ hợp phím… (Esc để hủy)"
+          }
+        }
+      }
+    },
+    "Click here, then press a key combo…": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bấm vào đây rồi nhấn tổ hợp phím…"
+          }
+        }
+      }
+    },
+    "Clear": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xóa"
+          }
+        }
+      }
+    },
+    "Copy some text, then press %@ anywhere to open it in Per My Last.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sao chép văn bản, rồi nhấn %@ ở bất kỳ đâu để mở nó trong Per My Last."
+          }
+        }
+      }
+    },
+    "This hotkey conflicts with %@ — choose another before saving.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phím tắt này trùng với %@ — hãy chọn phím khác trước khi lưu."
+          }
+        }
+      }
+    },
+    "Heads up: this is also %@'s shortcut for %@. It'll still save, but may not always reach Per My Last while that app is frontmost.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lưu ý: đây cũng là phím tắt của %1$@ cho %2$@. Vẫn có thể lưu, nhưng có thể không đến được Per My Last khi ứng dụng đó đang ở trên cùng."
+          }
+        }
+      }
+    },
+    "Hold ⌘, ⌃ or ⌥ and press a key.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Giữ ⌘, ⌃ hoặc ⌥ rồi nhấn một phím."
+          }
+        }
+      }
+    },
+    "⚠ A shortcut is required — record one above.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⚠ Cần có phím tắt — hãy ghi lại một phím tắt ở trên."
+          }
+        }
+      }
+    },
+    "Tone Preset Tabs": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Các tab tông giọng"
+          }
+        }
+      }
+    },
+    "+ New tab": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+ Tab mới"
+          }
+        }
+      }
+    },
+    "Drag to reorder tabs. Click a tab's name to rename it.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kéo để sắp xếp lại tab. Bấm vào tên tab để đổi tên."
+          }
+        }
+      }
+    },
+    "Tab": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tab"
+          }
+        }
+      }
+    },
+    "Tab name": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tên tab"
+          }
+        }
+      }
+    },
+    "Delete tab": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xóa tab"
+          }
+        }
+      }
+    },
+    "Actions": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hành động"
+          }
+        }
+      }
+    },
+    "No actions here yet — add one below.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chưa có hành động nào — thêm bên dưới."
+          }
+        }
+      }
+    },
+    "+ Add to %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+ Thêm vào %@"
+          }
+        }
+      }
+    },
+    "Save Preset Changes": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lưu thay đổi tông giọng"
+          }
+        }
+      }
+    },
+    "Drag to reorder. The starred action is the default shown when this tab opens.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kéo để sắp xếp lại. Hành động được đánh dấu mặc định sẽ hiện khi mở tab này."
+          }
+        }
+      }
+    },
+    "Delete the \"%@\" tab and all its actions? This can't be undone.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xóa tab \"%@\" và toàn bộ hành động trong đó? Không thể hoàn tác."
+          }
+        }
+      }
+    },
+    "Delete preset \"%@\"?": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xóa tùy chọn \"%@\"?"
+          }
+        }
+      }
+    },
+    "Delete preset": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xóa tùy chọn"
+          }
+        }
+      }
+    },
+    "Saved.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã lưu."
+          }
+        }
+      }
+    },
+    "Added \"%@\" to %@ — set its name and prompt, then Save.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã thêm \"%1$@\" vào %2$@ — đặt tên và câu lệnh, sau đó Lưu."
+          }
+        }
+      }
+    },
+    "Drag to reorder": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kéo để sắp xếp lại"
+          }
+        }
+      }
+    },
+    "Icon shown in the main popup — leave blank for none": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Biểu tượng hiển thị ở cửa sổ chính — để trống nếu không cần"
+          }
+        }
+      }
+    },
+    "Name": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tên"
+          }
+        }
+      }
+    },
+    "Default": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mặc định"
+          }
+        }
+      }
+    },
+    "Set default": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đặt làm mặc định"
+          }
+        }
+      }
+    },
+    "Shown by default when this tab opens": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hiển thị mặc định khi mở tab này"
+          }
+        }
+      }
+    },
+    "Make this the default for this tab": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đặt làm mặc định cho tab này"
+          }
+        }
+      }
+    },
+    "The default action, or the last one in a tab, can't be deleted": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không thể xóa hành động mặc định, hoặc hành động cuối cùng trong một tab"
+          }
+        }
+      }
+    },
+    "Tone (e.g. Direct, Warm)": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Giọng điệu (vd: Trực tiếp, Thân thiện)"
+          }
+        }
+      }
+    },
+    "Short description shown under the name": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mô tả ngắn hiển thị dưới tên"
+          }
+        }
+      }
+    },
+    "used %lld times": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "đã dùng %lld lần"
+          }
+        }
+      }
+    },
+    "Tools": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Công cụ"
+          }
+        }
+      }
+    },
+    "Extra capabilities for Per My Last.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Các tính năng bổ sung cho Per My Last."
+          }
+        }
+      }
+    },
+    "Write My Way": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Viết Theo Cách Của Tôi"
+          }
+        }
+      }
+    },
+    "VIP Contacts": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Liên hệ VIP"
+          }
+        }
+      }
+    },
+    "Coming soon": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sắp ra mắt"
+          }
+        }
+      }
+    },
+    "Wartime / Peacetime Mode": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chế độ Thời chiến / Thời bình"
+          }
+        }
+      }
+    },
+    "Hide the other mode": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ẩn chế độ còn lại"
+          }
+        }
+      }
+    },
+    "Compare modes": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "So sánh hai chế độ"
+          }
+        }
+      }
+    },
+    "This reflects your company's current situation — not a universal standard. Based on your own observation of business pressure, deadlines, and leadership behavior, judge which mode feels closer to reality right now and pick it below. Not sure, or would rather not categorize it? Turn this off from the Tools list above.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đây phản ánh tình hình hiện tại của công ty bạn — không phải một chuẩn mực chung. Dựa trên quan sát của chính bạn về áp lực công việc, thời hạn và cách lãnh đạo hành xử, hãy đánh giá chế độ nào gần với thực tế hơn và chọn bên dưới. Không chắc, hoặc không muốn phân loại? Tắt tính năng này từ danh sách Công cụ ở trên."
+          }
+        }
+      }
+    },
+    "Wartime": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thời chiến"
+          }
+        }
+      }
+    },
+    "Speed over sustainability": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tốc độ hơn bền vững"
+          }
+        }
+      }
+    },
+    "Peacetime": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thời bình"
+          }
+        }
+      }
+    },
+    "Sustainability over speed": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bền vững hơn tốc độ"
+          }
+        }
+      }
+    },
+    "Export context for an AI assistant": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xuất ngữ cảnh cho trợ lý AI"
+          }
+        }
+      }
+    },
+    "Copy": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sao chép"
+          }
+        }
+      }
+    },
+    "Copied.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã sao chép."
+          }
+        }
+      }
+    },
+    "Mockup preview — not yet connected to your rewrites. Tell Per My Last how you write, so future rewrites already sound like you.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bản xem trước — chưa được kết nối vào nội dung viết lại. Cho Per My Last biết bạn viết như thế nào, để những lần viết lại sau này đã mang đúng chất của bạn."
+          }
+        }
+      }
+    },
+    "English Level": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trình độ tiếng Anh"
+          }
+        }
+      }
+    },
+    "Off by default. When on, pick the test you know your level from and enter your score — a recent actual score or your own best estimate.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mặc định tắt. Khi bật, chọn bài kiểm tra bạn biết trình độ của mình và nhập điểm số — điểm thi thực tế gần nhất hoặc điểm bạn tự ước lượng."
+          }
+        }
+      }
+    },
+    "Test": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bài kiểm tra"
+          }
+        }
+      }
+    },
+    "Score": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Điểm số"
+          }
+        }
+      }
+    },
+    "e.g. 850, 7.0, 1350, B2, 100": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "vd: 850, 7.0, 1350, B2, 100"
+          }
+        }
+      }
+    },
+    "Writing Style": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phong cách viết"
+          }
+        }
+      }
+    },
+    "The default tone, length, and format Per My Last aims for.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Giọng điệu, độ dài và định dạng mặc định mà Per My Last hướng tới."
+          }
+        }
+      }
+    },
+    "Professional": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chuyên nghiệp"
+          }
+        }
+      }
+    },
+    "Casual": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thoải mái"
+          }
+        }
+      }
+    },
+    "Friendly": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thân thiện"
+          }
+        }
+      }
+    },
+    "Persuasive": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thuyết phục"
+          }
+        }
+      }
+    },
+    "Other…": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Khác…"
+          }
+        }
+      }
+    },
+    "Custom tone": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Giọng điệu tùy chỉnh"
+          }
+        }
+      }
+    },
+    "Describe the tone you want": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mô tả giọng điệu bạn muốn"
+          }
+        }
+      }
+    },
+    "Length": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Độ dài"
+          }
+        }
+      }
+    },
+    "Short": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ngắn"
+          }
+        }
+      }
+    },
+    "Long": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dài"
+          }
+        }
+      }
+    },
+    "Custom": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tùy chỉnh"
+          }
+        }
+      }
+    },
+    "Max amount": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Số lượng tối đa"
+          }
+        }
+      }
+    },
+    "Unit": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đơn vị"
+          }
+        }
+      }
+    },
+    "Words": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Từ"
+          }
+        }
+      }
+    },
+    "Characters": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ký tự"
+          }
+        }
+      }
+    },
+    "Format": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Định dạng"
+          }
+        }
+      }
+    },
+    "Bullet points": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gạch đầu dòng"
+          }
+        }
+      }
+    },
+    "Message (Teams / Slack)": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tin nhắn (Teams / Slack)"
+          }
+        }
+      }
+    },
+    "Essay": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bài luận"
+          }
+        }
+      }
+    },
+    "Blog post": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bài blog"
+          }
+        }
+      }
+    },
+    "Target Audience": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đối tượng đọc"
+          }
+        }
+      }
+    },
+    "Who this writing should land with — beginners, experts, children, and so on. Set per Tone Preset, not here.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ai sẽ đọc nội dung này — người mới bắt đầu, chuyên gia, trẻ em, v.v. Thiết lập theo từng Tông giọng, không phải ở đây."
+          }
+        }
+      }
+    },
+    "Custom Instructions": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chỉ dẫn tùy chỉnh"
+          }
+        }
+      }
+    },
+    "Standing rules the AI should always follow when writing. Set per Tone Preset, not here.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Các quy tắc cố định AI phải luôn tuân theo khi viết. Thiết lập theo từng Tông giọng, không phải ở đây."
+          }
+        }
+      }
+    },
+    "— coming soon": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "— sắp ra mắt"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

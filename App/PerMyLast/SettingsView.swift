@@ -24,6 +24,7 @@ struct SettingsView: View {
             footer
         }
         .frame(minWidth: 420, minHeight: 520)
+        .navigationTitle("Per My Last Settings")
         // One place saves every settings change (the tabs just edit the model).
         .onChange(of: model.settings) { model.saveSettings() }
         .onChange(of: model.writeMyWay) { model.saveWriteMyWay() }
