@@ -8,6 +8,8 @@ import PerMyLastCore
 final class AppModel {
     static let shared = AppModel()
 
+    static let feedbackEmail = "iamnoahpm@gmail.com"
+
     // MARK: Settings (persisted)
     var settings: AppSettings
     var apiKey = ""
@@ -17,9 +19,9 @@ final class AppModel {
     var modes: [String]
     var presets: [Preset]
     var intentModes: [String]
+    private(set) var enabled: Bool
 
     // MARK: Session (not persisted)
-    var enabled = true
     var hotKeyError: String?
     var activeMode: String
     var selectedLabel: String?
@@ -32,16 +34,25 @@ final class AppModel {
     /// Bumped each time the popup opens so the text box can grab focus.
     var focusToken = 0
 
+    // Prompt panel
+    var promptOpen = false
+    var editingPrompt = false
+    var promptDraft = ""
+    var savedFlash: String?
+    private var flashTask: Task<Void, Never>?
+
     private let client = AnthropicClient()
     private let apiKeyAccount = "anthropic-api-key"
+    private var savedAPIKey = ""
 
     private init() {
         let modes = Persistence.load("modes", as: [String].self) ?? PresetLibrary.defaultModes
         let loaded = Persistence.load("presets", as: [Preset].self) ?? PresetLibrary.defaultPresets
         self.modes = modes
         self.presets = PresetLibrary.normalize(loaded, modes: modes)
-        self.intentModes = Persistence.load("intentModes", as: [String].self) ?? ["Reply"]
+        self.intentModes = Persistence.load("intentModes", as: [String].self) ?? (modes.contains("Reply") ? ["Reply"] : [])
         self.settings = Persistence.load("settings", as: AppSettings.self) ?? AppSettings()
+        self.enabled = UserDefaults.standard.object(forKey: "isEnabled") as? Bool ?? true
         self.activeMode = modes.first ?? PresetLibrary.defaultModes[0]
         self.selectedLabel = nil
         selectDefaultPreset()
@@ -54,12 +65,21 @@ final class AppModel {
         applyDockVisibility()
     }
 
+    func setEnabled(_ value: Bool) {
+        enabled = value
+        UserDefaults.standard.set(value, forKey: "isEnabled")
+    }
+
+    func setShowInDock(_ value: Bool) {
+        settings.showInDock = value
+        saveSettings()
+    }
+
     /// Dock icon on (regular app) or off (menu bar only).
     func applyDockVisibility() {
         let policy: NSApplication.ActivationPolicy = settings.showInDock ? .regular : .accessory
         if NSApp.activationPolicy() != policy { NSApp.setActivationPolicy(policy) }
     }
-    private var savedAPIKey = ""
 
     /// Reads the key from the Keychain off the main thread.
     func loadAPIKey() async {
@@ -81,6 +101,8 @@ final class AppModel {
         Task.detached(priority: .userInitiated) { KeychainStore.write(trimmed, account: account) }
     }
 
+    private func savePresets() { Persistence.save(presets, key: "presets") }
+
     // MARK: Presets
 
     var presetsInActiveMode: [Preset] {
@@ -93,13 +115,84 @@ final class AppModel {
 
     var activeModeTakesIntent: Bool { intentModes.contains(activeMode) }
 
+    var motherLanguageMissing: Bool {
+        guard let preset = currentPreset, preset.requiresMotherLanguage else { return false }
+        return settings.motherLanguage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    var canSend: Bool {
+        !isSending && currentPreset != nil && !motherLanguageMissing
+            && !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
     func selectDefaultPreset() {
         let inMode = presetsInActiveMode
         selectedLabel = (inMode.first(where: \.isDefault) ?? inMode.first)?.label
+        editingPrompt = false
+        savedFlash = nil
+    }
+
+    func select(_ preset: Preset) {
+        selectedLabel = preset.label
+        editingPrompt = false
+        savedFlash = nil
     }
 
     func blurb(for preset: Preset) -> String {
         PromptBuilder.resolvedBlurb(preset, motherLanguage: settings.motherLanguage)
+    }
+
+    func resolvedPrompt(for preset: Preset) -> String {
+        PromptBuilder.resolvedPrompt(preset, motherLanguage: settings.motherLanguage)
+    }
+
+    func isEdited(_ preset: Preset) -> Bool { preset.prompt != preset.originalPrompt }
+
+    func savedTargetLabel(_ preset: Preset) -> String { "\(preset.category) › \(preset.label)" }
+
+    // MARK: Prompt panel
+
+    func togglePrompt() {
+        promptOpen.toggle()
+        editingPrompt = false
+    }
+
+    func openPromptEditor() {
+        guard let preset = currentPreset else { return }
+        promptOpen = true
+        editingPrompt = true
+        promptDraft = preset.prompt
+        savedFlash = nil
+    }
+
+    func cancelPromptEdit() { editingPrompt = false }
+
+    func revertPromptDraft() {
+        if let preset = currentPreset { promptDraft = preset.originalPrompt }
+    }
+
+    /// Saves the edited prompt back into the preset. An empty draft, or one
+    /// equal to the original, restores the original.
+    func savePromptEdit() {
+        guard let preset = currentPreset else { return }
+        let draft = promptDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        let next = (draft.isEmpty || draft == preset.originalPrompt) ? preset.originalPrompt : draft
+        presets = PresetLibrary.upsert(presets, draft: PresetDraft(
+            label: preset.label, category: preset.category, icon: preset.icon, blurb: preset.blurb,
+            tone: preset.tone, prompt: next, isEmail: preset.isEmail, isDefault: preset.isDefault,
+            requiresMotherLanguage: preset.requiresMotherLanguage), modes: modes)
+        savePresets()
+        editingPrompt = false
+        flash("Saved to \(savedTargetLabel(preset))")
+    }
+
+    private func flash(_ message: String) {
+        savedFlash = message
+        flashTask?.cancel()
+        flashTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(2.6))
+            if !Task.isCancelled { self?.savedFlash = nil }
+        }
     }
 
     // MARK: Hotkey
@@ -110,7 +203,7 @@ final class AppModel {
         guard enabled else { return }
         guard let text = NSPasteboard.general.string(forType: .string),
               !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-        inputText = text
+        inputText = TextCleanup.beautify(text)
         output = ""
         errorMessage = nil
         hasResult = false
@@ -123,10 +216,9 @@ final class AppModel {
     func send() async {
         guard let preset = currentPreset, !isSending else { return }
         let text = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty else { errorMessage = "Select or paste text first."; return }
-        if preset.requiresMotherLanguage,
-           settings.motherLanguage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            errorMessage = "Set your mother language in Settings to use \(preset.label)."
+        guard !text.isEmpty else { errorMessage = String(localized: "Select or paste text first"); return }
+        if motherLanguageMissing {
+            errorMessage = String(localized: "Set your mother language in Settings first")
             return
         }
 
@@ -142,11 +234,13 @@ final class AppModel {
             model: settings.model, effort: settings.effort,
             workspaceId: settings.workspaceId.trimmingCharacters(in: .whitespacesAndNewlines))
         do {
-            output = try await client.process(config: config, text: text, prompt: prompt, isEmail: preset.isEmail)
+            let result = try await client.process(config: config, text: text, prompt: prompt, isEmail: preset.isEmail)
+            output = TextCleanup.beautify(result)
             hasResult = true
             presets = PresetLibrary.incrementUses(presets, label: preset.label)
-            Persistence.save(presets, key: "presets")
+            savePresets()
         } catch {
+            hasResult = false
             errorMessage = error.localizedDescription
         }
     }
@@ -155,4 +249,23 @@ final class AppModel {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(output, forType: .string)
     }
+
+    // MARK: Footer actions
+
+    func sendFeedback() {
+        var components = URLComponents()
+        components.scheme = "mailto"
+        components.path = Self.feedbackEmail
+        components.queryItems = [URLQueryItem(name: "subject", value: "Per My Last Feedback")]
+        if let url = components.url { NSWorkspace.shared.open(url) }
+    }
+
+    func checkForUpdates() {
+        let alert = NSAlert()
+        alert.messageText = "You're on version \(appVersion)"
+        alert.informativeText = "Automatic update checking isn't set up yet. For now, download new builds from wherever you got this one."
+        alert.runModal()
+    }
+
+    var appVersion: String { Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—" }
 }

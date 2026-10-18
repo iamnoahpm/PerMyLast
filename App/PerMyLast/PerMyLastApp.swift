@@ -10,7 +10,8 @@ struct PerMyLastApp: App {
     var body: some Scene {
         MenuBarExtra {
             Button("Open Per My Last") { WindowCoordinator.shared.showPopup() }
-            Toggle("Enabled", isOn: $model.enabled)
+            Toggle("Enabled", isOn: Binding(get: { model.enabled }, set: { model.setEnabled($0) }))
+            Toggle("Show in Dock", isOn: Binding(get: { model.settings.showInDock }, set: { model.setShowInDock($0) }))
             Divider()
             Button("Settings…") { WindowCoordinator.shared.showSettings() }
                 .keyboardShortcut(",")
@@ -41,7 +42,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             // Dev aid: PML_SHOW_POPUP=1 opens the popup at launch.
             if ProcessInfo.processInfo.environment["PML_SHOW_POPUP"] == "1" { WindowCoordinator.shared.showPopup() }
             await AppModel.shared.loadAPIKey()
+            // First run: Settings. Otherwise show the popup, as the Electron app did.
             if AppModel.shared.apiKey.isEmpty { WindowCoordinator.shared.showSettings() }
+            else { WindowCoordinator.shared.showPopup() }
         }
     }
 
