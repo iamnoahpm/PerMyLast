@@ -73,26 +73,48 @@ REPLY INTENT:
                isEmail: true, isDefault: true),
         Preset(label: "Message", category: "Reply", icon: "💬", blurb: "Short chat / DM reply", tone: "Warm",
                prompt: messagePrompt),
-        Preset(label: "Rewrite like Native", category: "Write", icon: "✍️", blurb: "Clear, native English level", tone: "Neutral",
+        Preset(label: "Like Brit.", category: "Write", icon: "🤴", blurb: "Clear, native English level", tone: "Neutral",
                prompt: "Rewrite this text like a native English.", isDefault: true),
-        Preset(label: "Rewrite Like Me", category: "Write", icon: "🙋‍♂", blurb: "Match my style, my English level", tone: "Personal",
+        Preset(label: "Like Me", category: "Write", icon: "🫆", blurb: "Match my style, my English level", tone: "Personal",
                prompt: "Rewrite this text like me."),
-        Preset(label: "Fix Grammar", category: "Write", icon: "🔤", blurb: "Spelling and grammar only", tone: "Neutral",
-               prompt: "Fix grammar and spelling."),
-        Preset(label: "Professional", category: "Write", icon: "👔", blurb: "Raise the register", tone: "Formal",
-               prompt: "Make this more professional."),
         Preset(label: "Explain", category: "Understand", icon: "💡", blurb: "Plain-language summary", tone: "Plain",
                prompt: "Explain this in simple terms.", isDefault: true),
         Preset(label: "Translate", category: "Understand", icon: "🌐", blurb: "Into {{motherLanguage}}", tone: "Neutral",
                prompt: "Translate this into {{motherLanguage}}", requiresMotherLanguage: true)
     ]
 
-    /// Brings saved presets up to the current built-in prompts. A preset whose
-    /// baseline is a retired default gets the new baseline; if the user never
-    /// edited it, the live prompt follows. A user-edited prompt is kept, and
-    /// "Reset to original" now restores the new default. Safe to run repeatedly.
-    public static func upgradeBuiltInPrompts(_ list: [Preset]) -> [Preset] {
-        list.map { p in
+    /// Built-ins that were renamed (and given a new icon). Matched by the old label.
+    static let renamedBuiltIns: [(from: String, to: String, oldIcon: String, newIcon: String)] = [
+        ("Rewrite like Native", "Like Brit.", "\u{270D}\u{FE0F}", "🤴"),
+        ("Rewrite Like Me", "Like Me", "\u{1F64B}\u{200D}\u{2642}", "🫆")
+    ]
+
+    /// Built-ins that were dropped from the defaults, with the prompt they shipped
+    /// with. A saved copy is removed only if the user never edited it.
+    static let removedBuiltIns: [(label: String, prompt: String)] = [
+        ("Fix Grammar", "Fix grammar and spelling."),
+        ("Professional", "Make this more professional.")
+    ]
+
+    /// Brings saved presets up to the current built-ins: new prompts, renamed
+    /// actions, and dropped ones. Anything the user customised is kept: an edited
+    /// prompt stays (Reset to original goes to the new default), an edited icon
+    /// stays, and a dropped preset they changed isn't deleted. Safe to run repeatedly.
+    public static func upgradeBuiltIns(_ list: [Preset]) -> [Preset] {
+        var result = list.compactMap { p -> Preset? in
+            if let gone = removedBuiltIns.first(where: { $0.label == p.label }),
+               p.prompt == gone.prompt, p.originalPrompt == gone.prompt {
+                return nil
+            }
+            return p
+        }
+        for rename in renamedBuiltIns {
+            guard let i = result.firstIndex(where: { $0.label == rename.from }),
+                  !result.contains(where: { $0.label == rename.to }) else { continue }
+            result[i].label = rename.to
+            if result[i].icon == rename.oldIcon { result[i].icon = rename.newIcon }
+        }
+        return result.map { p in
             guard let retired = retiredDefaultPrompts[p.label], retired.contains(p.originalPrompt),
                   let current = defaultPresets.first(where: { $0.label == p.label }) else { return p }
             var q = p

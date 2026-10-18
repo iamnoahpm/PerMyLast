@@ -124,13 +124,13 @@ struct MutationTests {
     }
 
     @Test func deleteRemovesNonDefault() {
-        let after = PresetLibrary.delete(defaults, label: "Fix Grammar", modes: modes)
-        #expect(!after.contains { $0.label == "Fix Grammar" })
+        let after = PresetLibrary.delete(defaults, label: "Like Me", modes: modes)
+        #expect(!after.contains { $0.label == "Like Me" })
         #expect(after.count == defaults.count - 1)
     }
 
     @Test func deleteIsNoOpForDefaultUnknownOrLastInTab() {
-        #expect(PresetLibrary.delete(defaults, label: "Rewrite like Native", modes: modes) == defaults)
+        #expect(PresetLibrary.delete(defaults, label: "Like Brit.", modes: modes) == defaults)
         #expect(PresetLibrary.delete(defaults, label: "Does Not Exist", modes: modes) == defaults)
         let onlyOne = defaults.filter { $0.category != "Understand" || $0.label == "Translate" }
         #expect(PresetLibrary.delete(onlyOne, label: "Translate", modes: modes) == onlyOne)
@@ -154,23 +154,23 @@ struct ApplyEditsTests {
 
     @Test func appliesPromptAndBlurbKeepingCategoryAndIsEmail() {
         let incoming = passthrough(defaults) { p, e in
-            if p.label == "Rewrite like Native" { e.prompt = "New rewrite prompt:"; e.blurb = "New blurb" }
+            if p.label == "Like Brit." { e.prompt = "New rewrite prompt:"; e.blurb = "New blurb" }
         }
         let result = PresetLibrary.applyEdits(stored: defaults, incoming: incoming, modes: modes)
-        let rewrite = result.first { $0.label == "Rewrite like Native" }
+        let rewrite = result.first { $0.label == "Like Brit." }
         #expect(rewrite?.prompt == "New rewrite prompt:")
         #expect(rewrite?.blurb == "New blurb")
         #expect(rewrite?.category == "Write")
         #expect(rewrite?.isEmail == false)
-        #expect(rewrite?.originalPrompt == defaults.first { $0.label == "Rewrite like Native" }?.originalPrompt)
+        #expect(rewrite?.originalPrompt == defaults.first { $0.label == "Like Brit." }?.originalPrompt)
     }
 
     @Test func renamesByOriginalLabel() {
         let incoming = passthrough(defaults) { p, e in
-            if p.label == "Rewrite like Native" { e.label = "Reword" }
+            if p.label == "Like Brit." { e.label = "Reword" }
         }
         let result = PresetLibrary.applyEdits(stored: defaults, incoming: incoming, modes: modes)
-        #expect(!result.contains { $0.label == "Rewrite like Native" })
+        #expect(!result.contains { $0.label == "Like Brit." })
         let renamed = result.first { $0.label == "Reword" }
         #expect(renamed?.category == "Write")
         #expect(renamed?.isDefault == true)
@@ -178,17 +178,17 @@ struct ApplyEditsTests {
 
     @Test func movesTheDefaultFlag() {
         let incoming = passthrough(defaults) { p, e in
-            e.isDefault = p.label == "Fix Grammar" ? true : (p.category == "Write" ? false : p.isDefault)
+            e.isDefault = p.label == "Like Me" ? true : (p.category == "Write" ? false : p.isDefault)
         }
         let result = PresetLibrary.applyEdits(stored: defaults, incoming: incoming, modes: modes)
-        #expect(result.first { $0.label == "Fix Grammar" }?.isDefault == true)
-        #expect(result.first { $0.label == "Rewrite like Native" }?.isDefault == false)
+        #expect(result.first { $0.label == "Like Me" }?.isDefault == true)
+        #expect(result.first { $0.label == "Like Brit." }?.isDefault == false)
         #expect(result.filter { $0.category == "Write" && $0.isDefault }.count == 1)
     }
 
     @Test func ignoresUnknownOriginalLabels() {
         let incoming = [
-            PresetEdit(originalLabel: "Rewrite like Native", label: "Rewrite like Native", prompt: "x", isDefault: true),
+            PresetEdit(originalLabel: "Like Brit.", label: "Like Brit.", prompt: "x", isDefault: true),
             PresetEdit(originalLabel: "Ghost Preset", label: "Ghost Preset", prompt: "should be dropped")
         ]
         let result = PresetLibrary.applyEdits(stored: defaults, incoming: incoming, modes: modes)
@@ -203,13 +203,13 @@ struct ApplyEditsTests {
     }
 
     @Test func iconCanBeCustomizedClearedOrKept() {
-        let set = passthrough(defaults) { p, e in if p.label == "Rewrite like Native" { e.icon = "🪄" } }
-        #expect(PresetLibrary.applyEdits(stored: defaults, incoming: set, modes: modes).first { $0.label == "Rewrite like Native" }?.icon == "🪄")
-        let clear = passthrough(defaults) { p, e in if p.label == "Rewrite like Native" { e.icon = "" } }
-        #expect(PresetLibrary.applyEdits(stored: defaults, incoming: clear, modes: modes).first { $0.label == "Rewrite like Native" }?.icon == "")
+        let set = passthrough(defaults) { p, e in if p.label == "Like Brit." { e.icon = "🪄" } }
+        #expect(PresetLibrary.applyEdits(stored: defaults, incoming: set, modes: modes).first { $0.label == "Like Brit." }?.icon == "🪄")
+        let clear = passthrough(defaults) { p, e in if p.label == "Like Brit." { e.icon = "" } }
+        #expect(PresetLibrary.applyEdits(stored: defaults, incoming: clear, modes: modes).first { $0.label == "Like Brit." }?.icon == "")
         let omit = passthrough(defaults) { _, e in e.icon = nil }
-        #expect(PresetLibrary.applyEdits(stored: defaults, incoming: omit, modes: modes).first { $0.label == "Rewrite like Native" }?.icon
-                == defaults.first { $0.label == "Rewrite like Native" }?.icon)
+        #expect(PresetLibrary.applyEdits(stored: defaults, incoming: omit, modes: modes).first { $0.label == "Like Brit." }?.icon
+                == defaults.first { $0.label == "Like Brit." }?.icon)
     }
 }
 
@@ -257,7 +257,7 @@ struct ModeTests {
 }
 
 
-@Suite("upgradeBuiltInPrompts")
+@Suite("upgradeBuiltIns")
 struct UpgradeBuiltInPromptTests {
     private let oldEmail = "You are an expert email writer who drafts clear, professional email replies for workplace contexts. Write the reply in a Direct tone."
     private let oldMessage = "Write a short, natural reply to this message. Keep it conversational and to the point."
@@ -273,7 +273,7 @@ struct UpgradeBuiltInPromptTests {
 
     @Test func untouchedOldDefaultsBecomeTheNewOnes() throws {
         let list = saved("Email", prompt: oldEmail, original: oldEmail)
-        let result = PresetLibrary.upgradeBuiltInPrompts(list)
+        let result = PresetLibrary.upgradeBuiltIns(list)
         let email = try #require(result.first { $0.label == "Email" })
         #expect(email.prompt == PresetLibrary.emailPrompt)
         #expect(email.originalPrompt == PresetLibrary.emailPrompt)
@@ -283,27 +283,95 @@ struct UpgradeBuiltInPromptTests {
     @Test func theEarlierNewEmailWordingIsUpgradedToo() throws {
         let previous = "You are an expert email writer who drafts clear, professional email replies for workplace contexts. Write the reply in a direct tone. Don't ever use \"—\" in the output."
         let list = saved("Email", prompt: previous, original: previous)
-        let email = try #require(PresetLibrary.upgradeBuiltInPrompts(list).first { $0.label == "Email" })
+        let email = try #require(PresetLibrary.upgradeBuiltIns(list).first { $0.label == "Email" })
         #expect(email.prompt == PresetLibrary.emailPrompt)
         #expect(email.prompt.contains("{reply_intent}"))
     }
 
     @Test func aUserEditedPromptIsKeptButResetGoesToTheNewDefault() throws {
         let list = saved("Message", prompt: "My own message prompt", original: oldMessage)
-        let message = try #require(PresetLibrary.upgradeBuiltInPrompts(list).first { $0.label == "Message" })
+        let message = try #require(PresetLibrary.upgradeBuiltIns(list).first { $0.label == "Message" })
         #expect(message.prompt == "My own message prompt")
         #expect(message.originalPrompt == PresetLibrary.messagePrompt)
     }
 
     @Test func isIdempotentAndLeavesCurrentAndCustomPresetsAlone() {
         let current = PresetLibrary.defaultPresets
-        #expect(PresetLibrary.upgradeBuiltInPrompts(current) == current)
-        let once = PresetLibrary.upgradeBuiltInPrompts(saved("Email", prompt: oldEmail, original: oldEmail))
-        #expect(PresetLibrary.upgradeBuiltInPrompts(once) == once)
+        #expect(PresetLibrary.upgradeBuiltIns(current) == current)
+        let once = PresetLibrary.upgradeBuiltIns(saved("Email", prompt: oldEmail, original: oldEmail))
+        #expect(PresetLibrary.upgradeBuiltIns(once) == once)
         // A user's own preset that happens to be called "Email" with its own baseline is not touched.
         var custom = PresetLibrary.defaultPresets
         let i = custom.firstIndex { $0.label == "Email" }!
         custom[i].prompt = "custom"; custom[i].originalPrompt = "custom"
-        #expect(PresetLibrary.upgradeBuiltInPrompts(custom) == custom)
+        #expect(PresetLibrary.upgradeBuiltIns(custom) == custom)
+    }
+}
+
+@Suite("Write tab defaults and their upgrade")
+struct WriteTabDefaultsTests {
+    /// What earlier versions shipped for the Write tab.
+    private func oldWriteTab() -> [Preset] {
+        [
+            Preset(label: "Rewrite like Native", category: "Write", icon: "\u{270D}\u{FE0F}", blurb: "Clear, native English level", tone: "Neutral",
+                   prompt: "Rewrite this text like a native English.", uses: 5, isDefault: true),
+            Preset(label: "Rewrite Like Me", category: "Write", icon: "\u{1F64B}\u{200D}\u{2642}", blurb: "Match my style, my English level", tone: "Personal",
+                   prompt: "Rewrite this text like me.", uses: 2),
+            Preset(label: "Fix Grammar", category: "Write", icon: "🔤", blurb: "Spelling and grammar only", tone: "Neutral",
+                   prompt: "Fix grammar and spelling."),
+            Preset(label: "Professional", category: "Write", icon: "👔", blurb: "Raise the register", tone: "Formal",
+                   prompt: "Make this more professional.")
+        ]
+    }
+
+    @Test func theWriteTabNowHasTwoPresets() {
+        let write = PresetLibrary.defaultPresets.filter { $0.category == "Write" }
+        #expect(write.map(\.label) == ["Like Brit.", "Like Me"])
+        #expect(write.map(\.icon) == ["🤴", "🫆"])
+        #expect(write.first?.isDefault == true)
+    }
+
+    @Test func savedCopiesAreRenamedAndTheDroppedOnesRemoved() throws {
+        let result = PresetLibrary.upgradeBuiltIns(oldWriteTab())
+        #expect(result.map(\.label) == ["Like Brit.", "Like Me"])
+        let brit = try #require(result.first)
+        #expect(brit.icon == "🤴")
+        #expect(brit.uses == 5)          // history is kept
+        #expect(brit.isDefault)
+        #expect(result[1].icon == "🫆")
+        #expect(result[1].uses == 2)
+    }
+
+    @Test func aDroppedPresetTheUserEditedIsKept() throws {
+        var list = oldWriteTab()
+        list[2].prompt = "Fix grammar, keep my slang."   // user edited Fix Grammar
+        let result = PresetLibrary.upgradeBuiltIns(list)
+        #expect(result.contains { $0.label == "Fix Grammar" })
+        #expect(!result.contains { $0.label == "Professional" })
+    }
+
+    @Test func aCustomIconSurvivesTheRename() throws {
+        var list = oldWriteTab()
+        list[0].icon = "🪄"
+        let result = PresetLibrary.upgradeBuiltIns(list)
+        #expect(result.first { $0.label == "Like Brit." }?.icon == "🪄")
+    }
+
+    @Test func removingTheDefaultStillLeavesOneDefaultPerTab() {
+        var list = oldWriteTab()
+        list[0].isDefault = false
+        list[2].isDefault = true                          // Fix Grammar was the default
+        let normalized = PresetLibrary.normalize(PresetLibrary.upgradeBuiltIns(list), modes: PresetLibrary.defaultModes)
+        #expect(normalized.filter { $0.category == "Write" && $0.isDefault }.count == 1)
+    }
+
+    @Test func isIdempotentAndNeverOverwritesAnExistingPreset() {
+        let once = PresetLibrary.upgradeBuiltIns(oldWriteTab())
+        #expect(PresetLibrary.upgradeBuiltIns(once) == once)
+        var clash = oldWriteTab()
+        clash.append(Preset(label: "Like Brit.", category: "Write", prompt: "my own"))
+        let result = PresetLibrary.upgradeBuiltIns(clash)
+        #expect(result.filter { $0.label == "Like Brit." }.count == 1)       // no duplicate label
+        #expect(result.contains { $0.label == "Rewrite like Native" })        // left alone instead of colliding
     }
 }

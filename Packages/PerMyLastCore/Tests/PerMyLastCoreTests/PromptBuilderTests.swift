@@ -25,13 +25,13 @@ struct PromptBuilderTests {
     }
 
     @Test func nonTranslatePromptsAreUntouched() throws {
-        let fix = try #require(PresetLibrary.defaultPresets.first { $0.label == "Fix Grammar" })
+        let fix = try #require(PresetLibrary.defaultPresets.first { $0.label == "Like Me" })
         #expect(PromptBuilder.resolvedPrompt(fix, motherLanguage: "Vietnamese") == fix.prompt)
         #expect(PromptBuilder.resolvedBlurb(fix, motherLanguage: "Vietnamese") == fix.blurb)
     }
 
     @Test func finalPromptAppendsIntentOnlyWhenTheTabTakesIt() throws {
-        let fix = try #require(PresetLibrary.defaultPresets.first { $0.label == "Fix Grammar" })
+        let fix = try #require(PresetLibrary.defaultPresets.first { $0.label == "Like Me" })
         let withIntent = PromptBuilder.finalPrompt(preset: fix, motherLanguage: "", intent: "  say no politely ", tabTakesIntent: true)
         #expect(withIntent == fix.prompt + " say no politely")
         #expect(PromptBuilder.finalPrompt(preset: fix, motherLanguage: "", intent: "ignored", tabTakesIntent: false) == fix.prompt)

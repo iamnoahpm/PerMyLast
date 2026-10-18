@@ -52,7 +52,7 @@ final class AppModel {
     private init() {
         let modes = Persistence.load("modes", as: [String].self) ?? PresetLibrary.defaultModes
         let loaded = Persistence.load("presets", as: [Preset].self) ?? PresetLibrary.defaultPresets
-        let upgraded = PresetLibrary.upgradeBuiltInPrompts(loaded)
+        let upgraded = PresetLibrary.upgradeBuiltIns(loaded)
         self.modes = modes
         let normalized = PresetLibrary.normalize(upgraded, modes: modes)
         self.presets = normalized
