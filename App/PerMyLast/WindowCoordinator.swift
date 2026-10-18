@@ -24,6 +24,11 @@ final class WindowCoordinator: NSObject, NSWindowDelegate {
         present(window)
     }
 
+    /// What "open the app" means: Settings until an API key exists, then the popup.
+    func showMain() {
+        if AppModel.shared.apiKey.isEmpty { showSettings() } else { showPopup() }
+    }
+
     func hidePopup() { popup?.orderOut(nil) }
 
     func showSettings() {

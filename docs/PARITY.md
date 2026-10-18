@@ -52,7 +52,7 @@ Status: ✅ done · 🟡 partial · ⬜ missing · ➖ intentionally different
 
 | # | Feature | Status |
 |---|---|---|
-| 40 | Menu bar item: Enabled toggle, Open, Show in Dock, Settings, Quit | ✅ |
+| 40 | Menu bar icon: left-click opens the app, right-click shows Enabled, Show in Dock, Settings, Check for Updates, Quit (no "Open" item) | ✅ |
 | 41 | Dock icon, click Dock icon → popup, closing windows keeps app running | ✅ |
 | 42 | Auto-capture of selected text (Cmd+C via System Events) | ➖ (DMG-only in Electron; native Accessibility version planned) |
 | 43 | Anthropic request: effort, workspace header, max tokens, error surfacing | ✅ |

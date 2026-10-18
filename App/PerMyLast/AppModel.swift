@@ -107,6 +107,7 @@ final class AppModel {
     func setEnabled(_ value: Bool) {
         enabled = value
         UserDefaults.standard.set(value, forKey: "isEnabled")
+        StatusItemController.shared.refreshIcon()
     }
 
     func setShowInDock(_ value: Bool) {

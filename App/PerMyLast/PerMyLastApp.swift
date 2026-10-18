@@ -1,46 +1,36 @@
 import AppKit
-import Carbon.HIToolbox
 import SwiftUI
 
 @main
 struct PerMyLastApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
-    @State private var model = AppModel.shared
 
     var body: some Scene {
-        MenuBarExtra {
-            Group {
-            Button("Open Per My Last") { WindowCoordinator.shared.showPopup() }
-            Toggle("Enabled", isOn: Binding(get: { model.enabled }, set: { model.setEnabled($0) }))
-            Toggle("Show in Dock", isOn: Binding(get: { model.settings.showInDock }, set: { model.setShowInDock($0) }))
-            Divider()
-            Button("Settings…") { WindowCoordinator.shared.showSettings() }
-                .keyboardShortcut(",")
-            Button("Check for Updates…") { model.checkForUpdates() }
-            Divider()
-            Button("Quit Per My Last") { NSApp.terminate(nil) }
-                .keyboardShortcut("q")
+        // The menu bar icon is an NSStatusItem (see StatusItemController). SwiftUI
+        // still wants a scene, so this one is never inserted.
+        MenuBarExtra("Per My Last", isInserted: .constant(false)) { EmptyView() }
+            .commands {
+                CommandGroup(replacing: .appSettings) {
+                    Button("Settings…") { WindowCoordinator.shared.showSettings() }
+                        .keyboardShortcut(",")
+                }
             }
-            .environment(\.locale, model.locale)
-        } label: {
-            Image(model.enabled ? "TrayEnabled" : "TrayDisabled")
-        }
     }
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         Task { @MainActor in
+            StatusItemController.shared.install()
             AppModel.shared.applyDockVisibility()
             AppModel.shared.applyShortcut()
-        }
-        Task { @MainActor in
-            // Dev aid: PML_SHOW_POPUP=1 opens the popup at launch.
-            if ProcessInfo.processInfo.environment["PML_SHOW_POPUP"] == "1" { WindowCoordinator.shared.showPopup() }
-            if ProcessInfo.processInfo.environment["PML_SHOW_SETTINGS"] == "1" { WindowCoordinator.shared.showSettings() }
-            // First run: Settings. Otherwise show the popup, as the Electron app did.
-            if AppModel.shared.apiKey.isEmpty { WindowCoordinator.shared.showSettings() }
-            else { WindowCoordinator.shared.showPopup() }
+
+            // Dev aids: PML_SHOW_POPUP=1 / PML_SHOW_SETTINGS=1 open a window at launch.
+            let env = ProcessInfo.processInfo.environment
+            if env["PML_SHOW_POPUP"] == "1" { WindowCoordinator.shared.showPopup() }
+            if env["PML_SHOW_SETTINGS"] == "1" { WindowCoordinator.shared.showSettings() }
+            // First run opens Settings; otherwise the popup, as the Electron app did.
+            WindowCoordinator.shared.showMain()
         }
     }
 
@@ -50,13 +40,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Clicking the Dock icon, or opening the app again (Finder, Spotlight, `open`),
     /// should show a window instead of silently doing nothing.
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        Task { @MainActor in
-            if AppModel.shared.apiKey.isEmpty {
-                WindowCoordinator.shared.showSettings()
-            } else {
-                WindowCoordinator.shared.showPopup()
-            }
-        }
+        Task { @MainActor in WindowCoordinator.shared.showMain() }
         return false
     }
 }

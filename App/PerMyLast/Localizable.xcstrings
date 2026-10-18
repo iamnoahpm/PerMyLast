@@ -1,17 +1,6 @@
 {
   "sourceLanguage": "en",
   "strings": {
-    "Open Per My Last": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mở Per My Last"
-          }
-        }
-      }
-    },
     "Enabled": {
       "extractionState": "manual",
       "localizations": {
