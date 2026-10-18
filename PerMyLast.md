@@ -78,7 +78,7 @@ dist/
     "electron-store": "^8.1.0"
   },
   "build": {
-    "appId": "com.claude.permylast",
+    "appId": "app.permylast",
     "productName": "Per My Last",
     "directories": { "output": "dist" },
     "mac": {

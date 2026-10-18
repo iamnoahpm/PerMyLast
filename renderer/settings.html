@@ -536,6 +536,9 @@
   // without needing to close and reopen Settings. The main popup picks up the
   // same change separately, via the existing app-language-status push.
   let currentLang = 'en-US';
+  // False in Mac App Store builds: the hotkey reads the clipboard instead of
+  // auto-capturing, so the Permissions tab and capture wording don't apply.
+  let autoCapture = true;
   let appVersion = '';
   function applyTranslations(lang) {
     currentLang = lang || 'en-US';
@@ -621,7 +624,7 @@
 
   function updateShortcutHint() {
     $('#shortcutHint').textContent = currentShortcut
-      ? window.I18n.t(currentLang, 'shortcutHintSet', { shortcut: acceleratorToDisplay(currentShortcut) })
+      ? window.I18n.t(currentLang, autoCapture ? 'shortcutHintSet' : 'shortcutHintSetClipboard', { shortcut: acceleratorToDisplay(currentShortcut) })
       : window.I18n.t(currentLang, 'shortcutHintUnset');
   }
 
@@ -787,6 +790,11 @@
 
   (async () => {
     const s = await window.api.getSettings();
+    autoCapture = s.autoCapture !== false;
+    if (!autoCapture) {
+      document.querySelector('.tab[data-tab="permissions"]').style.display = 'none';
+      document.querySelector('.tab-panel[data-panel="permissions"]').style.display = 'none';
+    }
     if (s.apiKey) $('#apiKey').value = s.apiKey;
     if (s.workspaceId) $('#workspaceId').value = s.workspaceId;
     if (s.motherLanguage) { $('#motherLanguage').value = s.motherLanguage; updateMotherLanguageFlag(); }

@@ -129,6 +129,13 @@ function openSettingsWindow() {
   createSettingsWindow(bounds);
 }
 
+// Auto-capture drives other apps through System Events (osascript), which the
+// Mac App Store sandbox doesn't allow. In a MAS build (process.mas) the hotkey
+// instead opens the popup with whatever is already on the clipboard — the user
+// presses Cmd+C themselves first. PML_CLIPBOARD_ONLY=1 forces that mode in an
+// unpackaged/DMG build so the MAS flow can be tried without a MAS build.
+const AUTO_CAPTURE = !(process.mas || process.env.PML_CLIPBOARD_ONLY === '1');
+
 // Simulates Cmd+C via System Events so the hotkey works on whatever text is
 // currently selected in the frontmost app, without requiring a manual copy
 // first. This needs two separate one-time OS grants: Automation permission
@@ -283,6 +290,19 @@ async function captureAndFill() {
   clipboard.writeText(previousClipboard);
 }
 
+// Clipboard-only variant of the hotkey for builds where auto-capture isn't
+// available (see AUTO_CAPTURE). No keystroke simulation, no System Events, so
+// no Accessibility/Automation permissions — the user copied the text already.
+async function clipboardFill() {
+  if (!isEnabled) return;
+  const text = await Promise.resolve(clipboard.readText());
+  if (!text || !text.trim()) return;
+
+  showMainWindow();
+  mainWindow.webContents.send('selected-text', text);
+  mainWindow.focus();
+}
+
 // Docks the window to the right edge of whichever display currently has the
 // cursor, full height, width = 1/2 the screen. Re-applied on every show, not
 // just once, so it stays consistent even if the user manually resized it
@@ -355,11 +375,12 @@ function updateTrayIcon() {
 function registerShortcut() {
   globalShortcut.unregisterAll();
   const sc = store.get('shortcut', DEFAULT_SHORTCUT);
-  const ok = globalShortcut.register(sc, captureAndFill);
+  const ok = globalShortcut.register(sc, AUTO_CAPTURE ? captureAndFill : clipboardFill);
   if (!ok) console.error('Failed to register global shortcut:', sc, '— it may already be in use by another app.');
 }
 
 ipcMain.handle('get-settings', () => ({
+  autoCapture: AUTO_CAPTURE,
   apiKey: store.get('apiKey', ''),
   model: store.get('model', DEFAULT_MODEL),
   effort: store.get('effort', DEFAULT_EFFORT),
@@ -587,10 +608,14 @@ ipcMain.on('close-settings', () => settingsWindow && settingsWindow.close());
 ipcMain.on('open-accessibility-settings', () => shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility'));
 ipcMain.on('open-automation-settings', () => shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_Automation'));
 
-ipcMain.handle('check-permissions', async () => ({
-  accessibility: checkAccessibilityGranted(),
-  automation: await checkAutomationGranted()
-}));
+ipcMain.handle('check-permissions', async () => {
+  // Nothing to check (and no osascript to run) when auto-capture is off.
+  if (!AUTO_CAPTURE) return { accessibility: true, automation: true };
+  return {
+    accessibility: checkAccessibilityGranted(),
+    automation: await checkAutomationGranted()
+  };
+});
 ipcMain.on('copy-to-clipboard', (e, t) => clipboard.writeText(t));
 
 // Opens the user's own default mail client with a pre-filled draft rather
