@@ -9,12 +9,45 @@ public enum PresetLibrary {
 
     public static let motherLanguageToken = "{{motherLanguage}}"
 
+    public static let emailPrompt = "You are an expert email writer who drafts clear, professional email replies for workplace contexts. Write the reply in a direct tone. Don't ever use \"—\" in the output."
+
+    public static let messagePrompt = #"""
+You are drafting a reply to a message on the user's behalf. The user IS the person sending the reply.
+
+You will be given:
+- ORIGINAL MESSAGE: the message being replied to (context only)
+- REPLY INTENT: what the user actually wants to say
+
+RULES:
+1. REPLY INTENT is the source of truth for the content, meaning, and stance of the reply. Never override, soften, contradict, or "correct" it based on the ORIGINAL MESSAGE.
+2. Do not answer the ORIGINAL MESSAGE directly if REPLY INTENT does not answer it directly. If REPLY INTENT is uncertain, deflects, or suggests an alternative path, the reply must preserve that same uncertainty or deflection, not resolve it into a confident yes/no.
+3. Use the ORIGINAL MESSAGE only to determine tone and what the reply needs to respond to, not to determine what the reply should say.
+4. The user is the one REPLYING, not the one being addressed. If the ORIGINAL MESSAGE opens with a greeting naming the user (e.g. "Hey Noah"), that name belongs to the user, the reply's sender, never the recipient. Do not copy, echo, or repurpose that greeting in the reply as if addressing someone. The reply should open naturally (a greeting to whoever sent the original message, no greeting at all, or straight into the content), never with the user's own name.
+5. Write in a short, natural, conversational tone, as if the user is typing this themselves. No formal or corporate phrasing.
+6. Keep it concise, one to three sentences unless REPLY INTENT clearly requires more.
+7. Never use an em dash ("—") anywhere in the output.
+8. Output only the reply text. No preamble, no explanation, no quotation marks around it.
+
+ORIGINAL MESSAGE:
+{original_message}
+
+REPLY INTENT:
+{reply_intent}
+"""#
+
+    /// Built-in prompts that earlier versions shipped, by preset label. Saved
+    /// copies still carrying one of these are moved to the current default.
+    static let retiredDefaultPrompts: [String: [String]] = [
+        "Email": ["You are an expert email writer who drafts clear, professional email replies for workplace contexts. Write the reply in a Direct tone."],
+        "Message": ["Write a short, natural reply to this message. Keep it conversational and to the point."]
+    ]
+
     public static let defaultPresets: [Preset] = [
         Preset(label: "Email", category: "Reply", icon: "📧", blurb: "Workplace email reply in your tone", tone: "Direct",
-               prompt: "You are an expert email writer who drafts clear, professional email replies for workplace contexts. Write the reply in a Direct tone.",
+               prompt: emailPrompt,
                isEmail: true, isDefault: true),
         Preset(label: "Message", category: "Reply", icon: "💬", blurb: "Short chat / DM reply", tone: "Warm",
-               prompt: "Write a short, natural reply to this message. Keep it conversational and to the point."),
+               prompt: messagePrompt),
         Preset(label: "Rewrite like Native", category: "Write", icon: "✍️", blurb: "Clear, native English level", tone: "Neutral",
                prompt: "Rewrite this text like a native English.", isDefault: true),
         Preset(label: "Rewrite Like Me", category: "Write", icon: "🙋‍♂", blurb: "Match my style, my English level", tone: "Personal",
@@ -28,6 +61,21 @@ public enum PresetLibrary {
         Preset(label: "Translate", category: "Understand", icon: "🌐", blurb: "Into {{motherLanguage}}", tone: "Neutral",
                prompt: "Translate this into {{motherLanguage}}", requiresMotherLanguage: true)
     ]
+
+    /// Brings saved presets up to the current built-in prompts. A preset whose
+    /// baseline is a retired default gets the new baseline; if the user never
+    /// edited it, the live prompt follows. A user-edited prompt is kept, and
+    /// "Reset to original" now restores the new default. Safe to run repeatedly.
+    public static func upgradeBuiltInPrompts(_ list: [Preset]) -> [Preset] {
+        list.map { p in
+            guard let retired = retiredDefaultPrompts[p.label], retired.contains(p.originalPrompt),
+                  let current = defaultPresets.first(where: { $0.label == p.label }) else { return p }
+            var q = p
+            if retired.contains(p.prompt) { q.prompt = current.prompt }
+            q.originalPrompt = current.originalPrompt
+            return q
+        }
+    }
 
     public static func validateLabel(_ label: String?) -> Bool {
         guard let label else { return false }

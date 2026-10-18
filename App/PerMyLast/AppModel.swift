@@ -52,8 +52,11 @@ final class AppModel {
     private init() {
         let modes = Persistence.load("modes", as: [String].self) ?? PresetLibrary.defaultModes
         let loaded = Persistence.load("presets", as: [Preset].self) ?? PresetLibrary.defaultPresets
+        let upgraded = PresetLibrary.upgradeBuiltInPrompts(loaded)
         self.modes = modes
-        self.presets = PresetLibrary.normalize(loaded, modes: modes)
+        let normalized = PresetLibrary.normalize(upgraded, modes: modes)
+        self.presets = normalized
+        if upgraded != loaded { Persistence.save(normalized, key: "presets") }
         self.intentModes = Persistence.load("intentModes", as: [String].self) ?? (modes.contains("Reply") ? ["Reply"] : [])
         self.settings = Persistence.load("settings", as: AppSettings.self) ?? AppSettings()
         self.apiKey = UserDefaults.standard.string(forKey: Self.apiKeyDefaultsKey) ?? ""

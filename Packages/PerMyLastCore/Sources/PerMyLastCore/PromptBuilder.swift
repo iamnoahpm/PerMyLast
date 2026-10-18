@@ -6,7 +6,23 @@ public struct ClaudeRequestContent: Equatable, Sendable {
 }
 
 public enum PromptBuilder {
+    /// A prompt can be a full template: `{original_message}` is replaced with the
+    /// text in the box, `{reply_intent}` with what the user typed as their intent.
+    public static let originalMessageToken = "{original_message}"
+    public static let replyIntentToken = "{reply_intent}"
+
+    /// Stand-in when a template needs an intent and none was typed.
+    static let noIntentPlaceholder = "(none given: write a short, natural reply that fits the message)"
+
+    private static let textSystemPrompt = "You are a text processing assistant. Respond ONLY with the processed result, no preamble, explanation, or surrounding quotation marks."
+
     public static func buildRequest(text: String, prompt: String, isEmail: Bool) -> ClaudeRequestContent {
+        // Template prompt: it already says where the message goes, so send it as is.
+        if prompt.contains(originalMessageToken) {
+            return ClaudeRequestContent(
+                system: textSystemPrompt,
+                content: prompt.replacingOccurrences(of: originalMessageToken, with: text))
+        }
         if isEmail {
             return ClaudeRequestContent(
                 system: "You are an email writing assistant. Write ONLY the reply email content, no preamble. Start with the greeting and end with a sign-off. Professional yet friendly unless told otherwise.",
@@ -14,7 +30,7 @@ public enum PromptBuilder {
             )
         }
         return ClaudeRequestContent(
-            system: "You are a text processing assistant. Respond ONLY with the processed result, no preamble, explanation, or surrounding quotation marks.",
+            system: textSystemPrompt,
             content: "\(prompt)\n\nText: \(text)"
         )
     }
@@ -43,10 +59,12 @@ public enum PromptBuilder {
     /// reply intent when the active tab takes one.
     public static func finalPrompt(preset: Preset, motherLanguage: String, intent: String?, tabTakesIntent: Bool) -> String {
         var prompt = resolvedPrompt(preset, motherLanguage: motherLanguage)
-        if tabTakesIntent, let intent {
-            let trimmed = intent.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !trimmed.isEmpty { prompt += " " + trimmed }
+        let typed = tabTakesIntent ? (intent ?? "").trimmingCharacters(in: .whitespacesAndNewlines) : ""
+        // A template places the intent itself; anything else gets it appended.
+        if prompt.contains(replyIntentToken) {
+            return prompt.replacingOccurrences(of: replyIntentToken, with: typed.isEmpty ? noIntentPlaceholder : typed)
         }
+        if !typed.isEmpty { prompt += " " + typed }
         return prompt
     }
 

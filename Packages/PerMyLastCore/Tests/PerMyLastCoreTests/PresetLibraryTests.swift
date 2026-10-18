@@ -255,3 +255,47 @@ struct ModeTests {
         #expect(PresetLibrary.reorderModes(modes, ordered: ["Ghost", "Understand", "Reply", "Write"]) == ["Understand", "Reply", "Write"])
     }
 }
+
+
+@Suite("upgradeBuiltInPrompts")
+struct UpgradeBuiltInPromptTests {
+    private let oldEmail = "You are an expert email writer who drafts clear, professional email replies for workplace contexts. Write the reply in a Direct tone."
+    private let oldMessage = "Write a short, natural reply to this message. Keep it conversational and to the point."
+
+    private func saved(_ label: String, prompt: String, original: String) -> [Preset] {
+        var list = PresetLibrary.defaultPresets
+        let i = list.firstIndex { $0.label == label }!
+        list[i].prompt = prompt
+        list[i].originalPrompt = original
+        list[i].uses = 7
+        return list
+    }
+
+    @Test func untouchedOldDefaultsBecomeTheNewOnes() throws {
+        let list = saved("Email", prompt: oldEmail, original: oldEmail)
+        let result = PresetLibrary.upgradeBuiltInPrompts(list)
+        let email = try #require(result.first { $0.label == "Email" })
+        #expect(email.prompt == PresetLibrary.emailPrompt)
+        #expect(email.originalPrompt == PresetLibrary.emailPrompt)
+        #expect(email.uses == 7)   // everything else about the preset is kept
+    }
+
+    @Test func aUserEditedPromptIsKeptButResetGoesToTheNewDefault() throws {
+        let list = saved("Message", prompt: "My own message prompt", original: oldMessage)
+        let message = try #require(PresetLibrary.upgradeBuiltInPrompts(list).first { $0.label == "Message" })
+        #expect(message.prompt == "My own message prompt")
+        #expect(message.originalPrompt == PresetLibrary.messagePrompt)
+    }
+
+    @Test func isIdempotentAndLeavesCurrentAndCustomPresetsAlone() {
+        let current = PresetLibrary.defaultPresets
+        #expect(PresetLibrary.upgradeBuiltInPrompts(current) == current)
+        let once = PresetLibrary.upgradeBuiltInPrompts(saved("Email", prompt: oldEmail, original: oldEmail))
+        #expect(PresetLibrary.upgradeBuiltInPrompts(once) == once)
+        // A user's own preset that happens to be called "Email" with its own baseline is not touched.
+        var custom = PresetLibrary.defaultPresets
+        let i = custom.firstIndex { $0.label == "Email" }!
+        custom[i].prompt = "custom"; custom[i].originalPrompt = "custom"
+        #expect(PresetLibrary.upgradeBuiltInPrompts(custom) == custom)
+    }
+}
