@@ -59,7 +59,7 @@ final class WindowCoordinator: NSObject, NSWindowDelegate {
             styleMask: [.titled, .closable, .resizable, .miniaturizable],
             backing: .buffered, defer: false)
         window.title = "Per My Last"
-        window.contentViewController = NSHostingController(rootView: MainView().environment(AppModel.shared))
+        window.contentViewController = NSHostingController(rootView: LocalizedRoot { MainView() }.environment(AppModel.shared))
         window.isReleasedWhenClosed = false
         window.collectionBehavior = [.moveToActiveSpace]
         window.minSize = NSSize(width: 380, height: 460)
@@ -72,7 +72,7 @@ final class WindowCoordinator: NSObject, NSWindowDelegate {
             styleMask: [.titled, .closable, .resizable, .miniaturizable],
             backing: .buffered, defer: false)
         window.title = "Per My Last Settings"
-        window.contentViewController = NSHostingController(rootView: SettingsView().environment(AppModel.shared))
+        window.contentViewController = NSHostingController(rootView: LocalizedRoot { SettingsView() }.environment(AppModel.shared))
         window.isReleasedWhenClosed = false
         window.collectionBehavior = [.moveToActiveSpace]
         window.minSize = NSSize(width: 420, height: 520)

@@ -10,13 +10,17 @@ struct MainView: View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
+                    ShortcutWarningBanner()
                     header
                     tabs(selection: $model.activeMode)
                     chips
                     PromptPanel()
-                    if model.activeModeTakesIntent { intentField(text: $model.intent) }
                     inputBox(text: $model.inputText)
-                    sendRow
+                    if model.activeModeTakesIntent {
+                        intentRow(text: $model.intent)
+                    } else {
+                        sendRow
+                    }
                     OutputPanel()
                 }
                 .padding(20)
@@ -77,17 +81,25 @@ struct MainView: View {
                     .buttonStyle(.plain)
                 }
             }
+            .focusable()
+            .focusEffectDisabled()
+            .onKeyPress(.leftArrow) { model.selectNeighbour(-1); return .handled }
+            .onKeyPress(.rightArrow) { model.selectNeighbour(1); return .handled }
             if let preset = model.currentPreset, !preset.blurb.isEmpty {
                 Text(model.blurb(for: preset)).font(.callout).foregroundStyle(.secondary)
             }
         }
     }
 
-    private func intentField(text: Binding<String>) -> some View {
+    /// On tabs that take an intent, Send sits beside the intent field.
+    private func intentRow(text: Binding<String>) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Your reply intent").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-            TextField("e.g. Confirm I can make it, but ask to push 30 minutes", text: text)
-                .textFieldStyle(.roundedBorder)
+            HStack(alignment: .center, spacing: 10) {
+                TextField("e.g. Confirm I can make it, but ask to push 30 minutes", text: text)
+                    .textFieldStyle(.roundedBorder)
+                sendButton
+            }
         }
     }
 
@@ -100,7 +112,7 @@ struct MainView: View {
                     .focused($inputFocused)
                     .padding(8)
                 if text.wrappedValue.isEmpty {
-                    Text("Copy some text, then press ⌘⇧W — or paste it here.")
+                    Text("Copy some text, then press \(model.shortcutDisplay) — or paste it here.")
                         .foregroundStyle(.tertiary)
                         .padding(.horizontal, 13).padding(.vertical, 16)
                         .allowsHitTesting(false)
@@ -120,6 +132,13 @@ struct MainView: View {
 
     private var sendRow: some View {
         HStack {
+            sendButton
+            Spacer()
+        }
+    }
+
+    private var sendButton: some View {
+        HStack(spacing: 8) {
             Button {
                 Task { await model.send() }
             } label: {
@@ -133,13 +152,12 @@ struct MainView: View {
             .disabled(!model.canSend)
             .help(sendTooltip)
             Text("⌘↩").font(.caption).foregroundStyle(.tertiary)
-            Spacer()
         }
     }
 
     private var sendTooltip: String {
-        if model.motherLanguageMissing { return String(localized: "Set your mother language in Settings first") }
-        if model.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return String(localized: "Select or paste text first") }
+        if model.motherLanguageMissing { return L("Set your mother language in Settings first") }
+        if model.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return L("Select or paste text first") }
         return ""
     }
 }
@@ -314,7 +332,7 @@ struct OutputPanel: View {
     }
 
     private var resultTitle: String {
-        guard let preset = model.currentPreset else { return String(localized: "Result") }
+        guard let preset = model.currentPreset else { return L("Result") }
         return preset.tone.isEmpty ? preset.label : "\(preset.label) · \(preset.tone)"
     }
 }
@@ -335,5 +353,30 @@ struct FooterBar: View {
         .buttonStyle(.link)
         .padding(.horizontal, 20)
         .padding(.vertical, 10)
+    }
+}
+
+
+// MARK: - Shortcut conflict banner
+
+/// Standing warning when the saved shortcut is also used by a common app.
+struct ShortcutWarningBanner: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        if let conflict = model.shortcutAppConflict, !model.shortcutBannerDismissed {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Your shortcut (\(model.shortcutDisplay)) is known to conflict with \(conflict.app ?? "")'s \(conflict.description) — it may not always reach Per My Last there. Consider choosing a different combo in Settings.")
+                    .font(.callout)
+                HStack(spacing: 12) {
+                    Button("Open Settings →") { WindowCoordinator.shared.showSettings() }
+                    Button("Dismiss") { model.shortcutBannerDismissed = true }
+                }
+                .buttonStyle(.link)
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.orange.opacity(0.14), in: RoundedRectangle(cornerRadius: 10))
+        }
     }
 }

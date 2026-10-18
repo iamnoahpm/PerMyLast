@@ -9,6 +9,7 @@ struct PerMyLastApp: App {
 
     var body: some Scene {
         MenuBarExtra {
+            Group {
             Button("Open Per My Last") { WindowCoordinator.shared.showPopup() }
             Toggle("Enabled", isOn: Binding(get: { model.enabled }, set: { model.setEnabled($0) }))
             Toggle("Show in Dock", isOn: Binding(get: { model.settings.showInDock }, set: { model.setShowInDock($0) }))
@@ -18,6 +19,8 @@ struct PerMyLastApp: App {
             Divider()
             Button("Quit Per My Last") { NSApp.terminate(nil) }
                 .keyboardShortcut("q")
+            }
+            .environment(\.locale, model.locale)
         } label: {
             Image(model.enabled ? "TrayEnabled" : "TrayDisabled")
         }
@@ -25,18 +28,10 @@ struct PerMyLastApp: App {
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    private var hotKey: HotKey?
-
     func applicationDidFinishLaunching(_ notification: Notification) {
-        Task { @MainActor in AppModel.shared.applyDockVisibility() }
-        let hotKey = HotKey { Task { @MainActor in AppModel.shared.handleHotKey() } }
-        // ⌘⇧W, same default as the Electron app. A shortcut recorder comes later.
-        let ok = hotKey.register(keyCode: kVK_ANSI_W, modifiers: cmdKey | shiftKey)
-        self.hotKey = hotKey
-        if !ok {
-            Task { @MainActor in
-                AppModel.shared.hotKeyError = "⌘⇧W is already used by another app."
-            }
+        Task { @MainActor in
+            AppModel.shared.applyDockVisibility()
+            AppModel.shared.applyShortcut()
         }
         Task { @MainActor in
             // Dev aid: PML_SHOW_POPUP=1 opens the popup at launch.

@@ -9,19 +9,19 @@ struct AdvancedSettingsView: View {
         @Bindable var model = model
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                tools(wartimeEnabled: $model.settings.wartimePeacetimeEnabled)
+                tools(wartimeEnabled: $model.settings.wartimePeacetimeEnabled, writeMyWayEnabled: $model.writeMyWay.enabled)
+                if model.writeMyWay.enabled { WriteMyWayCard() }
                 if model.settings.wartimePeacetimeEnabled { WartimePeacetimeCard() }
             }
             .padding(20)
         }
-        .onChange(of: model.settings) { model.saveSettings() }
     }
 
-    private func tools(wartimeEnabled: Binding<Bool>) -> some View {
+    private func tools(wartimeEnabled: Binding<Bool>, writeMyWayEnabled: Binding<Bool>) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Tools").font(.headline)
             Text("Extra capabilities for Per My Last.").font(.caption).foregroundStyle(.secondary)
-            toolRow("✍️", "Write My Way") { Text("Coming soon").badge() }
+            toolRow("✍️", "Write My Way") { Toggle("", isOn: writeMyWayEnabled).labelsHidden().toggleStyle(.switch) }
             toolRow("⭐", "VIP Contacts") { Text("Coming soon").badge() }
             toolRow("⚔️", "Wartime / Peacetime Mode") { Toggle("", isOn: wartimeEnabled).labelsHidden().toggleStyle(.switch) }
         }
@@ -154,5 +154,104 @@ private extension Text {
             .padding(.horizontal, 8).padding(.vertical, 3)
             .background(Color.primary.opacity(0.08), in: Capsule())
             .foregroundStyle(.secondary)
+    }
+}
+
+
+/// Write My Way: how you write (English level, tone, length, format). A preview
+/// like the Electron one: choices are remembered but not yet sent with rewrites.
+private struct WriteMyWayCard: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        @Bindable var model = model
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Write My Way").font(.headline)
+            Text("Mockup preview — not yet connected to your rewrites. Tell Per My Last how you write, so future rewrites already sound like you.")
+                .font(.caption).foregroundStyle(.secondary)
+
+            englishLevel(settings: $model.writeMyWay)
+            Divider()
+            writingStyle(settings: $model.writeMyWay)
+            Divider()
+            comingSoon("Target Audience", "Who this writing should land with — beginners, experts, children, and so on. Set per Tone Preset, not here.")
+            comingSoon("Custom Instructions", "Standing rules the AI should always follow when writing. Set per Tone Preset, not here.")
+        }
+        .cardStyle()
+    }
+
+    private func englishLevel(settings: Binding<WriteMyWaySettings>) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("English Level").fontWeight(.semibold)
+                Spacer()
+                Toggle("", isOn: settings.englishLevelEnabled).labelsHidden().toggleStyle(.switch)
+            }
+            Text("Off by default. When on, pick the test you know your level from and enter your score — a recent actual score or your own best estimate.")
+                .font(.caption).foregroundStyle(.secondary)
+            if settings.wrappedValue.englishLevelEnabled {
+                Picker("Test", selection: settings.testType) {
+                    ForEach(["TOEIC", "IELTS", "SAT", "CEFR", "TOEFL"], id: \.self) { Text($0).tag($0) }
+                }
+                TextField("Score", text: settings.testScore, prompt: Text("e.g. 850, 7.0, 1350, B2, 100"))
+            }
+        }
+    }
+
+    private func writingStyle(settings: Binding<WriteMyWaySettings>) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Writing Style").fontWeight(.semibold)
+            Text("The default tone, length, and format Per My Last aims for.")
+                .font(.caption).foregroundStyle(.secondary)
+
+            Picker("Tone", selection: settings.tone) {
+                Text("Professional").tag("professional")
+                Text("Casual").tag("casual")
+                Text("Friendly").tag("friendly")
+                Text("Persuasive").tag("persuasive")
+                Text("Other…").tag("other")
+            }
+            if settings.wrappedValue.tone == "other" {
+                TextField("Custom tone", text: settings.customTone, prompt: Text("Describe the tone you want"))
+            }
+
+            Picker("Length", selection: settings.length) {
+                Text("Short").tag("short")
+                Text("Medium").tag("medium")
+                Text("Long").tag("long")
+                Text("Custom").tag("custom")
+            }
+            .pickerStyle(.segmented)
+            if settings.wrappedValue.length == "custom" {
+                HStack {
+                    TextField("Max amount", text: settings.customLength, prompt: Text("Max amount"))
+                    Picker("Unit", selection: settings.customLengthUnit) {
+                        Text("Words").tag("words")
+                        Text("Characters").tag("characters")
+                    }
+                    .labelsHidden()
+                    .frame(maxWidth: 130)
+                }
+            }
+
+            Picker("Format", selection: settings.format) {
+                Text("Bullet points").tag("bullets")
+                Text("Message (Teams / Slack)").tag("message")
+                Text("Email").tag("email")
+                Text("Essay").tag("essay")
+                Text("Blog post").tag("blog")
+            }
+        }
+    }
+
+    private func comingSoon(_ title: LocalizedStringKey, _ hint: LocalizedStringKey) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 6) {
+                Text(title).fontWeight(.semibold)
+                Text("— coming soon").font(.caption).foregroundStyle(.secondary)
+            }
+            Text(hint).font(.caption).foregroundStyle(.secondary)
+        }
+        .opacity(0.7)
     }
 }

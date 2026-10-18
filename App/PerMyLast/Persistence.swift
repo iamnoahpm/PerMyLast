@@ -11,6 +11,10 @@ struct AppSettings: Codable, Equatable {
     var showInDock = true
     /// Advanced → Wartime / Peacetime mode configurator.
     var wartimePeacetimeEnabled = false
+    /// Global hotkey as an accelerator string, e.g. "Command+Shift+W".
+    var shortcut = "Command+Shift+W"
+    /// Language of the app's own UI.
+    var appLanguage = AppLanguage.detectDefault()
 
     init() {}
 
@@ -25,6 +29,40 @@ struct AppSettings: Codable, Equatable {
         motherLanguage = try c.decodeIfPresent(String.self, forKey: .motherLanguage) ?? d.motherLanguage
         showInDock = try c.decodeIfPresent(Bool.self, forKey: .showInDock) ?? d.showInDock
         wartimePeacetimeEnabled = try c.decodeIfPresent(Bool.self, forKey: .wartimePeacetimeEnabled) ?? d.wartimePeacetimeEnabled
+        shortcut = try c.decodeIfPresent(String.self, forKey: .shortcut) ?? d.shortcut
+        appLanguage = try c.decodeIfPresent(AppLanguage.self, forKey: .appLanguage) ?? d.appLanguage
+    }
+}
+
+/// Advanced → Write My Way. Like the Electron app, this is a preview: the
+/// choices are remembered but aren't sent with rewrites yet.
+struct WriteMyWaySettings: Codable, Equatable {
+    var enabled = false
+    var englishLevelEnabled = false
+    var testType = "TOEIC"
+    var testScore = ""
+    var tone = "professional"
+    var customTone = ""
+    var length = "short"
+    var customLength = ""
+    var customLengthUnit = "words"
+    var format = "bullets"
+
+    init() {}
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        let d = WriteMyWaySettings()
+        enabled = try c.decodeIfPresent(Bool.self, forKey: .enabled) ?? d.enabled
+        englishLevelEnabled = try c.decodeIfPresent(Bool.self, forKey: .englishLevelEnabled) ?? d.englishLevelEnabled
+        testType = try c.decodeIfPresent(String.self, forKey: .testType) ?? d.testType
+        testScore = try c.decodeIfPresent(String.self, forKey: .testScore) ?? d.testScore
+        tone = try c.decodeIfPresent(String.self, forKey: .tone) ?? d.tone
+        customTone = try c.decodeIfPresent(String.self, forKey: .customTone) ?? d.customTone
+        length = try c.decodeIfPresent(String.self, forKey: .length) ?? d.length
+        customLength = try c.decodeIfPresent(String.self, forKey: .customLength) ?? d.customLength
+        customLengthUnit = try c.decodeIfPresent(String.self, forKey: .customLengthUnit) ?? d.customLengthUnit
+        format = try c.decodeIfPresent(String.self, forKey: .format) ?? d.format
     }
 }
 

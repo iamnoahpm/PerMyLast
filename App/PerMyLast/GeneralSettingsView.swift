@@ -5,7 +5,9 @@ import SwiftUI
 struct GeneralSettingsView: View {
     @Environment(AppModel.self) private var model
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
-    @State private var customModel = ""
+    @State private var feedbackText = ""
+    @State private var feedbackStatus: String?
+    @FocusState private var feedbackFocused: Bool
 
     private var isStandardModel: Bool {
         ModelCatalog.standardModels.contains { $0.id == model.settings.model }
@@ -13,59 +15,135 @@ struct GeneralSettingsView: View {
 
     var body: some View {
         @Bindable var model = model
-        Form {
-            Section("Anthropic") {
-                SecureField("API key", text: $model.apiKey, prompt: Text("sk-ant-…"))
-                    .onChange(of: model.apiKey) { model.saveAPIKey() }
-                Text("Your key stays in the macOS Keychain. Requests go straight from your Mac to Anthropic — Per My Last has no server.")
-                    .font(.caption).foregroundStyle(.secondary)
-                TextField("Workspace ID", text: $model.settings.workspaceId, prompt: Text("Only for identity-linked keys"))
+        ScrollViewReader { proxy in
+            Form {
+                anthropicSection(model: $model)
+                modelSection(model: $model)
+                Section { ShortcutRecorderRow() }
+                languageSection(model: $model)
+                generalSection(model: $model)
+                feedbackSection.id("feedback")
             }
-
-            Section("Model") {
-                Picker("Model", selection: modelSelection(model)) {
-                    ForEach(ModelCatalog.standardModels) { Text($0.displayName).tag($0.id) }
-                    Text("Other (custom)").tag("other")
-                }
-                if !isStandardModel {
-                    TextField("Model ID", text: $model.settings.model, prompt: Text("e.g. claude-sonnet-5"))
-                }
-                Picker("Effort", selection: $model.settings.effort) {
-                    ForEach(Effort.allCases, id: \.self) { Text($0.label).tag($0) }
-                }
-                .pickerStyle(.segmented)
-                .disabled(!ModelCatalog.supportsEffort(model.settings.model))
-            }
-
-            Section("Language") {
-                Picker("Mother language", selection: $model.settings.motherLanguage) {
-                    Text("Not set").tag("")
-                    ForEach(Languages.all) { Text("\($0.flag) \($0.name)").tag($0.name) }
-                }
-                Text("What “Translate” translates into.").font(.caption).foregroundStyle(.secondary)
-            }
-
-            Section("General") {
-                Toggle("Show in Dock", isOn: $model.settings.showInDock)
-                Toggle("Open at login", isOn: $launchAtLogin)
-                    .onChange(of: launchAtLogin) { _, on in
-                        do { if on { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() } }
-                        catch { launchAtLogin = SMAppService.mainApp.status == .enabled }
-                    }
-                LabeledContent("Shortcut", value: "⌘⇧W")
-                if let error = model.hotKeyError {
-                    Text(error).font(.caption).foregroundStyle(.red)
-                }
-                LabeledContent("Version", value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—")
+            .formStyle(.grouped)
+            .onChange(of: model.feedbackFocusToken) {
+                withAnimation { proxy.scrollTo("feedback", anchor: .center) }
+                feedbackFocused = true
             }
         }
-        .formStyle(.grouped)
-        .onChange(of: model.settings) { model.saveSettings() }
-        
+    }
+
+    // MARK: Sections
+
+    private func anthropicSection(model: Bindable<AppModel>) -> some View {
+        Section("Claude API Key") {
+            SecureField("Claude API Key", text: model.apiKey, prompt: Text("sk-ant-…"))
+                .onChange(of: self.model.apiKey) { self.model.saveAPIKey() }
+            HStack(spacing: 4) {
+                Text("Get one at")
+                Link("console.anthropic.com", destination: URL(string: "https://console.anthropic.com/")!)
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            if self.model.apiKeyLooksInvalid {
+                Text("API key must start with \"sk-ant-\"").font(.caption).foregroundStyle(.red)
+            }
+            TextField("Workspace ID (optional)", text: model.settings.workspaceId)
+            Text("Only needed if you see \"anthropic-workspace-id is required\" — that means your key is linked to your identity within an org, not a standalone workspace key.")
+                .font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    private func modelSection(model: Bindable<AppModel>) -> some View {
+        Section("Model") {
+            Picker("Model", selection: modelSelection) {
+                ForEach(ModelCatalog.standardModels) { Text(LocalizedStringKey($0.displayName)).tag($0.id) }
+                Text("Other (custom)").tag("other")
+            }
+            if isStandardModel {
+                Text("Selected model: \(self.model.settings.model)").font(.caption).foregroundStyle(.secondary)
+            } else {
+                TextField("Custom model name", text: model.settings.model)
+                Text("Enter the exact model string from Anthropic's docs.").font(.caption).foregroundStyle(.secondary)
+            }
+            Picker("Effort", selection: model.settings.effort) {
+                ForEach(Effort.allCases, id: \.self) { Text($0.label).tag($0) }
+            }
+            .pickerStyle(.segmented)
+            .disabled(!ModelCatalog.supportsEffort(self.model.settings.model))
+            Text("Higher effort produces more thorough results, but takes longer and uses more tokens on your API key.")
+                .font(.caption).foregroundStyle(.secondary)
+            if !ModelCatalog.supportsEffort(self.model.settings.model) {
+                Text("Claude Haiku 4.5 doesn't support Effort — this only applies to Sonnet, Opus, and Fable models.")
+                    .font(.caption).foregroundStyle(.orange)
+            } else if !isStandardModel {
+                Text("This custom model may or may not support Effort — if requests start failing, try turning it off.")
+                    .font(.caption).foregroundStyle(.orange)
+            }
+        }
+    }
+
+    private func languageSection(model: Bindable<AppModel>) -> some View {
+        Section("Language") {
+            LanguageSearchField(selection: model.settings.motherLanguage)
+            Text("Used by the \"Translate\" action under Help me → Understand.").font(.caption).foregroundStyle(.secondary)
+            Picker("App Language", selection: model.settings.appLanguage) {
+                ForEach(AppLanguage.allCases) { Text($0.displayName).tag($0) }
+            }
+            Text("Only English and Vietnamese are available today. Want Per My Last in your own language? We'd love the help — use the Feedback form below to volunteer translating it.")
+                .font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    private func generalSection(model: Bindable<AppModel>) -> some View {
+        Section("General") {
+            Toggle("Show in Dock", isOn: model.settings.showInDock)
+            Text("On by default. Turn off to run Per My Last from the menu bar only, with no Dock icon (also toggleable from the tray menu).")
+                .font(.caption).foregroundStyle(.secondary)
+            Toggle("Launch at login", isOn: $launchAtLogin)
+                .onChange(of: launchAtLogin) { _, on in
+                    do { if on { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() } }
+                    catch { launchAtLogin = SMAppService.mainApp.status == .enabled }
+                }
+            Text("Starts Per My Last automatically when you log in to your Mac.")
+                .font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    private var feedbackSection: some View {
+        Section("Feedback") {
+            ZStack(alignment: .topLeading) {
+                TextEditor(text: $feedbackText)
+                    .scrollContentBackground(.hidden)
+                    .focused($feedbackFocused)
+                    .padding(6)
+                if feedbackText.isEmpty {
+                    Text("Bugs, feature ideas, language requests — anything.")
+                        .foregroundStyle(.tertiary)
+                        .padding(.horizontal, 11).padding(.vertical, 14)
+                        .allowsHitTesting(false)
+                }
+            }
+            .frame(minHeight: 80)
+            .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 8))
+            HStack {
+                Button("Send Feedback") {
+                    let body = feedbackText.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if body.isEmpty {
+                        feedbackStatus = L("Please write something first.")
+                    } else {
+                        model.sendFeedback(body: body)
+                        feedbackStatus = L("Opening your email app…")
+                    }
+                }
+                if let feedbackStatus { Text(feedbackStatus).font(.caption).foregroundStyle(.secondary) }
+            }
+            Text("Opens your email app with this addressed to us — review it and hit send there.")
+                .font(.caption).foregroundStyle(.secondary)
+        }
     }
 
     /// Picker selection that maps any non-standard model ID to the "Other" row.
-    private func modelSelection(_ model: AppModel) -> Binding<String> {
+    private var modelSelection: Binding<String> {
         Binding(
             get: { isStandardModel ? model.settings.model : "other" },
             set: { model.settings.model = ($0 == "other") ? "" : $0 }
@@ -73,8 +151,8 @@ struct GeneralSettingsView: View {
     }
 }
 
-private extension Effort {
-    var label: String {
+extension Effort {
+    var label: LocalizedStringKey {
         switch self {
         case .low: "Low"
         case .medium: "Medium"

@@ -24,6 +24,12 @@ final class AppModel {
 
     // MARK: Session (not persisted)
     var hotKeyError: String?
+    var shortcutBannerDismissed = false
+    /// Bumped by the Settings footer to jump to the feedback box.
+    var feedbackFocusToken = 0
+    /// Briefly true after a settings change was saved (drives the "Saved" flash).
+    var settingsSavedFlash = false
+    var writeMyWay: WriteMyWaySettings
     var activeMode: String
     var selectedLabel: String?
     var inputText = ""
@@ -54,6 +60,7 @@ final class AppModel {
         self.intentModes = Persistence.load("intentModes", as: [String].self) ?? (modes.contains("Reply") ? ["Reply"] : [])
         self.settings = Persistence.load("settings", as: AppSettings.self) ?? AppSettings()
         self.enabled = UserDefaults.standard.object(forKey: "isEnabled") as? Bool ?? true
+        self.writeMyWay = Persistence.load("writeMyWay", as: WriteMyWaySettings.self) ?? WriteMyWaySettings()
         self.activeMode = modes.first ?? PresetLibrary.defaultModes[0]
         self.selectedLabel = nil
         selectDefaultPreset()
@@ -64,6 +71,37 @@ final class AppModel {
     func saveSettings() {
         Persistence.save(settings, key: "settings")
         applyDockVisibility()
+        if HotKeyCenter.shared.registered != settings.shortcut { applyShortcut() }
+        flashSaved()
+    }
+
+    func saveWriteMyWay() { Persistence.save(writeMyWay, key: "writeMyWay") }
+
+    private var savedFlashTask: Task<Void, Never>?
+    func flashSaved() {
+        settingsSavedFlash = true
+        savedFlashTask?.cancel()
+        savedFlashTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(2))
+            if !Task.isCancelled { self?.settingsSavedFlash = false }
+        }
+    }
+
+    // MARK: Shortcut
+
+    /// Registers the saved shortcut; reports a clash with another app.
+    func applyShortcut() {
+        let ok = HotKeyCenter.shared.apply(accelerator: settings.shortcut)
+        hotKeyError = ok ? nil : L("\(shortcutDisplay) is already used by another app.")
+    }
+
+    var shortcutDisplay: String {
+        KeyCombo(accelerator: settings.shortcut)?.display ?? ShortcutConflicts.display(settings.shortcut)
+    }
+
+    /// An advisory (app-level) clash for the saved shortcut, shown as a banner.
+    var shortcutAppConflict: ShortcutConflict? {
+        ShortcutConflicts.find(settings.shortcut, scope: .app)
     }
 
     func setEnabled(_ value: Bool) {
@@ -91,15 +129,29 @@ final class AppModel {
         apiKeyLoaded = true
     }
 
-    /// Writes the key to the Keychain, skipping no-op saves (including the one
-    /// triggered by `loadAPIKey` filling the field).
+    private var apiKeyWriteTask: Task<Void, Never>?
+
+    /// Writes the key to the Keychain shortly after typing stops. Skips no-op
+    /// saves (including the one `loadAPIKey` triggers by filling the field) and
+    /// anything that isn't an Anthropic key, as the Electron app did.
     func saveAPIKey() {
         guard apiKeyLoaded else { return }
         let trimmed = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmed != savedAPIKey else { return }
-        savedAPIKey = trimmed
-        let account = apiKeyAccount
-        Task.detached(priority: .userInitiated) { KeychainStore.write(trimmed, account: account) }
+        guard trimmed != savedAPIKey, trimmed.isEmpty || trimmed.hasPrefix("sk-ant-") else { return }
+        apiKeyWriteTask?.cancel()
+        apiKeyWriteTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(0.6))
+            guard !Task.isCancelled, let self else { return }
+            savedAPIKey = trimmed
+            let account = apiKeyAccount
+            await Task.detached(priority: .userInitiated) { KeychainStore.write(trimmed, account: account) }.value
+            flashSaved()
+        }
+    }
+
+    var apiKeyLooksInvalid: Bool {
+        let trimmed = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        return !trimmed.isEmpty && !trimmed.hasPrefix("sk-ant-")
     }
 
     private func savePresets() { Persistence.save(presets, key: "presets") }
@@ -137,6 +189,14 @@ final class AppModel {
         selectedLabel = preset.label
         editingPrompt = false
         savedFlash = nil
+    }
+
+    /// Arrow-key navigation along the chips.
+    func selectNeighbour(_ step: Int) {
+        let inMode = presetsInActiveMode
+        guard !inMode.isEmpty else { return }
+        let current = inMode.firstIndex { $0.label == selectedLabel } ?? 0
+        select(inMode[(current + step + inMode.count) % inMode.count])
     }
 
     func blurb(for preset: Preset) -> String {
@@ -184,7 +244,7 @@ final class AppModel {
             requiresMotherLanguage: preset.requiresMotherLanguage), modes: modes)
         savePresets()
         editingPrompt = false
-        flash("Saved to \(savedTargetLabel(preset))")
+        flash(L("Saved to \(savedTargetLabel(preset))"))
     }
 
     private func flash(_ message: String) {
@@ -283,6 +343,7 @@ final class AppModel {
         output = ""
         errorMessage = nil
         hasResult = false
+        shortcutBannerDismissed = false
         WindowCoordinator.shared.showPopup()
         focusToken += 1
     }
@@ -292,9 +353,9 @@ final class AppModel {
     func send() async {
         guard let preset = currentPreset, !isSending else { return }
         let text = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty else { errorMessage = String(localized: "Select or paste text first"); return }
+        guard !text.isEmpty else { errorMessage = L("Select or paste text first"); return }
         if motherLanguageMissing {
-            errorMessage = String(localized: "Set your mother language in Settings first")
+            errorMessage = L("Set your mother language in Settings first")
             return
         }
 
@@ -328,18 +389,19 @@ final class AppModel {
 
     // MARK: Footer actions
 
-    func sendFeedback() {
+    func sendFeedback(body: String = "") {
         var components = URLComponents()
         components.scheme = "mailto"
         components.path = Self.feedbackEmail
-        components.queryItems = [URLQueryItem(name: "subject", value: "Per My Last Feedback")]
+        components.queryItems = [URLQueryItem(name: "subject", value: "Per My Last Feedback"),
+                                 URLQueryItem(name: "body", value: body)]
         if let url = components.url { NSWorkspace.shared.open(url) }
     }
 
     func checkForUpdates() {
         let alert = NSAlert()
-        alert.messageText = "You're on version \(appVersion)"
-        alert.informativeText = "Automatic update checking isn't set up yet. For now, download new builds from wherever you got this one."
+        alert.messageText = L("You're on version \(appVersion)")
+        alert.informativeText = L("Automatic update checking isn't set up yet. For now, download new builds from wherever you got this one.")
         alert.runModal()
     }
 
