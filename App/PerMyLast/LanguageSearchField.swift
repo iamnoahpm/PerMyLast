@@ -13,12 +13,19 @@ struct LanguageSearchField: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                if let flag { Text(flag) }
-                TextField("Mother language", text: $query, prompt: Text("Type to search — e.g. Spanish, Japanese, French"))
-                    .focused($focused)
-                    .onSubmit(commit)
-                    .onChange(of: focused) { _, isFocused in if !isFocused { commit() } }
+            // Label on the left; flag + name on the right, the same place the
+            // App Language picker shows its flag and name.
+            LabeledContent("Mother language") {
+                HStack(spacing: 6) {
+                    if let flag { Text(flag) }
+                    TextField("Mother language", text: $query, prompt: Text("Type to search — e.g. Spanish, Japanese, French"))
+                        .labelsHidden()
+                        .textFieldStyle(.plain)
+                        .multilineTextAlignment(.trailing)
+                        .focused($focused)
+                        .onSubmit(commit)
+                        .onChange(of: focused) { _, isFocused in if !isFocused { commit() } }
+                }
             }
             if focused, !query.isEmpty, query != selection, !matches.isEmpty {
                 VStack(alignment: .leading, spacing: 0) {
