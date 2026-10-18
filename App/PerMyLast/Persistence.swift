@@ -9,6 +9,8 @@ struct AppSettings: Codable, Equatable {
     var motherLanguage = ""
     /// Whether the app also shows in the Dock (like the Electron version).
     var showInDock = true
+    /// Advanced → Wartime / Peacetime mode configurator.
+    var wartimePeacetimeEnabled = false
 
     init() {}
 
@@ -22,6 +24,7 @@ struct AppSettings: Codable, Equatable {
         workspaceId = try c.decodeIfPresent(String.self, forKey: .workspaceId) ?? d.workspaceId
         motherLanguage = try c.decodeIfPresent(String.self, forKey: .motherLanguage) ?? d.motherLanguage
         showInDock = try c.decodeIfPresent(Bool.self, forKey: .showInDock) ?? d.showInDock
+        wartimePeacetimeEnabled = try c.decodeIfPresent(Bool.self, forKey: .wartimePeacetimeEnabled) ?? d.wartimePeacetimeEnabled
     }
 }
 

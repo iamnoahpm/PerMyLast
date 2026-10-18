@@ -1,5 +1,6 @@
 import AppKit
 import Observation
+import SwiftUI
 import PerMyLastCore
 
 /// Everything the popup and settings windows show or change.
@@ -193,6 +194,81 @@ final class AppModel {
             try? await Task.sleep(for: .seconds(2.6))
             if !Task.isCancelled { self?.savedFlash = nil }
         }
+    }
+
+    // MARK: Tabs and preset editing (Settings → Tone Presets)
+
+    private func saveModes() {
+        Persistence.save(modes, key: "modes")
+        Persistence.save(intentModes, key: "intentModes")
+    }
+
+    /// Keeps the popup valid after presets or tabs changed underneath it.
+    private func presetsDidChange() {
+        if !modes.contains(activeMode) { activeMode = modes.first ?? PresetLibrary.defaultModes[0] }
+        if currentPreset == nil { selectDefaultPreset() }
+    }
+
+    func addMode() {
+        modes = PresetLibrary.addMode(modes)
+        saveModes()
+    }
+
+    @discardableResult
+    func renameMode(from: String, to: String) -> Bool {
+        guard let result = PresetLibrary.renameMode(modes, presets: presets, from: from, to: to) else { return false }
+        let newName = to.trimmingCharacters(in: .whitespacesAndNewlines)
+        modes = result.modes
+        presets = result.presets
+        intentModes = intentModes.map { $0 == from ? newName : $0 }
+        if activeMode == from { activeMode = newName }
+        saveModes(); savePresets()
+        presetsDidChange()
+        return true
+    }
+
+    @discardableResult
+    func deleteMode(_ name: String) -> Bool {
+        guard let result = PresetLibrary.deleteMode(modes, presets: presets, name: name) else { return false }
+        modes = result.modes
+        presets = result.presets
+        intentModes.removeAll { $0 == name }
+        saveModes(); savePresets()
+        presetsDidChange()
+        return true
+    }
+
+    func moveModes(from: IndexSet, to: Int) {
+        var reordered = modes
+        reordered.move(fromOffsets: from, toOffset: to)
+        modes = PresetLibrary.reorderModes(modes, ordered: reordered)
+        saveModes()
+    }
+
+    /// Applies the Settings editor's rows (reorder, rename, edits, default flag).
+    func applyPresetEdits(_ edits: [PresetEdit]) {
+        presets = PresetLibrary.applyEdits(stored: presets, incoming: edits, modes: modes)
+        savePresets()
+        presetsDidChange()
+    }
+
+    /// Adds a uniquely named, empty action to a tab and returns its label.
+    @discardableResult
+    func addPreset(to mode: String) -> String {
+        let existing = Set(presets.filter { PresetLibrary.normalizeCategory($0.category, modes: modes) == mode }.map(\.label))
+        var label = "New Action"
+        var n = 2
+        while existing.contains(label) { label = "New Action \(n)"; n += 1 }
+        presets = PresetLibrary.upsert(presets, draft: PresetDraft(label: label, category: mode, prompt: ""), modes: modes)
+        savePresets()
+        presetsDidChange()
+        return label
+    }
+
+    func deletePreset(_ label: String) {
+        presets = PresetLibrary.delete(presets, label: label, modes: modes)
+        savePresets()
+        presetsDidChange()
     }
 
     // MARK: Hotkey

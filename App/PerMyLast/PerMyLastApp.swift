@@ -41,6 +41,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Task { @MainActor in
             // Dev aid: PML_SHOW_POPUP=1 opens the popup at launch.
             if ProcessInfo.processInfo.environment["PML_SHOW_POPUP"] == "1" { WindowCoordinator.shared.showPopup() }
+            if ProcessInfo.processInfo.environment["PML_SHOW_SETTINGS"] == "1" { WindowCoordinator.shared.showSettings() }
             await AppModel.shared.loadAPIKey()
             // First run: Settings. Otherwise show the popup, as the Electron app did.
             if AppModel.shared.apiKey.isEmpty { WindowCoordinator.shared.showSettings() }
