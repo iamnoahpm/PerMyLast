@@ -280,7 +280,7 @@
             <input type="checkbox" id="showInDock">
             <span data-i18n="showInDockLabel">Show in Dock</span>
           </label>
-          <small data-i18n="showInDockHint">Off by default — Per My Last runs from the menu bar only. Turn on to also get a Dock icon (also toggleable from the tray menu).</small>
+          <small data-i18n="showInDockHint">On by default. Turn off to run Per My Last from the menu bar only, with no Dock icon (also toggleable from the tray menu).</small>
 
           <label class="checkbox-row" for="launchAtLogin" style="margin-top:14px;">
             <input type="checkbox" id="launchAtLogin">
@@ -306,15 +306,7 @@
             <option value="en-GB">🇬🇧 English (UK)</option>
             <option value="vi">🇻🇳 Tiếng Việt</option>
           </select>
-          <small data-i18n="appLanguageHint">Only English and Vietnamese are available today. Want Per My Last in your own language? We'd love the help — use the Feedback form below to volunteer translating it.</small>
-        </div>
-
-        <div class="card">
-          <label for="feedbackText" data-i18n="feedbackLabel">Feedback</label>
-          <textarea id="feedbackText" rows="4" placeholder="Bugs, feature ideas, language requests — anything." data-i18n-placeholder="feedbackPlaceholder"></textarea>
-          <button type="button" id="sendFeedbackBtn" class="btn-outline" data-i18n="feedbackSendBtn">Send Feedback</button>
-          <small data-i18n="feedbackHint">Opens your email app with this addressed to us — review it and hit send there.</small>
-          <div class="status" id="feedbackStatus"></div>
+          <small data-i18n="appLanguageHint">Only English and Vietnamese are available today. Want Per My Last in your own language? We'd love the help — use Send feedback in the footer to volunteer translating it.</small>
         </div>
 
         <button id="save" data-i18n="saveSettingsBtn">Save Settings</button>
@@ -513,7 +505,7 @@
   const $ = (s) => document.querySelector(s);
   window.api.getAppName().then((name) => { $('#titleText').textContent = name + ' Settings'; document.title = name + ' Settings'; });
   window.api.getAppVersion().then((v) => { appVersion = v; $('#footerVersion').textContent = window.I18n.t(currentLang, 'footerVersion', { version: v }); });
-  $('#footerFeedbackBtn').addEventListener('click', () => { document.querySelector('.tab[data-tab="general"]').click(); $('#feedbackText').focus(); });
+  $('#footerFeedbackBtn').addEventListener('click', () => window.api.sendFeedback(''));
 
   // "Saved" flash in the titlebar — fades in for 2s after any settings
   // change that actually persists. Structural preset edits (add/delete/
@@ -907,21 +899,6 @@
     } else if (e.key === 'Escape') {
       box.style.display = 'none';
     }
-  });
-
-  // Feedback form -----------------------------------------------------------
-  $('#sendFeedbackBtn').addEventListener('click', async () => {
-    const text = $('#feedbackText').value.trim();
-    const fbStatus = $('#feedbackStatus');
-    if (!text) {
-      fbStatus.textContent = window.I18n.t(currentLang, 'feedbackEmptyErr');
-      fbStatus.className = 'status err';
-      return;
-    }
-    await window.api.sendFeedback(text);
-    fbStatus.textContent = window.I18n.t(currentLang, 'feedbackOpening');
-    fbStatus.className = 'status ok';
-    $('#feedbackText').value = '';
   });
 
   // Tabs ("modes") are fully user-owned: renamable, addable, deletable,
