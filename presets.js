@@ -261,6 +261,16 @@ function reorderModes(modes, orderedNames) {
   return next;
 }
 
+// The Ask tab sends the user's question straight to the model, with no preset
+// prompt wrapped around it. Answers can run longer than a rewrite, hence the
+// larger token budget.
+const ASK_MAX_TOKENS = 4096;
+const ASK_SYSTEM_PROMPT = 'You are a helpful general-purpose assistant. Answer the question directly and clearly, and keep it as short as the question allows.';
+
+function buildAskRequest(question) {
+  return { system: ASK_SYSTEM_PROMPT, content: question };
+}
+
 function buildClaudeRequest(text, prompt, isEmail) {
   if (isEmail) {
     return {
@@ -278,5 +288,5 @@ module.exports = {
   DEFAULT_MODES, DEFAULT_PRESETS, migrateLegacyDefaults,
   validateLabel, normalizeCategory, normalizePresets, upsertPreset, deletePreset, incrementUses, applyPresetEdits,
   addMode, renameMode, deleteMode, reorderModes,
-  buildClaudeRequest
+  buildClaudeRequest, buildAskRequest, ASK_MAX_TOKENS
 };

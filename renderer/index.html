@@ -51,6 +51,11 @@
   .cat-tab { padding:6px 10px 9px; border:0; background:transparent; cursor:pointer; font-family:inherit; font-size:var(--t-tab-main); font-weight:500; color:var(--vc-label-subtle); flex-shrink:0; transition:color var(--dur-fast) var(--ease); text-align:left; }
   .cat-tab:hover:not(.active) { color:var(--fg); }
   .cat-tab.active { font-weight:700; color:var(--fg); box-shadow:inset 0 -2px 0 var(--accent-cool); }
+  /* Ask is a fixed tab with a single question box instead of presets. */
+  .ask-only { display:none; }
+  .ask-label { display:block; font-size:var(--t-meta); font-weight:700; color:var(--vc-label-muted); margin-bottom:6px; }
+  .main.asking .ask-only { display:block; }
+  .main.asking .source-wrap:not(.ask-only), .main.asking #hmActions, .main.asking .prompt-meta, .main.asking #promptRegion, .main.asking #hmReplyIntentWrap { display:none !important; }
   .cat-icon, .cat-hint, .mode-title { display:none; }
   .cat-icon svg { width:17px; height:17px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
   .cat-label { display:block; }
@@ -199,10 +204,15 @@
           <span id="settingsLinkLabel">Settings</span>
         </button>
       </aside>
-      <div class="main">
+      <div class="main" id="mainCol">
       <div class="mode-intro">
         <h2 class="mode-title" id="modeTitle"></h2>
         <p class="mode-sub" id="modeSub"></p>
+      </div>
+
+      <div class="source-wrap ask-only" id="askWrap">
+        <label class="ask-label" for="askBox" id="askLabel">Your question</label>
+        <textarea id="askBox" class="hm-source" rows="6"></textarea>
       </div>
 
       <div class="source-wrap">
@@ -276,6 +286,11 @@
   // Settings), so both lists are fetched live rather than hardcoded — see
   // loadPresets() and onModesUpdated below.
   let CATEGORIES = ['Reply', 'Write', 'Understand'];
+  // Ask is a fixed last tab, not a preset or a user-owned mode: it can't be
+  // renamed, reordered or deleted, so it lives outside CATEGORIES.
+  const ASK_TAB = '__ask__';
+  const allTabs = () => [...CATEGORIES, ASK_TAB];
+  const isAsk = () => activeCategory === ASK_TAB;
   let INTENT_CATEGORIES = ['Reply'];
 
   let busy = false;
@@ -304,6 +319,7 @@
   });
 
   const selectedEl = $('#selected');
+  const askBoxEl = $('#askBox');
   const sendBtn = $('#send');
   const tabsEl = $('#hmTabs');
   const actionsEl = $('#hmActions');
@@ -359,7 +375,7 @@
 
   // Tab names are user-authored text (renamed freely in Settings), not app
   // chrome — displayed as-is, not run through i18n.
-  function categoryDisplayLabel(cat) { return cat; }
+  function categoryDisplayLabel(cat) { return cat === ASK_TAB ? tr('askTab') : cat; }
 
   // Built-in modes get an icon, a one-line hint under the label (wide layout)
   // and a longer description above the presets. Matched by English name, so a
@@ -371,19 +387,19 @@
     understand: { hint: 'modeHintUnderstand', sub: 'modeSubUnderstand', icon: ICON('<path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/>') },
     ask:        { hint: 'modeHintAsk',        sub: 'modeSubAsk',        icon: ICON('<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>') }
   };
-  const modeInfo = (cat) => MODE_INFO[String(cat).trim().toLowerCase()] || null;
+  const modeInfo = (cat) => (cat === ASK_TAB ? MODE_INFO.ask : MODE_INFO[String(cat).trim().toLowerCase()] || null);
 
   // Remembered across launches so the popup opens on whatever the user used last.
   const LAST_CATEGORY_KEY = 'pml-last-category';
   function rememberCategory(cat) { try { localStorage.setItem(LAST_CATEGORY_KEY, cat); } catch {} }
   function lastCategory() {
-    try { const c = localStorage.getItem(LAST_CATEGORY_KEY); return CATEGORIES.includes(c) ? c : CATEGORIES[0]; } catch { return CATEGORIES[0]; }
+    try { const c = localStorage.getItem(LAST_CATEGORY_KEY); return allTabs().includes(c) ? c : CATEGORIES[0]; } catch { return CATEGORIES[0]; }
   }
 
   function renderTabs() {
     tabsEl.innerHTML = '';
     $('#railEyebrow').textContent = tr('eyebrow');
-    CATEGORIES.forEach((cat) => {
+    allTabs().forEach((cat) => {
       const info = modeInfo(cat);
       const btn = document.createElement('button');
       btn.type = 'button';
@@ -432,14 +448,16 @@
     renderActions();
     updatePromptUI();
     updateOutputUI();
+    focusInput();
   }
 
   tabsEl.addEventListener('keydown', (e) => {
     if (!['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp'].includes(e.key)) return;
     e.preventDefault();
-    const idx = CATEGORIES.indexOf(activeCategory);
-    const nextIdx = (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? (idx + 1) % CATEGORIES.length : (idx - 1 + CATEGORIES.length) % CATEGORIES.length;
-    selectCategory(CATEGORIES[nextIdx]);
+    const tabs = allTabs();
+    const idx = tabs.indexOf(activeCategory);
+    const nextIdx = (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? (idx + 1) % tabs.length : (idx - 1 + tabs.length) % tabs.length;
+    selectCategory(tabs[nextIdx]);
     tabsEl.children[nextIdx].focus();
   });
 
@@ -540,6 +558,15 @@
   }
 
   function updatePromptUI() {
+    $('#mainCol').classList.toggle('asking', isAsk());
+    if (isAsk()) {
+      // Ask has one question box and a plain Send button, no presets or prompt.
+      $('#sendRow').style.display = 'flex';
+      if (sendBtn.parentElement !== $('#sendRow')) $('#sendRow').appendChild(sendBtn);
+      sendBtn.classList.remove('has-intent');
+      updateSendState();
+      return;
+    }
     const preset = currentPreset();
     promptRegionEl.classList.toggle('open', promptOpen);
     $('#promptToggle').classList.toggle('open', promptOpen);
@@ -625,6 +652,11 @@
   });
 
   function updateSendState() {
+    if (isAsk()) {
+      sendBtn.disabled = busy || !askBoxEl.value.trim();
+      sendBtn.title = '';
+      return;
+    }
     const preset = currentPreset();
     const hasText = selectedEl.value.trim().length > 0;
     const missingMotherLanguage = !!(preset && preset.requiresMotherLanguage && !motherLanguage.trim());
@@ -641,6 +673,7 @@
     updateWordCount();
     updateSendState();
   });
+  askBoxEl.addEventListener('input', updateSendState);
 
   // A manual Cmd+V straight into this textarea bypasses onSelectedText/
   // beautifyText entirely — the browser just inserts the clipboard's
@@ -681,7 +714,9 @@
     outputPanelEl.classList.toggle('filled', sent);
     const preset = currentPreset();
     if (!sent) {
-      outputEmptyTextEl.innerHTML = tr('emptyOutputTitle') + '<br>' + (INTENT_CATEGORIES.includes(activeCategory) ? tr('emptyHintIntent') : tr('emptyHintNoIntent'));
+      outputEmptyTextEl.innerHTML = tr('emptyOutputTitle') + '<br>' + (isAsk() ? tr('emptyHintAsk') : INTENT_CATEGORIES.includes(activeCategory) ? tr('emptyHintIntent') : tr('emptyHintNoIntent'));
+    } else if (isAsk()) {
+      $('#outputLabel').textContent = tr('askTab');
     } else if (preset) {
       $('#outputLabel').textContent = preset.tone ? `${preset.label} · ${preset.tone}` : preset.label;
     }
@@ -726,7 +761,7 @@
   window.api.onModesUpdated(async (modes) => {
     CATEGORIES = modes;
     INTENT_CATEGORIES = await window.api.getIntentModes();
-    if (!CATEGORIES.includes(activeCategory)) {
+    if (!allTabs().includes(activeCategory)) {
       selectCategory(CATEGORIES[0]);
       return;
     }
@@ -764,8 +799,9 @@
   // once) is handled by the native window 'focus' event, which fires each
   // time the OS actually hands this window keyboard focus — including every
   // time showMainWindow()/captureAndFill() bring it forward.
-  selectedEl.focus();
-  window.addEventListener('focus', () => selectedEl.focus());
+  function focusInput() { (isAsk() ? askBoxEl : selectedEl).focus(); }
+  focusInput();
+  window.addEventListener('focus', focusInput);
 
   // Re-sent every time the popup is shown (see main.js's mainWindow.on('show')
   // handler) — this can't be detected at the exact moment a keystroke gets
@@ -812,16 +848,17 @@
   async function process() {
     if (busy || sendBtn.disabled) return;
     const preset = currentPreset();
+    const asking = isAsk();
     const { prompt, isEmail } = finalPromptAndIsEmail();
-    const text = selectedEl.value.trim();
-    if (!prompt || !text) return;
+    const text = (asking ? askBoxEl : selectedEl).value.trim();
+    if (!text || (!asking && !prompt)) return;
 
     busy = true;
     updateSendState();
     $('#sendLabel').textContent = tr('sending');
     errorRegionEl.innerHTML = '';
 
-    const r = await window.api.sendToClaude(text, prompt, isEmail, preset ? preset.label : null);
+    const r = await (asking ? window.api.askClaude(text) : window.api.sendToClaude(text, prompt, isEmail, preset ? preset.label : null));
 
     if (r.success) {
       sent = true;
@@ -855,6 +892,8 @@
   function applyTranslations() {
     $('#settingsLinkLabel').textContent = tr('openSettings').replace(' →', '');
     replyIntentEl.placeholder = tr('replyIntentPlaceholder');
+    askBoxEl.placeholder = tr('askPlaceholder');
+    $('#askLabel').textContent = tr('askLabel');
     selectedEl.placeholder = tr('sourcePlaceholder', { shortcut: shortcutDisplay || '⌃⌘⇧S' });
     $('#promptToggleLabel').textContent = tr('promptCaption');
     $('#promptEditHint').textContent = tr('clickToEdit');

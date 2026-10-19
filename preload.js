@@ -26,6 +26,7 @@ contextBridge.exposeInMainWorld('api', {
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),
   copyToClipboard: (t) => ipcRenderer.send('copy-to-clipboard', t),
   sendFeedback: (body) => ipcRenderer.invoke('send-feedback', body),
+  askClaude: (text) => ipcRenderer.invoke('claude-request', { text, ask: true }),
   suspendShortcutRecording: () => ipcRenderer.send('suspend-shortcut-recording'),
   resumeShortcutRecording: () => ipcRenderer.send('resume-shortcut-recording'),
   onSelectedText: (cb) => ipcRenderer.on('selected-text', (e, t) => cb(t)),

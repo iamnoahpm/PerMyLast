@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  DEFAULT_MODES, DEFAULT_PRESETS, migrateLegacyDefaults, validateLabel, normalizeCategory, normalizePresets,
+  DEFAULT_MODES, DEFAULT_PRESETS, migrateLegacyDefaults, buildAskRequest, ASK_MAX_TOKENS, validateLabel, normalizeCategory, normalizePresets,
   upsertPreset, deletePreset, incrementUses, applyPresetEdits,
   addMode, renameMode, deleteMode, reorderModes, buildClaudeRequest
 } from './presets.js';
@@ -379,5 +379,17 @@ describe('migrateLegacyDefaults', () => {
 
   it('is a no-op on the current defaults', () => {
     expect(migrateLegacyDefaults(DEFAULT_PRESETS)).toEqual(DEFAULT_PRESETS);
+  });
+});
+
+describe('buildAskRequest', () => {
+  it('sends the question as-is under a general-assistant system prompt', () => {
+    const req = buildAskRequest('Is "per my last email" too snippy?');
+    expect(req.content).toBe('Is "per my last email" too snippy?');
+    expect(req.system).toMatch(/general-purpose assistant/);
+  });
+
+  it('allows a longer answer than a rewrite', () => {
+    expect(ASK_MAX_TOKENS).toBe(4096);
   });
 });

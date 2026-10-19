@@ -2,7 +2,7 @@ const { app, BrowserWindow, globalShortcut, ipcMain, Tray, Menu, clipboard, nati
 const Store = require('electron-store');
 const path = require('path');
 const { execFile } = require('child_process');
-const { DEFAULT_MODES, DEFAULT_PRESETS, migrateLegacyDefaults, validateLabel, normalizePresets, upsertPreset, deletePreset, incrementUses, applyPresetEdits, addMode, renameMode, deleteMode, reorderModes, buildClaudeRequest } = require('./presets');
+const { DEFAULT_MODES, DEFAULT_PRESETS, migrateLegacyDefaults, validateLabel, normalizePresets, upsertPreset, deletePreset, incrementUses, applyPresetEdits, addMode, renameMode, deleteMode, reorderModes, buildClaudeRequest, buildAskRequest, ASK_MAX_TOKENS } = require('./presets');
 const { findShortcutConflict } = require('./renderer/shortcutConflicts');
 
 // Distinguishes a dev/test run from the packaged app installed from the DMG —
@@ -526,15 +526,15 @@ ipcMain.handle('reorder-tone-modes', (e, orderedNames) => {
   return { success: true, modes };
 });
 
-ipcMain.handle('claude-request', async (e, { text, prompt, isEmail, presetLabel }) => {
+ipcMain.handle('claude-request', async (e, { text, prompt, isEmail, presetLabel, ask }) => {
   const apiKey = store.get('apiKey', '');
   const model = store.get('model', DEFAULT_MODEL);
   const effort = store.get('effort', DEFAULT_EFFORT);
   const workspaceId = store.get('workspaceId', '');
   if (!apiKey) return { success: false, error: 'API key not set. Open Settings from the menu bar icon.' };
 
-  const { system, content } = buildClaudeRequest(text, prompt, isEmail);
-  const body = { model, max_tokens: 1024, system, messages: [{ role: 'user', content }] };
+  const { system, content } = ask ? buildAskRequest(text) : buildClaudeRequest(text, prompt, isEmail);
+  const body = { model, max_tokens: ask ? ASK_MAX_TOKENS : 1024, system, messages: [{ role: 'user', content }] };
   // Sonnet 5, Opus 5, and Fable 5 default to adaptive thinking with no
   // `thinking` param needed — effort just tunes how much of it they do.
   // Haiku 4.5 is an older-tier model that rejects the param outright.
