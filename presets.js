@@ -6,20 +6,57 @@
 // whichever mode it currently lives under.
 const DEFAULT_MODES = ['Reply', 'Write', 'Understand'];
 
+// Shared shape of the two Write defaults: a casual Teams message that only
+// fixes grammar, phrasing, and flow, so the content the user wrote survives.
+const WRITE_RULES = 'Fix grammar, phrasing, and flow only. Keep the content intact. Use line breaks only where they help readability. Never use em dashes.';
+const LIKE_BRIT_PROMPT = `Rewrite this as a casual Teams message in natural, native English. ${WRITE_RULES}`;
+const LIKE_ME_PROMPT = `Rewrite this as a casual Teams message that still sounds like me. ${WRITE_RULES}`;
+const EXPLAIN_PROMPT = 'Explain this in simple terms. Don\'t ever use "—" in the output.';
+const TRANSLATE_PROMPT = 'Translate this into {{motherLanguage}}. Don\'t ever use "—" in the output.';
+
 const DEFAULT_PRESETS = [
   { label: 'Email', category: 'Reply', icon: '📧', blurb: 'Workplace email reply in your tone', tone: 'Direct', prompt: 'You are an expert email writer who drafts clear, professional email replies for workplace contexts. Write the reply in a Direct tone.', isEmail: true, isDefault: true },
   { label: 'Message', category: 'Reply', icon: '💬', blurb: 'Short chat / DM reply', tone: 'Warm', prompt: 'Write a short, natural reply to this message. Keep it conversational and to the point.', isEmail: false, isDefault: false },
-  { label: 'Rewrite like Native', category: 'Write', icon: '✍️', blurb: 'Clear, native English level', tone: 'Neutral', prompt: 'Rewrite this text like a native English.', isEmail: false, isDefault: true },
-  { label: 'Rewrite Like Me', category: 'Write', icon: '🙋‍♂', blurb: 'Match my style, my English level', tone: 'Personal', prompt: 'Rewrite this text like me.', isEmail: false, isDefault: false },
-  { label: 'Fix Grammar', category: 'Write', icon: '🔤', blurb: 'Spelling and grammar only', tone: 'Neutral', prompt: 'Fix grammar and spelling.', isEmail: false, isDefault: false },
-  { label: 'Professional', category: 'Write', icon: '👔', blurb: 'Raise the register', tone: 'Formal', prompt: 'Make this more professional.', isEmail: false, isDefault: false },
-  { label: 'Explain', category: 'Understand', icon: '💡', blurb: 'Plain-language summary', tone: 'Plain', prompt: 'Explain this in simple terms.', isEmail: false, isDefault: true },
+  { label: 'Like Brit.', category: 'Write', icon: '🤴', blurb: 'Casual Teams message, native English', tone: 'Casual', prompt: LIKE_BRIT_PROMPT, isEmail: false, isDefault: true },
+  { label: 'Like Me', category: 'Write', icon: '🫆', blurb: 'Casual Teams message, still sounds like me', tone: 'Personal', prompt: LIKE_ME_PROMPT, isEmail: false, isDefault: false },
+  { label: 'Explain', category: 'Understand', icon: '💡', blurb: 'Plain-language summary', tone: 'Plain', prompt: EXPLAIN_PROMPT, isEmail: false, isDefault: true },
   // {{motherLanguage}} is resolved client-side from the Settings "mother
   // language" field before sending — see resolvedPromptText/resolvedBlurbText
   // in index.html. The blurb carries the same token so the chip hint on the
   // main page shows the actual configured language, not a generic label.
-  { label: 'Translate', category: 'Understand', icon: '🌐', blurb: 'Into {{motherLanguage}}', tone: 'Neutral', prompt: 'Translate this into {{motherLanguage}}', isEmail: false, isDefault: false, requiresMotherLanguage: true }
+  { label: 'Translate', category: 'Understand', icon: '🌐', blurb: 'Into {{motherLanguage}}', tone: 'Neutral', prompt: TRANSLATE_PROMPT, isEmail: false, isDefault: false, requiresMotherLanguage: true }
 ].map((p) => ({ ...p, originalPrompt: p.prompt, uses: 0 }));
+
+// Defaults shipped by earlier versions, keyed by label. migrateLegacyDefaults
+// only touches a preset whose prompt still equals the shipped original, so a
+// copy the user edited is left exactly as they wrote it.
+const LEGACY_DEFAULTS = {
+  'Rewrite like Native': { prompt: 'Rewrite this text like a native English.', to: 'Like Brit.' },
+  'Rewrite Like Me': { prompt: 'Rewrite this text like me.', to: 'Like Me' },
+  'Fix Grammar': { prompt: 'Fix grammar and spelling.', to: null },
+  'Professional': { prompt: 'Make this more professional.', to: null },
+  'Explain': { prompt: 'Explain this in simple terms.', to: 'Explain' },
+  'Translate': { prompt: 'Translate this into {{motherLanguage}}', to: 'Translate' }
+};
+
+// Brings an installed preset list up to the current defaults: renames and
+// rewrites the two Write defaults, drops Fix Grammar and Professional, and
+// refreshes the Explain and Translate prompts. Untouched copies only (the
+// stored prompt equals its original and the original is the old default);
+// idempotent, so it is safe to run on every read.
+function migrateLegacyDefaults(list) {
+  const fresh = new Map(DEFAULT_PRESETS.map((p) => [p.label, p]));
+  const out = [];
+  list.forEach((p) => {
+    const legacy = LEGACY_DEFAULTS[p.label];
+    const untouched = legacy && p.prompt === legacy.prompt && (p.originalPrompt === undefined || p.originalPrompt === legacy.prompt);
+    if (!untouched) { out.push(p); return; }
+    if (legacy.to === null) return;
+    const next = fresh.get(legacy.to);
+    out.push({ ...p, label: next.label, icon: next.icon, blurb: next.blurb, tone: next.tone, prompt: next.prompt, originalPrompt: next.prompt });
+  });
+  return out;
+}
 
 function validateLabel(label) {
   return typeof label === 'string' && label.trim().length > 0;
@@ -238,7 +275,7 @@ function buildClaudeRequest(text, prompt, isEmail) {
 }
 
 module.exports = {
-  DEFAULT_MODES, DEFAULT_PRESETS,
+  DEFAULT_MODES, DEFAULT_PRESETS, migrateLegacyDefaults,
   validateLabel, normalizeCategory, normalizePresets, upsertPreset, deletePreset, incrementUses, applyPresetEdits,
   addMode, renameMode, deleteMode, reorderModes,
   buildClaudeRequest

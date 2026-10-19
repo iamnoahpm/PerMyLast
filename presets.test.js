@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  DEFAULT_MODES, DEFAULT_PRESETS, validateLabel, normalizeCategory, normalizePresets,
+  DEFAULT_MODES, DEFAULT_PRESETS, migrateLegacyDefaults, validateLabel, normalizeCategory, normalizePresets,
   upsertPreset, deletePreset, incrementUses, applyPresetEdits,
   addMode, renameMode, deleteMode, reorderModes, buildClaudeRequest
 } from './presets.js';
@@ -115,37 +115,37 @@ describe('icon (user-editable, unlike isEmail/requiresMotherLanguage)', () => {
   });
 
   it('can be customized via applyPresetEdits', () => {
-    const incoming = DEFAULT_PRESETS.map((p) => p.label === 'Rewrite like Native'
+    const incoming = DEFAULT_PRESETS.map((p) => p.label === 'Like Brit.'
       ? { originalLabel: p.label, label: p.label, prompt: p.prompt, blurb: p.blurb, isDefault: p.isDefault, icon: '🪄' }
       : { originalLabel: p.label, label: p.label, prompt: p.prompt, blurb: p.blurb, isDefault: p.isDefault, icon: p.icon });
     const result = applyPresetEdits(DEFAULT_PRESETS, incoming, DEFAULT_MODES);
-    expect(result.find((p) => p.label === 'Rewrite like Native').icon).toBe('🪄');
+    expect(result.find((p) => p.label === 'Like Brit.').icon).toBe('🪄');
   });
 
   it('can be removed entirely (empty string is a valid, intentional value)', () => {
-    const incoming = DEFAULT_PRESETS.map((p) => p.label === 'Rewrite like Native'
+    const incoming = DEFAULT_PRESETS.map((p) => p.label === 'Like Brit.'
       ? { originalLabel: p.label, label: p.label, prompt: p.prompt, blurb: p.blurb, isDefault: p.isDefault, icon: '' }
       : { originalLabel: p.label, label: p.label, prompt: p.prompt, blurb: p.blurb, isDefault: p.isDefault, icon: p.icon });
     const result = applyPresetEdits(DEFAULT_PRESETS, incoming, DEFAULT_MODES);
-    expect(result.find((p) => p.label === 'Rewrite like Native').icon).toBe('');
+    expect(result.find((p) => p.label === 'Like Brit.').icon).toBe('');
   });
 
   it('falls back to the stored icon when incoming omits it', () => {
     const incoming = DEFAULT_PRESETS.map((p) => ({ originalLabel: p.label, label: p.label, prompt: p.prompt, blurb: p.blurb, isDefault: p.isDefault }));
     const result = applyPresetEdits(DEFAULT_PRESETS, incoming, DEFAULT_MODES);
-    expect(result.find((p) => p.label === 'Rewrite like Native').icon).toBe(DEFAULT_PRESETS.find((p) => p.label === 'Rewrite like Native').icon);
+    expect(result.find((p) => p.label === 'Like Brit.').icon).toBe(DEFAULT_PRESETS.find((p) => p.label === 'Like Brit.').icon);
   });
 });
 
 describe('deletePreset', () => {
   it('removes a non-default preset', () => {
-    const after = deletePreset(DEFAULT_PRESETS, 'Fix Grammar', DEFAULT_MODES);
-    expect(after.find((p) => p.label === 'Fix Grammar')).toBeUndefined();
+    const after = deletePreset(DEFAULT_PRESETS, 'Like Me', DEFAULT_MODES);
+    expect(after.find((p) => p.label === 'Like Me')).toBeUndefined();
     expect(after).toHaveLength(DEFAULT_PRESETS.length - 1);
   });
 
   it('is a no-op for the current default of a category', () => {
-    const after = deletePreset(DEFAULT_PRESETS, 'Rewrite like Native', DEFAULT_MODES);
+    const after = deletePreset(DEFAULT_PRESETS, 'Like Brit.', DEFAULT_MODES);
     expect(after).toEqual(DEFAULT_PRESETS);
   });
 
@@ -169,37 +169,37 @@ describe('applyPresetEdits', () => {
   });
 
   it('applies an edited prompt and blurb while keeping category/isEmail from stored', () => {
-    const incoming = DEFAULT_PRESETS.map((p) => p.label === 'Rewrite like Native'
+    const incoming = DEFAULT_PRESETS.map((p) => p.label === 'Like Brit.'
       ? { originalLabel: p.label, label: p.label, prompt: 'New rewrite prompt:', blurb: 'New blurb', isDefault: p.isDefault }
       : { originalLabel: p.label, label: p.label, prompt: p.prompt, blurb: p.blurb, isDefault: p.isDefault });
     const result = applyPresetEdits(DEFAULT_PRESETS, incoming, DEFAULT_MODES);
-    const rewrite = result.find((p) => p.label === 'Rewrite like Native');
-    expect(rewrite).toMatchObject({ label: 'Rewrite like Native', category: 'Write', blurb: 'New blurb', prompt: 'New rewrite prompt:', isEmail: false });
+    const rewrite = result.find((p) => p.label === 'Like Brit.');
+    expect(rewrite).toMatchObject({ label: 'Like Brit.', category: 'Write', blurb: 'New blurb', prompt: 'New rewrite prompt:', isEmail: false });
   });
 
   it('renames a preset, matched by originalLabel, without touching its category', () => {
-    const incoming = DEFAULT_PRESETS.map((p) => p.label === 'Rewrite like Native'
+    const incoming = DEFAULT_PRESETS.map((p) => p.label === 'Like Brit.'
       ? { originalLabel: p.label, label: 'Reword', prompt: p.prompt, blurb: p.blurb, isDefault: p.isDefault }
       : { originalLabel: p.label, label: p.label, prompt: p.prompt, blurb: p.blurb, isDefault: p.isDefault });
     const result = applyPresetEdits(DEFAULT_PRESETS, incoming, DEFAULT_MODES);
-    expect(result.find((p) => p.label === 'Rewrite like Native')).toBeUndefined();
+    expect(result.find((p) => p.label === 'Like Brit.')).toBeUndefined();
     expect(result.find((p) => p.label === 'Reword')).toMatchObject({ category: 'Write', isDefault: true });
   });
 
   it('moves the default flag when the incoming data marks a different preset as default', () => {
     const incoming = DEFAULT_PRESETS.map((p) => ({
       originalLabel: p.label, label: p.label, prompt: p.prompt, blurb: p.blurb,
-      isDefault: p.label === 'Fix Grammar' ? true : (p.category === 'Write' ? false : p.isDefault)
+      isDefault: p.label === 'Like Me' ? true : (p.category === 'Write' ? false : p.isDefault)
     }));
     const result = applyPresetEdits(DEFAULT_PRESETS, incoming, DEFAULT_MODES);
-    expect(result.find((p) => p.label === 'Fix Grammar').isDefault).toBe(true);
-    expect(result.find((p) => p.label === 'Rewrite like Native').isDefault).toBe(false);
+    expect(result.find((p) => p.label === 'Like Me').isDefault).toBe(true);
+    expect(result.find((p) => p.label === 'Like Brit.').isDefault).toBe(false);
     expect(result.filter((p) => p.category === 'Write' && p.isDefault)).toHaveLength(1);
   });
 
   it('ignores unknown originalLabels', () => {
     const incoming = [
-      { originalLabel: 'Rewrite like Native', label: 'Rewrite like Native', prompt: 'x', blurb: '', isDefault: true },
+      { originalLabel: 'Like Brit.', label: 'Like Brit.', prompt: 'x', blurb: '', isDefault: true },
       { originalLabel: 'Ghost Preset', label: 'Ghost Preset', prompt: 'should be dropped' }
     ];
     const result = applyPresetEdits(DEFAULT_PRESETS, incoming, DEFAULT_MODES);
@@ -232,13 +232,13 @@ describe('originalPrompt (baseline for the "Edited" pill / Reset to original)', 
   });
 
   it('is preserved through applyPresetEdits when the live prompt changes', () => {
-    const incoming = DEFAULT_PRESETS.map((p) => p.label === 'Rewrite like Native'
+    const incoming = DEFAULT_PRESETS.map((p) => p.label === 'Like Brit.'
       ? { originalLabel: p.label, label: p.label, prompt: 'Edited prompt', blurb: p.blurb, isDefault: p.isDefault }
       : { originalLabel: p.label, label: p.label, prompt: p.prompt, blurb: p.blurb, isDefault: p.isDefault });
     const result = applyPresetEdits(DEFAULT_PRESETS, incoming, DEFAULT_MODES);
-    const edited = result.find((p) => p.label === 'Rewrite like Native');
+    const edited = result.find((p) => p.label === 'Like Brit.');
     expect(edited.prompt).toBe('Edited prompt');
-    expect(edited.originalPrompt).toBe(DEFAULT_PRESETS.find((p) => p.label === 'Rewrite like Native').originalPrompt);
+    expect(edited.originalPrompt).toBe(DEFAULT_PRESETS.find((p) => p.label === 'Like Brit.').originalPrompt);
   });
 });
 
@@ -341,5 +341,43 @@ describe('buildClaudeRequest', () => {
     const { system, content } = buildClaudeRequest('Hi there', 'Make this more professional:', false);
     expect(system).toContain('text processing assistant');
     expect(content).toBe('Make this more professional:\n\nText: Hi there');
+  });
+});
+
+describe('migrateLegacyDefaults', () => {
+  const old = (label, prompt, extra = {}) => ({ label, category: 'Write', icon: '', blurb: '', tone: '', prompt, originalPrompt: prompt, uses: 3, isEmail: false, isDefault: false, ...extra });
+
+  it('turns the untouched old Write defaults into Like Brit. and Like Me and drops the other two', () => {
+    const list = [
+      old('Rewrite like Native', 'Rewrite this text like a native English.', { isDefault: true }),
+      old('Rewrite Like Me', 'Rewrite this text like me.'),
+      old('Fix Grammar', 'Fix grammar and spelling.'),
+      old('Professional', 'Make this more professional.')
+    ];
+    const next = migrateLegacyDefaults(list);
+    expect(next.map((p) => p.label)).toEqual(['Like Brit.', 'Like Me']);
+    expect(next[0].isDefault).toBe(true);
+    expect(next[0].uses).toBe(3);
+    expect(next[0].prompt).toBe(DEFAULT_PRESETS.find((p) => p.label === 'Like Brit.').prompt);
+  });
+
+  it('leaves a preset the user edited alone', () => {
+    const edited = old('Rewrite like Native', 'My own prompt', { originalPrompt: 'Rewrite this text like a native English.' });
+    const gone = old('Professional', 'Make it formal, my way', { originalPrompt: 'Make this more professional.' });
+    expect(migrateLegacyDefaults([edited, gone])).toEqual([edited, gone]);
+  });
+
+  it('refreshes untouched Explain and Translate prompts, and is idempotent', () => {
+    const list = [
+      old('Explain', 'Explain this in simple terms.', { category: 'Understand' }),
+      old('Translate', 'Translate this into {{motherLanguage}}', { category: 'Understand' })
+    ];
+    const once = migrateLegacyDefaults(list);
+    expect(once[1].prompt).toBe('Translate this into {{motherLanguage}}. Don\'t ever use "—" in the output.');
+    expect(migrateLegacyDefaults(once)).toEqual(once);
+  });
+
+  it('is a no-op on the current defaults', () => {
+    expect(migrateLegacyDefaults(DEFAULT_PRESETS)).toEqual(DEFAULT_PRESETS);
   });
 });

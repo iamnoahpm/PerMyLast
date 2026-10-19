@@ -2,7 +2,7 @@ const { app, BrowserWindow, globalShortcut, ipcMain, Tray, Menu, clipboard, nati
 const Store = require('electron-store');
 const path = require('path');
 const { execFile } = require('child_process');
-const { DEFAULT_MODES, DEFAULT_PRESETS, validateLabel, normalizePresets, upsertPreset, deletePreset, incrementUses, applyPresetEdits, addMode, renameMode, deleteMode, reorderModes, buildClaudeRequest } = require('./presets');
+const { DEFAULT_MODES, DEFAULT_PRESETS, migrateLegacyDefaults, validateLabel, normalizePresets, upsertPreset, deletePreset, incrementUses, applyPresetEdits, addMode, renameMode, deleteMode, reorderModes, buildClaudeRequest } = require('./presets');
 const { findShortcutConflict } = require('./renderer/shortcutConflicts');
 
 // Distinguishes a dev/test run from the packaged app installed from the DMG —
@@ -432,7 +432,7 @@ ipcMain.handle('get-presets', () => {
   // by an older version of the app (which had none of those fields) and
   // fixes up the "exactly one default per category" invariant — cheap enough
   // to run on every read rather than a one-time migration flag.
-  const presets = normalizePresets(store.get('presets', DEFAULT_PRESETS), getModes());
+  const presets = normalizePresets(migrateLegacyDefaults(store.get('presets', DEFAULT_PRESETS)), getModes());
   store.set('presets', presets);
   return presets;
 });
