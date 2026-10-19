@@ -17,7 +17,7 @@ const TRANSLATE_PROMPT = 'Translate this into {{motherLanguage}}. Don\'t ever us
 const DEFAULT_PRESETS = [
   { label: 'Email', category: 'Reply', icon: '📧', blurb: 'Workplace email reply in your tone', tone: 'Direct', prompt: 'You are an expert email writer who drafts clear, professional email replies for workplace contexts. Write the reply in a Direct tone.', isEmail: true, isDefault: true },
   { label: 'Message', category: 'Reply', icon: '💬', blurb: 'Short chat / DM reply', tone: 'Warm', prompt: 'Write a short, natural reply to this message. Keep it conversational and to the point.', isEmail: false, isDefault: false },
-  { label: 'Like Brit.', category: 'Write', icon: '🤴', blurb: 'Casual Teams message, native English', tone: 'Casual', prompt: LIKE_BRIT_PROMPT, isEmail: false, isDefault: true },
+  { label: 'Like Brit.', category: 'Write', icon: '🤴', blurb: 'Casual Teams message, native English', tone: 'Casual', prompt: LIKE_BRIT_PROMPT, isEmail: false, isDefault: true, useWriteMyWay: true },
   { label: 'Like Me', category: 'Write', icon: '🫆', blurb: 'Casual Teams message, still sounds like me', tone: 'Personal', prompt: LIKE_ME_PROMPT, isEmail: false, isDefault: false, useWriteMyWay: true },
   { label: 'Explain', category: 'Understand', icon: '💡', blurb: 'Plain-language summary', tone: 'Plain', prompt: EXPLAIN_PROMPT, isEmail: false, isDefault: true },
   // {{motherLanguage}} is resolved client-side from the Settings "mother
@@ -144,7 +144,10 @@ function upsertPreset(list, preset, modes) {
     isEmail: !!preset.isEmail,
     isDefault: !!preset.isDefault,
     useWriteMyWay: typeof preset.useWriteMyWay === 'boolean' ? preset.useWriteMyWay : !!(stored && stored.useWriteMyWay),
-    requiresMotherLanguage: !!preset.requiresMotherLanguage
+    // Not user-editable, and the popup's inline "Save & overwrite" never sends it,
+    // so an overwrite must keep what is stored (it used to reset it to false and
+    // silently stop Translate from asking for a mother language).
+    requiresMotherLanguage: typeof preset.requiresMotherLanguage === 'boolean' ? preset.requiresMotherLanguage : !!(stored && stored.requiresMotherLanguage)
   };
   let next;
   if (idx === -1) {

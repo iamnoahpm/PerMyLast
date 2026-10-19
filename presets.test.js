@@ -424,12 +424,21 @@ describe('Write My Way', () => {
     expect(buildWriteMyWayText({ ...w, testScore: '' }, { includeEnglishLevel: true })).not.toMatch(/English level/);
   });
 
-  it('only Like Me ships with Write My Way switched on, and presets keep the flag through edits', () => {
-    expect(DEFAULT_PRESETS.filter((p) => p.useWriteMyWay).map((p) => p.label)).toEqual(['Like Me']);
+  it('Like Brit. and Like Me ship with Write My Way switched on, and presets keep the flag through edits', () => {
+    expect(DEFAULT_PRESETS.filter((p) => p.useWriteMyWay).map((p) => p.label)).toEqual(['Like Brit.', 'Like Me']);
     const incoming = DEFAULT_PRESETS.map((p) => ({ originalLabel: p.label, label: p.label, prompt: p.prompt, isDefault: p.isDefault }));
     const kept = applyPresetEdits(DEFAULT_PRESETS, incoming, DEFAULT_MODES);
     expect(kept.find((p) => p.label === 'Like Me').useWriteMyWay).toBe(true);
     const turnedOn = applyPresetEdits(DEFAULT_PRESETS, incoming.map((e) => (e.label === 'Email' ? { ...e, useWriteMyWay: true } : e)), DEFAULT_MODES);
     expect(turnedOn.find((p) => p.label === 'Email').useWriteMyWay).toBe(true);
+  });
+});
+
+describe('upsertPreset keeps requiresMotherLanguage', () => {
+  it('does not drop it when the popup saves an edited prompt without sending the flag', () => {
+    const translate = DEFAULT_PRESETS.find((p) => p.label === 'Translate');
+    expect(translate.requiresMotherLanguage).toBe(true);
+    const next = upsertPreset(DEFAULT_PRESETS, { label: 'Translate', category: 'Understand', prompt: 'My translate prompt', isEmail: false }, DEFAULT_MODES);
+    expect(next.find((p) => p.label === 'Translate').requiresMotherLanguage).toBe(true);
   });
 });
