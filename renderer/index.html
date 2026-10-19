@@ -38,14 +38,40 @@
   .warn-banner-dismiss { background:none; border:none; padding:0; color:var(--fg-muted); font-family:inherit; font-size:12px; font-weight:600; text-decoration:underline; cursor:pointer; }
   .warn-banner-dismiss:hover { color:var(--fg); }
 
-  /* Tab strip + Settings link ------------------------------------------- */
-  .tab-strip-row { display:flex; align-items:center; gap:8px; }
+  /* Mode rail ------------------------------------------------------------
+     Narrow window: classic horizontal tab strip. Wide window (half / full
+     screen): the same buttons become a left rail with a hint under each
+     mode, so what the app can do is visible without clicking through. */
+  .content { container-type:inline-size; }
+  .layout { display:flex; flex-direction:column; gap:12px; }
+  .rail { display:flex; align-items:center; gap:8px; }
+  .rail-eyebrow { display:none; font-size:var(--t-label); font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--accent-cool); margin:0 0 6px 12px; }
+  .main { display:flex; flex-direction:column; gap:12px; min-width:0; }
   .tab-scroll { display:flex; align-items:flex-end; gap:3px; flex:1; min-width:0; overflow-x:auto; border-bottom:1px solid var(--vc-divider); }
-  .cat-tab { padding:6px 10px 9px; border:0; background:transparent; cursor:pointer; font-family:inherit; font-size:var(--t-tab-main); font-weight:500; color:var(--vc-label-subtle); flex-shrink:0; transition:color var(--dur-fast) var(--ease); }
+  .cat-tab { padding:6px 10px 9px; border:0; background:transparent; cursor:pointer; font-family:inherit; font-size:var(--t-tab-main); font-weight:500; color:var(--vc-label-subtle); flex-shrink:0; transition:color var(--dur-fast) var(--ease); text-align:left; }
   .cat-tab:hover:not(.active) { color:var(--fg); }
   .cat-tab.active { font-weight:700; color:var(--fg); box-shadow:inset 0 -2px 0 var(--accent-cool); }
+  .cat-icon, .cat-hint, .mode-title { display:none; }
+  .cat-icon svg { width:17px; height:17px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .cat-label { display:block; }
+  .cat-hint { font-size:12px; font-weight:500; color:var(--vc-label-muted); margin-top:1px; }
+  .mode-title { font-size:17px; font-weight:700; color:var(--fg); }
+  .mode-sub { font-size:var(--t-select); color:var(--vc-label-subtle); line-height:1.5; }
+  .mode-sub:empty { display:none; }
   .settings-link { display:inline-flex; align-items:center; gap:6px; margin-bottom:5px; height:28px; padding:0 10px; border-radius:var(--r-btn); border:1px solid var(--vc-border-btn); background:var(--bg); color:var(--vc-label-muted); font-size:12px; font-weight:600; flex-shrink:0; cursor:pointer; font-family:inherit; transition:all var(--dur-fast) var(--ease); }
   .settings-link:hover { background:var(--vc-paper-2); color:var(--fg); border-color:#dcdce1; }
+
+  @container (min-width: 640px) {
+    .layout { display:grid; grid-template-columns:210px minmax(0,1fr); gap:28px; align-items:start; }
+    .rail { flex-direction:column; align-items:stretch; gap:0; position:sticky; top:0; }
+    .rail-eyebrow, .cat-hint, .mode-title { display:block; }
+    .cat-icon { display:inline-flex; margin-top:2px; }
+    .tab-scroll { flex-direction:column; align-items:stretch; border-bottom:0; overflow:visible; gap:2px; flex:none; }
+    .cat-tab { display:flex; align-items:flex-start; gap:10px; padding:9px 12px; border-radius:10px; font-weight:700; color:var(--fg); }
+    .cat-tab:hover:not(.active) { background:var(--vc-paper-2); }
+    .cat-tab.active { background:var(--accent-cool-soft); color:var(--accent-cool); box-shadow:none; }
+    .settings-link { margin:12px 0 0; align-self:flex-start; }
+  }
 
   /* Source textarea ------------------------------------------------------ */
   .source-wrap { position:relative; flex:0 0 auto; }
@@ -164,12 +190,19 @@
         </div>
       </div>
 
-      <div class="tab-strip-row">
+      <div class="layout">
+      <aside class="rail">
+        <p class="rail-eyebrow" id="railEyebrow"></p>
         <div class="tab-scroll" role="tablist" aria-label="What are you trying to do" id="hmTabs"></div>
         <button type="button" class="settings-link" id="settingsBtn" title="Settings">
           <span style="font-size:13px">⚙</span>
           <span id="settingsLinkLabel">Settings</span>
         </button>
+      </aside>
+      <div class="main">
+      <div class="mode-intro">
+        <h2 class="mode-title" id="modeTitle"></h2>
+        <p class="mode-sub" id="modeSub"></p>
       </div>
 
       <div class="source-wrap">
@@ -225,6 +258,8 @@
         </div>
       </div>
       <div id="errorRegion"></div>
+      </div>
+      </div>
     </div>
 
     <div class="footer">
@@ -328,24 +363,66 @@
   // chrome — displayed as-is, not run through i18n.
   function categoryDisplayLabel(cat) { return cat; }
 
+  // Built-in modes get an icon, a one-line hint under the label (wide layout)
+  // and a longer description above the presets. Matched by English name, so a
+  // user-renamed or custom mode simply renders without them.
+  const ICON = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
+  const MODE_INFO = {
+    reply:      { hint: 'modeHintReply',      sub: 'modeSubReply',      icon: ICON('<polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/>') },
+    write:      { hint: 'modeHintWrite',      sub: 'modeSubWrite',      icon: ICON('<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>') },
+    understand: { hint: 'modeHintUnderstand', sub: 'modeSubUnderstand', icon: ICON('<path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/>') },
+    ask:        { hint: 'modeHintAsk',        sub: 'modeSubAsk',        icon: ICON('<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>') }
+  };
+  const modeInfo = (cat) => MODE_INFO[String(cat).trim().toLowerCase()] || null;
+
+  // Remembered across launches so the popup opens on whatever the user used last.
+  const LAST_CATEGORY_KEY = 'pml-last-category';
+  function rememberCategory(cat) { try { localStorage.setItem(LAST_CATEGORY_KEY, cat); } catch {} }
+  function lastCategory() {
+    try { const c = localStorage.getItem(LAST_CATEGORY_KEY); return CATEGORIES.includes(c) ? c : CATEGORIES[0]; } catch { return CATEGORIES[0]; }
+  }
+
   function renderTabs() {
     tabsEl.innerHTML = '';
+    $('#railEyebrow').textContent = tr('eyebrow');
     CATEGORIES.forEach((cat) => {
+      const info = modeInfo(cat);
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'cat-tab' + (cat === activeCategory ? ' active' : '');
       btn.dataset.cat = cat;
-      btn.textContent = categoryDisplayLabel(cat);
+      if (info) {
+        const icon = document.createElement('span');
+        icon.className = 'cat-icon';
+        icon.innerHTML = info.icon;
+        btn.appendChild(icon);
+      }
+      const text = document.createElement('span');
+      const label = document.createElement('span');
+      label.className = 'cat-label';
+      label.textContent = categoryDisplayLabel(cat);
+      text.appendChild(label);
+      if (info) {
+        const hint = document.createElement('span');
+        hint.className = 'cat-hint';
+        hint.textContent = tr(info.hint);
+        text.appendChild(hint);
+      }
+      btn.appendChild(text);
       btn.setAttribute('role', 'tab');
       btn.setAttribute('aria-selected', cat === activeCategory ? 'true' : 'false');
       btn.tabIndex = cat === activeCategory ? 0 : -1;
       btn.addEventListener('click', () => selectCategory(cat));
       tabsEl.appendChild(btn);
     });
+    const active = modeInfo(activeCategory);
+    $('#modeTitle').textContent = categoryDisplayLabel(activeCategory);
+    $('#modeSub').textContent = active ? tr(active.sub) : '';
   }
 
   function selectCategory(cat) {
     activeCategory = cat;
+    rememberCategory(cat);
     const def = defaultForCategory(cat);
     selectedLabel = def ? def.label : null;
     sent = false;
@@ -360,10 +437,10 @@
   }
 
   tabsEl.addEventListener('keydown', (e) => {
-    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    if (!['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp'].includes(e.key)) return;
     e.preventDefault();
     const idx = CATEGORIES.indexOf(activeCategory);
-    const nextIdx = e.key === 'ArrowRight' ? (idx + 1) % CATEGORIES.length : (idx - 1 + CATEGORIES.length) % CATEGORIES.length;
+    const nextIdx = (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? (idx + 1) % CATEGORIES.length : (idx - 1 + CATEGORIES.length) % CATEGORIES.length;
     selectCategory(CATEGORIES[nextIdx]);
     tabsEl.children[nextIdx].focus();
   });
@@ -634,7 +711,7 @@
     allPresets = presets;
     CATEGORIES = modes;
     INTENT_CATEGORIES = intentModes;
-    activeCategory = CATEGORIES[0];
+    activeCategory = lastCategory();
     const def = defaultForCategory(activeCategory);
     selectedLabel = def ? def.label : null;
     renderTabs();
