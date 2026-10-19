@@ -133,56 +133,59 @@
   .status.ok { background:var(--success-bg); color:var(--success-fg); border-left:3px solid var(--success-fg); display:block; }
   .status.err { background:var(--danger-soft); color:var(--danger); border-left:3px solid var(--danger); display:block; }
   a { color:var(--accent-cool); }
-  .preset-editor { margin-top:6px; }
-  .preset-row { display:flex; align-items:flex-start; gap:8px; padding:10px 0; border-bottom:1px solid var(--vc-divider-2); }
-  .preset-row:last-child { border-bottom:none; }
-  .preset-row.dragging { opacity:.4; }
-  .preset-row.drop-target { border-top:2px solid var(--accent-cool); }
-  .drag-handle { cursor:grab; color:var(--vc-faint-3); font-size:16px; line-height:1; padding-top:6px; user-select:none; }
-  .preset-row-main { flex:1; min-width:0; }
-  .preset-row-label-row { display:flex; align-items:center; gap:6px; margin-bottom:4px; }
-  .preset-row-icon-input { width:30px; flex-shrink:0; text-align:center; padding:4px 2px; border:1px solid transparent; border-radius:4px; font-size:16px; font-family:inherit; background:transparent; }
-  .preset-row-icon-input:hover { border-color:var(--vc-border); }
-  .preset-row-icon-input:focus { outline:none; border-color:var(--accent-cool); background:var(--bg); }
-  .preset-row-label-input { width:auto; flex:1; min-width:0; padding:4px 6px; border:1px solid transparent; border-radius:4px; font-size:var(--t-input); font-weight:700; color:var(--fg); font-family:inherit; background:transparent; }
-  .preset-row-label-input:hover { border-color:var(--vc-border); }
-  .preset-row-label-input:focus { outline:none; border-color:var(--accent-cool); background:var(--bg); }
   .default-toggle { width:auto; flex-shrink:0; box-shadow:none; margin:0; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.02em; color:var(--vc-label-muted); background:var(--vc-paper-2); border:1px solid var(--vc-border); border-radius:var(--r-pill); padding:3px 9px; cursor:pointer; transition:transform var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease); }
   .default-toggle:hover { transform:none; background:var(--bg); }
   .default-toggle.is-default { background:var(--accent-cool); color:#fff; border-color:var(--accent-cool); cursor:default; }
   .default-toggle.is-default:hover { background:var(--accent-cool); }
-  .preset-row-blurb-input { width:100%; padding:4px 6px; margin-bottom:6px; border:1px solid transparent; border-radius:4px; font-size:12.5px; font-style:italic; color:var(--vc-label-muted); font-family:inherit; background:transparent; }
-  .preset-row-blurb-input:hover { border-color:var(--vc-border); }
-  .preset-row-blurb-input:focus { outline:none; border-color:var(--accent-cool); background:var(--bg); font-style:normal; }
-  .preset-row-prompt { width:100%; min-height:44px; padding:8px; border:1px solid var(--vc-border); border-radius:var(--r-input); font-size:12px; font-family:inherit; resize:vertical; box-sizing:border-box; }
-  .preset-row-prompt:focus { outline:none; border-color:var(--accent-cool); }
-  .preset-row-footer { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:6px; }
-  .preset-row-tone-input { width:160px; flex-shrink:0; padding:4px 6px; border:1px solid transparent; border-radius:4px; font-size:11.5px; font-weight:600; color:var(--vc-label-muted); font-family:inherit; background:transparent; }
-  .preset-row-tone-input:hover { border-color:var(--vc-border); }
-  .preset-row-tone-input:focus { outline:none; border-color:var(--accent-cool); background:var(--bg); color:var(--fg); }
-  .preset-row-uses { flex-shrink:0; margin-left:auto; font-size:11.5px; color:var(--vc-hint); }
-  .preset-row-del { width:auto; background:transparent; color:var(--vc-label-muted); border:none; box-shadow:none; padding:4px 6px; font-size:14px; font-weight:400; border-radius:4px; }
-  .preset-row-del:hover { background:var(--vc-paper-2); color:var(--fg); transform:none; }
-
-  .tone-mode-head { display:flex; align-items:center; justify-content:space-between; gap:10px; }
-  .tone-mode-head label { margin:0; white-space:nowrap; }
-  .tone-mode-head button { width:auto; flex-shrink:0; margin-bottom:0; }
-  .tone-mode-tabstrip { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
-  .tone-mode-tab { display:flex; align-items:center; gap:5px; padding:6px 8px 6px 6px; border:1px solid var(--vc-border); border-radius:var(--r-pill); background:var(--vc-paper-2); cursor:pointer; user-select:none; transition:background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease); }
-  .tone-mode-tab:hover { background:var(--bg); }
-  .tone-mode-tab.active { background:var(--accent-cool); border-color:var(--accent-cool); }
-  .tone-mode-tab.active .tone-mode-tab-name, .tone-mode-tab.active .tone-mode-tab-count { color:#fff; }
-  .tone-mode-tab.dragging { opacity:.4; }
-  .tone-mode-tab.drop-target { border-color:var(--fg); }
-  .tone-mode-tab-grip { color:var(--vc-faint-3); font-size:13px; line-height:1; cursor:grab; }
-  .tone-mode-tab.active .tone-mode-tab-grip { color:rgba(255,255,255,.7); }
-  .tone-mode-tab-name { font-size:12.5px; font-weight:700; color:var(--fg); background:transparent; border:none; padding:2px 0; font-family:inherit; width:auto; box-shadow:none; max-width:140px; }
-  .tone-mode-tab-name:focus { outline:none; }
-  .tone-mode-tab-name[readonly] { cursor:pointer; }
-  .tone-mode-tab-count { font-size:11px; color:var(--vc-hint); }
-  .tone-mode-tab-del { width:auto; background:transparent; color:var(--vc-label-muted); border:none; box-shadow:none; padding:0 2px; font-size:13px; line-height:1; border-radius:3px; }
-  .tone-mode-tab.active .tone-mode-tab-del { color:rgba(255,255,255,.85); }
-  .tone-mode-tab-del:hover { background:rgba(0,0,0,.08); transform:none; }
+  .pe-bar { display:flex; align-items:center; gap:8px; position:relative; }
+  .pe-tabs { display:flex; flex-wrap:wrap; gap:6px; flex:1; min-width:0; }
+  .pe-tab { width:auto; margin:0; padding:6px 12px; border-radius:var(--r-pill); border:1px solid var(--vc-border); background:var(--vc-paper-2); color:var(--fg); font-size:12.5px; font-weight:700; box-shadow:none; }
+  .pe-tab:hover { transform:none; background:var(--bg); opacity:1; }
+  .pe-tab.active { background:var(--accent-cool); border-color:var(--accent-cool); color:#fff; }
+  .pe-tab.fixed { cursor:default; opacity:.6; background:transparent; border-style:dashed; color:var(--vc-label-muted); }
+  .pe-tab.fixed:hover { background:transparent; }
+  .pe-edit-tabs { width:auto; flex-shrink:0; margin:0; padding:6px 12px; font-size:12px; }
+  .pe-pop { position:absolute; top:calc(100% + 6px); right:0; z-index:20; width:270px; background:var(--bg); border:1px solid var(--vc-border); border-radius:var(--r-card); box-shadow:0 8px 24px rgba(0,0,0,.14); padding:10px; display:none; }
+  .pe-pop.open { display:block; }
+  .pe-pop-row { display:flex; align-items:center; gap:6px; padding:3px 0; border-radius:4px; }
+  .pe-pop-row.dragging { opacity:.4; }
+  .pe-pop-row.drop-target { box-shadow:0 -2px 0 var(--accent-cool); }
+  .pe-pop-row input { padding:5px 7px; font-size:12.5px; font-weight:600; }
+  .pe-grip { cursor:grab; color:var(--vc-faint-3); font-size:14px; line-height:1; user-select:none; }
+  .pe-x { width:auto; margin:0; background:transparent; color:var(--vc-label-muted); border:none; box-shadow:none; padding:2px 7px; font-size:15px; font-weight:400; border-radius:4px; }
+  .pe-x:hover { background:var(--vc-paper-2); color:var(--fg); transform:none; }
+  .pe-x:disabled { opacity:.3; cursor:default; }
+  .pe-pop .btn-outline { margin:8px 0 0; padding:7px 10px; font-size:12px; }
+  .pe-body { display:flex; gap:14px; margin-top:14px; align-items:flex-start; }
+  .pe-list { width:170px; flex-shrink:0; }
+  .pe-item { display:flex; align-items:center; gap:7px; padding:7px 8px; border-radius:var(--r-input); cursor:pointer; font-size:13px; font-weight:600; border:1px solid transparent; user-select:none; }
+  .pe-item:hover { background:var(--vc-paper-2); }
+  .pe-item.active { background:var(--vc-paper-2); border-color:var(--vc-border); }
+  .pe-item.dragging { opacity:.4; }
+  .pe-item.drop-target { box-shadow:0 -2px 0 var(--accent-cool); }
+  .pe-item-icon { width:20px; text-align:center; flex-shrink:0; }
+  .pe-item-label { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .pe-star { color:var(--accent-cool); font-size:12px; }
+  .pe-add { width:100%; margin:8px 0 0; padding:7px 10px; font-size:12px; }
+  .pe-editor { flex:1; min-width:0; }
+  .pe-editor label { display:block; margin:10px 0 4px; }
+  .pe-editor label:first-child { margin-top:0; }
+  .pe-row2 { display:flex; gap:8px; }
+  .pe-row2 .pe-icon { width:56px; flex-shrink:0; text-align:center; font-size:16px; }
+  .pe-prompt-head { display:flex; align-items:center; gap:8px; margin:10px 0 4px; }
+  .pe-prompt-head label { margin:0; }
+  .pe-pill { display:none; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.02em; padding:2px 8px; border-radius:var(--r-pill); background:var(--vc-paper-2); border:1px solid var(--vc-border); color:var(--vc-label-muted); }
+  .pe-pill.show { display:inline-block; }
+  .pe-reset { display:none; width:auto; margin:0 0 0 auto; padding:2px 8px; font-size:11.5px; font-weight:600; background:transparent; color:var(--accent-cool); box-shadow:none; }
+  .pe-reset.show { display:inline-block; }
+  .pe-reset:hover { transform:none; text-decoration:underline; }
+  .pe-prompt { min-height:140px; font-size:12px; resize:vertical; }
+  .pe-actions { display:flex; align-items:center; gap:8px; margin-top:12px; }
+  .pe-actions .default-toggle { padding:5px 12px; }
+  .pe-actions .pe-del { margin-left:auto; width:auto; background:transparent; color:var(--danger); box-shadow:none; font-size:12px; font-weight:600; padding:5px 8px; }
+  .pe-actions .pe-del:hover { background:var(--vc-paper-2); transform:none; }
+  .pe-actions .pe-del:disabled { opacity:.35; cursor:default; }
+  input.invalid { border-color:var(--danger); }
   .tone-mode-empty { padding:14px 0; font-size:12.5px; color:var(--vc-hint); font-style:italic; }
   .footer { display:flex; align-items:center; gap:10px; padding:0 16px; height:34px; border-top:1px solid #e5e5e8; background:var(--bg); font-size:11.5px; color:var(--vc-hint); flex-shrink:0; }
   .footer button.link { color:var(--accent-cool); text-decoration:none; background:none; border:0; padding:0; font-family:inherit; font-size:11.5px; font-weight:400; cursor:pointer; width:auto; box-shadow:none; }
@@ -315,22 +318,19 @@
 
       <div class="tab-panel" data-panel="presets">
         <div class="card">
-          <div class="tone-mode-head">
-            <label data-i18n="presetsModesLabel">Tone Preset Tabs</label>
-            <button type="button" class="btn-outline" id="addModeBtn" data-i18n="presetsAddModeBtn">+ New tab</button>
+          <div class="pe-bar">
+            <div class="pe-tabs" id="peTabs"></div>
+            <button type="button" class="btn-outline pe-edit-tabs" id="peEditTabsBtn" data-i18n="presetsEditTabs">Edit tabs</button>
+            <div class="pe-pop" id="pePop"></div>
           </div>
-          <small data-i18n="presetsModesHint">Drag to reorder tabs. Click a tab's name to rename it.</small>
-          <div class="tone-mode-tabstrip" id="toneModeTabstrip"></div>
+          <div class="pe-body">
+            <div class="pe-list">
+              <div id="peList"></div>
+              <button type="button" class="btn-outline pe-add" id="peAddBtn"></button>
+            </div>
+            <div class="pe-editor" id="peEditor"></div>
+          </div>
         </div>
-
-        <div class="card">
-          <label id="activeModeLabel"></label>
-          <small data-i18n="presetsActiveHint">Drag to reorder. The starred action is the default shown when this tab opens.</small>
-          <div class="preset-editor" id="presetEditorActive"></div>
-          <button type="button" class="btn-outline" id="addPresetBtn"></button>
-        </div>
-
-        <button id="savePresetsBtn" type="button" data-i18n="presetsSaveBtn">Save Preset Changes</button>
         <div class="status" id="presetStatus"></div>
       </div>
 
@@ -537,8 +537,7 @@
     updateShortcutHint();
     updateShortcutConflictUI();
     refreshPermissions();
-    renderTabstrip();
-    renderActiveEditor();
+    renderAll();
     applyWtptMode(wtptMode);
     updateCompareBtn();
   }
@@ -548,12 +547,11 @@
   $('#maxBtn').addEventListener('click', () => window.api.toggleMaximizeWindow());
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') window.api.closeSettingsWindow(); });
 
-  // "Changes save as you make them" is only true on Permissions (nothing to
-  // save there) and Advanced (its toggles call saveSettings on 'change'
-  // immediately) — General and Tone Presets both gate their edits behind an
-  // explicit Save button instead, so showing this note there would just
-  // contradict the button sitting right above it.
-  const AUTOSAVE_TABS = ['permissions', 'advanced'];
+  // "Changes save as you make them" is true on Tone Presets (debounced
+  // autosave), Permissions (nothing to save) and Advanced (its toggles call
+  // saveSettings on 'change' immediately) — General still gates its edits
+  // behind an explicit Save button, so the note would contradict it there.
+  const AUTOSAVE_TABS = ['presets', 'permissions', 'advanced'];
   function updateFooterSaveNote(tabName) {
     $('#footerSaveNote').style.display = AUTOSAVE_TABS.includes(tabName) ? '' : 'none';
   }
@@ -903,22 +901,23 @@
 
   // Tabs ("modes") are fully user-owned: renamable, addable, deletable,
   // reorderable. `presetsCache` groups the flat preset list by whichever tab
-  // it's currently filed under; only the active tab's rows are rendered at a
-  // time, so a drag can never cross between tabs.
+  // it's currently filed under. The editor shows one action at a time and
+  // autosaves: every edit is written to its cache object, then a debounced
+  // reorderPresets sends the whole list (matched back by originalLabel).
   let toneModes = [];
   let activeMode = null;
   let presetsCache = {};
-  let dragState = null; // preset row: { index }; tab strip: { mode }
+  let selected = null; // the preset object shown in the editor
 
   function presetStatus(msg, ok) {
     const s = $('#presetStatus');
     s.textContent = msg;
-    s.className = 'status ' + (ok ? 'ok' : 'err');
+    s.className = msg ? 'status ' + (ok ? 'ok' : 'err') : 'status';
   }
 
   // originalLabel tracks the last-persisted name for each preset, separate
   // from the (user-editable) `label` field, so a pending rename can still be
-  // matched back to the right stored preset when Save is clicked.
+  // matched back to the right stored preset when the autosave fires.
   function tagOriginal(p) { return { ...p, originalLabel: p.label }; }
 
   function groupByMode(flatList, modes) {
@@ -932,352 +931,402 @@
     return toneModes.flatMap((m) => presetsCache[m] || []);
   }
 
-  // Only the active tab's rows are on screen, so this only needs to read
-  // that one container back into presetsCache before any save/switch/mutate.
-  function syncEditsFromDOM() {
-    if (!activeMode) return;
-    const container = $('#presetEditorActive');
-    const rows = container.querySelectorAll('.preset-row');
-    rows.forEach((row, i) => {
-      const p = presetsCache[activeMode][i];
-      if (!p) return;
-      p.prompt = row.querySelector('.preset-row-prompt').value;
-      p.blurb = row.querySelector('.preset-row-blurb-input').value.trim();
-      p.icon = row.querySelector('.preset-row-icon-input').value.trim();
-      p.label = row.querySelector('.preset-row-label-input').value.trim() || p.label;
-      p.tone = row.querySelector('.preset-row-tone-input').value.trim();
-      p.useWriteMyWay = row.querySelector('.preset-row-wmw').checked;
+  // Rebuilds the cache from a server list, keeping the same action selected
+  // (by name) when it still exists.
+  function loadPresets(list) {
+    const keep = selected && selected.label;
+    presetsCache = groupByMode(list.map(tagOriginal), toneModes);
+    const cur = presetsCache[activeMode] || [];
+    selected = cur.find((p) => p.label === keep) || cur.find((p) => p.isDefault) || cur[0] || null;
+  }
+
+  // Autosave --------------------------------------------------------------
+  let presetSaveTimer = null;
+  let presetSaveChain = Promise.resolve();
+
+  function doPresetSave() {
+    const incoming = flattenPresets().map((p) => ({
+      originalLabel: p.originalLabel, label: p.label, prompt: p.prompt, icon: p.icon,
+      blurb: p.blurb, tone: p.tone, isDefault: p.isDefault, useWriteMyWay: p.useWriteMyWay
+    }));
+    return window.api.reorderPresets(incoming).then((r) => {
+      const byLabel = new Map(r.presets.map((s) => [s.label, s]));
+      flattenPresets().forEach((p) => {
+        p.originalLabel = p.label;
+        const s = byLabel.get(p.label);
+        if (s) { p.originalPrompt = s.originalPrompt; if (!p.prompt.trim()) p.prompt = s.prompt; }
+      });
+      flashSaved();
     });
   }
 
-  function renderTabstrip() {
-    const strip = $('#toneModeTabstrip');
-    strip.innerHTML = '';
-    toneModes.forEach((mode) => {
-      const tab = document.createElement('div');
-      tab.className = 'tone-mode-tab' + (mode === activeMode ? ' active' : '');
-      tab.draggable = true;
-
-      tab.addEventListener('dragstart', (e) => { dragState = { mode }; tab.classList.add('dragging'); e.stopPropagation(); });
-      tab.addEventListener('dragend', () => {
-        tab.classList.remove('dragging');
-        strip.querySelectorAll('.tone-mode-tab').forEach((t) => t.classList.remove('drop-target'));
-      });
-      tab.addEventListener('dragover', (e) => {
-        if (!dragState || !dragState.mode) return;
-        e.preventDefault();
-        tab.classList.add('drop-target');
-      });
-      tab.addEventListener('dragleave', () => tab.classList.remove('drop-target'));
-      tab.addEventListener('drop', async (e) => {
-        e.preventDefault();
-        tab.classList.remove('drop-target');
-        if (!dragState || !dragState.mode || dragState.mode === mode) return;
-        const draggedMode = dragState.mode;
-        dragState = null;
-        const next = toneModes.filter((m) => m !== draggedMode);
-        next.splice(next.indexOf(mode), 0, draggedMode);
-        const r = await window.api.reorderToneModes(next);
-        toneModes = r.modes;
-        renderTabstrip();
-      });
-
-      const grip = document.createElement('span');
-      grip.className = 'tone-mode-tab-grip';
-      grip.textContent = '⠿';
-
-      const nameInput = document.createElement('input');
-      nameInput.type = 'text';
-      nameInput.className = 'tone-mode-tab-name';
-      nameInput.value = mode;
-      nameInput.readOnly = true;
-      nameInput.setAttribute('aria-label', 'Tab name');
-      nameInput.addEventListener('click', () => {
-        if (mode !== activeMode) { switchToMode(mode); return; }
-        nameInput.readOnly = false;
-        nameInput.focus();
-        nameInput.select();
-      });
-      nameInput.addEventListener('blur', () => commitModeRename(mode, nameInput));
-      nameInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') { e.preventDefault(); nameInput.blur(); }
-        else if (e.key === 'Escape') { nameInput.value = mode; nameInput.readOnly = true; nameInput.blur(); }
-      });
-
-      const count = document.createElement('span');
-      count.className = 'tone-mode-tab-count';
-      count.textContent = String((presetsCache[mode] || []).length);
-
-      tab.appendChild(grip);
-      tab.appendChild(nameInput);
-      tab.appendChild(count);
-
-      if (toneModes.length > 1) {
-        const del = document.createElement('button');
-        del.type = 'button';
-        del.className = 'tone-mode-tab-del';
-        del.title = window.I18n.t(currentLang, 'presetsDeleteModeTitle');
-        del.textContent = '×';
-        del.addEventListener('click', async (e) => {
-          e.stopPropagation();
-          if (!confirm(window.I18n.t(currentLang, 'presetsDeleteModeConfirm', { mode }))) return;
-          const r = await window.api.deleteToneMode(mode);
-          if (!r.success) return presetStatus(r.error, false);
-          toneModes = r.modes;
-          presetsCache = groupByMode(r.presets.map(tagOriginal), toneModes);
-          if (activeMode === mode) activeMode = toneModes[0];
-          renderTabstrip();
-          renderActiveEditor();
-        });
-        tab.appendChild(del);
-      }
-
-      strip.appendChild(tab);
-    });
+  function schedulePresetSave() {
+    clearTimeout(presetSaveTimer);
+    presetSaveTimer = setTimeout(() => { presetSaveTimer = null; presetSaveChain = presetSaveChain.then(doPresetSave); }, 400);
   }
 
-  async function commitModeRename(mode, inputEl) {
-    const next = inputEl.value.trim();
-    inputEl.readOnly = true;
-    if (!next || next === mode) { inputEl.value = mode; return; }
-    const r = await window.api.renameToneMode(mode, next);
-    if (!r.success) {
-      inputEl.value = mode;
-      presetStatus(r.error, false);
-      return;
+  // Runs any pending save now; structural changes (rename/delete a tab, add or
+  // delete an action) call this first so the server never sees stale text.
+  function flushPresetSave() {
+    if (presetSaveTimer) {
+      clearTimeout(presetSaveTimer);
+      presetSaveTimer = null;
+      presetSaveChain = presetSaveChain.then(doPresetSave);
     }
-    toneModes = r.modes;
-    presetsCache = groupByMode(r.presets.map(tagOriginal), toneModes);
-    if (activeMode === mode) activeMode = next;
-    renderTabstrip();
-    renderActiveEditor();
+    return presetSaveChain;
+  }
+  window.addEventListener('pagehide', flushPresetSave);
+
+  // Rendering -------------------------------------------------------------
+  function renderTabs() {
+    const wrap = $('#peTabs');
+    wrap.innerHTML = '';
+    toneModes.forEach((mode) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'pe-tab' + (mode === activeMode ? ' active' : '');
+      b.textContent = mode;
+      b.addEventListener('click', () => switchToMode(mode));
+      wrap.appendChild(b);
+    });
+    // Ask is a fixed tab, not a preset: shown last, not editable.
+    const ask = document.createElement('button');
+    ask.type = 'button';
+    ask.className = 'pe-tab fixed';
+    ask.disabled = true;
+    ask.textContent = window.I18n.t(currentLang, 'askTab');
+    ask.title = window.I18n.t(currentLang, 'presetsAskFixed');
+    wrap.appendChild(ask);
   }
 
   function switchToMode(mode) {
     if (mode === activeMode) return;
-    syncEditsFromDOM();
     activeMode = mode;
-    renderTabstrip();
-    renderActiveEditor();
+    const cur = presetsCache[mode] || [];
+    selected = cur.find((p) => p.isDefault) || cur[0] || null;
+    renderAll();
   }
 
-  function renderPresetRow(container, list, i) {
-    const p = list[i];
-    const row = document.createElement('div');
-    row.className = 'preset-row';
-    row.draggable = true;
-
-    row.addEventListener('dragstart', () => { dragState = { index: i }; row.classList.add('dragging'); });
-    row.addEventListener('dragend', () => {
-      row.classList.remove('dragging');
-      container.querySelectorAll('.preset-row').forEach((r) => r.classList.remove('drop-target'));
-    });
-    row.addEventListener('dragover', (e) => {
-      if (!dragState || dragState.mode) return;
-      e.preventDefault();
-      row.classList.add('drop-target');
-    });
-    row.addEventListener('dragleave', () => row.classList.remove('drop-target'));
-    row.addEventListener('drop', (e) => {
-      e.preventDefault();
-      row.classList.remove('drop-target');
-      if (!dragState || dragState.mode || dragState.index === i) return;
-      syncEditsFromDOM();
-      const moved = presetsCache[activeMode].splice(dragState.index, 1)[0];
-      presetsCache[activeMode].splice(i, 0, moved);
-      dragState = null;
-      renderActiveEditor();
-    });
-
-    const handle = document.createElement('span');
-    handle.className = 'drag-handle';
-    handle.textContent = '⠿';
-    handle.title = window.I18n.t(currentLang, 'presetDragTitle');
-
-    const main = document.createElement('div');
-    main.className = 'preset-row-main';
-
-    const labelRow = document.createElement('div');
-    labelRow.className = 'preset-row-label-row';
-    const iconInput = document.createElement('input');
-    iconInput.type = 'text';
-    iconInput.className = 'preset-row-icon-input';
-    iconInput.maxLength = 4;
-    iconInput.placeholder = '🙂';
-    iconInput.title = window.I18n.t(currentLang, 'presetIconTitle');
-    iconInput.value = p.icon || '';
-    iconInput.setAttribute('aria-label', 'Preset icon (optional)');
-    labelRow.appendChild(iconInput);
-    const labelInput = document.createElement('input');
-    labelInput.type = 'text';
-    labelInput.className = 'preset-row-label-input';
-    labelInput.value = p.label;
-    labelInput.setAttribute('aria-label', 'Preset name');
-    labelRow.appendChild(labelInput);
-
-    const defaultBtn = document.createElement('button');
-    defaultBtn.type = 'button';
-    defaultBtn.className = 'default-toggle' + (p.isDefault ? ' is-default' : '');
-    defaultBtn.textContent = p.isDefault ? window.I18n.t(currentLang, 'presetDefaultText') : window.I18n.t(currentLang, 'presetSetDefaultText');
-    defaultBtn.disabled = p.isDefault;
-    defaultBtn.title = p.isDefault ? window.I18n.t(currentLang, 'presetDefaultTitleOn') : window.I18n.t(currentLang, 'presetDefaultTitleOff', { category: activeMode });
-    defaultBtn.addEventListener('click', () => {
-      syncEditsFromDOM();
-      presetsCache[activeMode].forEach((x) => { x.isDefault = false; });
-      presetsCache[activeMode][i].isDefault = true;
-      renderActiveEditor();
-    });
-    labelRow.appendChild(defaultBtn);
-
-    if (list.length > 1 && !p.isDefault) {
-      const del = document.createElement('button');
-      del.className = 'preset-row-del';
-      del.type = 'button';
-      del.title = window.I18n.t(currentLang, 'presetDeleteTitle');
-      del.textContent = '×';
-      del.addEventListener('click', async () => {
-        if (!confirm(window.I18n.t(currentLang, 'presetDeleteConfirm', { label: p.label }))) return;
-        syncEditsFromDOM();
-        await window.api.deletePreset(p.originalLabel);
-        presetsCache[activeMode] = presetsCache[activeMode].filter((x) => x.originalLabel !== p.originalLabel);
-        renderTabstrip();
-        renderActiveEditor();
-      });
-      labelRow.appendChild(del);
-    }
-
-    const blurbInput = document.createElement('input');
-    blurbInput.type = 'text';
-    blurbInput.className = 'preset-row-blurb-input';
-    blurbInput.placeholder = window.I18n.t(currentLang, 'presetBlurbPlaceholder');
-    blurbInput.value = p.blurb || '';
-
-    const promptEl = document.createElement('textarea');
-    promptEl.className = 'preset-row-prompt';
-    promptEl.rows = 2;
-    promptEl.value = p.prompt;
-
-    const footer = document.createElement('div');
-    footer.className = 'preset-row-footer';
-    const toneInput = document.createElement('input');
-    toneInput.type = 'text';
-    toneInput.className = 'preset-row-tone-input';
-    toneInput.placeholder = window.I18n.t(currentLang, 'presetTonePlaceholder');
-    toneInput.value = p.tone || '';
-    toneInput.setAttribute('aria-label', window.I18n.t(currentLang, 'presetToneLabel'));
-    footer.appendChild(toneInput);
-    const uses = document.createElement('span');
-    uses.className = 'preset-row-uses';
-    uses.textContent = window.I18n.t(currentLang, 'presetUsedTimes', { n: p.uses || 0 });
-    footer.appendChild(uses);
-
-    main.appendChild(labelRow);
-    main.appendChild(blurbInput);
-    main.appendChild(promptEl);
-    main.appendChild(footer);
-
-    const wmwLabel = document.createElement('label');
-    wmwLabel.className = 'preset-row-wmw-toggle';
-    const wmwBox = document.createElement('input');
-    wmwBox.type = 'checkbox';
-    wmwBox.className = 'preset-row-wmw';
-    wmwBox.checked = !!p.useWriteMyWay;
-    wmwLabel.appendChild(wmwBox);
-    wmwLabel.appendChild(document.createTextNode(window.I18n.t(currentLang, 'presetUseWmw')));
-    main.appendChild(wmwLabel);
-
-    row.appendChild(handle);
-    row.appendChild(main);
-    return row;
+  function renderAll() {
+    renderTabs();
+    renderList();
+    renderEditor();
+    if ($('#pePop').classList.contains('open')) renderPop();
   }
 
-  function renderActiveEditor() {
-    const container = $('#presetEditorActive');
-    container.innerHTML = '';
-    $('#activeModeLabel').textContent = activeMode || '';
-    $('#addPresetBtn').textContent = window.I18n.t(currentLang, 'presetsAddToMode', { mode: activeMode || '' });
-    const list = presetsCache[activeMode] || [];
-    if (!list.length) {
+  let listDrag = null;
+  function renderList() {
+    const list = $('#peList');
+    list.innerHTML = '';
+    $('#peAddBtn').textContent = window.I18n.t(currentLang, 'presetsAddToMode', { mode: activeMode || '' });
+    const items = presetsCache[activeMode] || [];
+    if (!items.length) {
       const empty = document.createElement('div');
       empty.className = 'tone-mode-empty';
       empty.textContent = window.I18n.t(currentLang, 'presetsModeEmpty');
-      container.appendChild(empty);
+      list.appendChild(empty);
       return;
     }
-    list.forEach((p, i) => container.appendChild(renderPresetRow(container, list, i)));
+    items.forEach((p, i) => {
+      const el = document.createElement('div');
+      el.className = 'pe-item' + (p === selected ? ' active' : '');
+      el.draggable = true;
+      el.addEventListener('click', () => { selected = p; renderList(); renderEditor(); });
+      el.addEventListener('dragstart', () => { listDrag = i; el.classList.add('dragging'); });
+      el.addEventListener('dragend', () => { listDrag = null; el.classList.remove('dragging'); });
+      el.addEventListener('dragover', (e) => { if (listDrag === null) return; e.preventDefault(); el.classList.add('drop-target'); });
+      el.addEventListener('dragleave', () => el.classList.remove('drop-target'));
+      el.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (listDrag === null || listDrag === i) { el.classList.remove('drop-target'); return; }
+        const moved = items.splice(listDrag, 1)[0];
+        items.splice(i, 0, moved);
+        listDrag = null;
+        renderList();
+        schedulePresetSave();
+      });
+      const icon = document.createElement('span');
+      icon.className = 'pe-item-icon';
+      icon.textContent = p.icon || '·';
+      const label = document.createElement('span');
+      label.className = 'pe-item-label';
+      label.textContent = p.label;
+      el.appendChild(icon);
+      el.appendChild(label);
+      if (p.isDefault) {
+        const star = document.createElement('span');
+        star.className = 'pe-star';
+        star.textContent = '★';
+        star.title = window.I18n.t(currentLang, 'presetDefaultTitleOn');
+        el.appendChild(star);
+      }
+      list.appendChild(el);
+    });
   }
 
-  (async () => {
-    const [flat, modes] = await Promise.all([window.api.getPresets(), window.api.getToneModes()]);
-    toneModes = modes;
-    presetsCache = groupByMode(flat.map(tagOriginal), toneModes);
-    activeMode = toneModes[0];
-    renderTabstrip();
-    renderActiveEditor();
-  })();
+  function peField(labelKey, input) {
+    const l = document.createElement('label');
+    l.textContent = window.I18n.t(currentLang, labelKey);
+    return [l, input];
+  }
 
-  $('#savePresetsBtn').addEventListener('click', async () => {
-    syncEditsFromDOM();
-    const incoming = flattenPresets().map((p) => ({
-      originalLabel: p.originalLabel,
-      label: p.label,
-      prompt: p.prompt,
-      icon: p.icon,
-      blurb: p.blurb,
-      tone: p.tone,
-      isDefault: p.isDefault,
-      useWriteMyWay: p.useWriteMyWay
-    }));
-    const r = await window.api.reorderPresets(incoming);
-    presetsCache = groupByMode(r.presets.map(tagOriginal), toneModes);
-    renderTabstrip();
-    renderActiveEditor();
-    presetStatus(window.I18n.t(currentLang, 'presetsSaved'), true);
-  });
+  function peInput(cls, value, placeholder) {
+    const i = document.createElement('input');
+    i.type = 'text';
+    if (cls) i.className = cls;
+    i.value = value || '';
+    if (placeholder) i.placeholder = placeholder;
+    return i;
+  }
+
+  function isEdited(p) { return typeof p.originalPrompt === 'string' && p.prompt !== p.originalPrompt; }
+
+  function renderEditor() {
+    const ed = $('#peEditor');
+    ed.innerHTML = '';
+    const p = selected;
+    if (!p) return;
+    const t = (k, v) => window.I18n.t(currentLang, k, v);
+
+    const row = document.createElement('div');
+    row.className = 'pe-row2';
+    const iconIn = peInput('pe-icon', p.icon, '🙂');
+    iconIn.maxLength = 4;
+    iconIn.title = t('presetIconTitle');
+    iconIn.setAttribute('aria-label', t('presetFieldIcon'));
+    const nameIn = peInput('', p.label);
+    nameIn.setAttribute('aria-label', t('presetFieldName'));
+    row.appendChild(iconIn);
+    row.appendChild(nameIn);
+    ed.appendChild(row);
+
+    const toneIn = peInput('', p.tone, t('presetTonePlaceholder'));
+    ed.append(...peField('presetToneLabel', toneIn));
+    const blurbIn = peInput('', p.blurb, t('presetBlurbPlaceholder'));
+    ed.append(...peField('presetFieldDesc', blurbIn));
+
+    const head = document.createElement('div');
+    head.className = 'pe-prompt-head';
+    const pl = document.createElement('label');
+    pl.textContent = t('presetFieldPrompt');
+    const pill = document.createElement('span');
+    pill.className = 'pe-pill';
+    pill.textContent = t('presetEdited');
+    const reset = document.createElement('button');
+    reset.type = 'button';
+    reset.className = 'pe-reset';
+    reset.textContent = t('presetResetOriginal');
+    head.append(pl, pill, reset);
+    ed.appendChild(head);
+    const promptEl = document.createElement('textarea');
+    promptEl.className = 'pe-prompt';
+    promptEl.value = p.prompt;
+    ed.appendChild(promptEl);
+    const syncEdited = () => {
+      const e = isEdited(p);
+      pill.classList.toggle('show', e);
+      reset.classList.toggle('show', e);
+    };
+    syncEdited();
+
+    const wmw = document.createElement('label');
+    wmw.className = 'preset-row-wmw-toggle';
+    const wmwBox = document.createElement('input');
+    wmwBox.type = 'checkbox';
+    wmwBox.checked = !!p.useWriteMyWay;
+    wmw.append(wmwBox, document.createTextNode(t('presetUseWmw')));
+    ed.appendChild(wmw);
+
+    const actions = document.createElement('div');
+    actions.className = 'pe-actions';
+    const defBtn = document.createElement('button');
+    defBtn.type = 'button';
+    defBtn.className = 'default-toggle' + (p.isDefault ? ' is-default' : '');
+    defBtn.textContent = p.isDefault ? t('presetDefaultText') : t('presetSetDefaultText');
+    defBtn.disabled = p.isDefault;
+    defBtn.title = p.isDefault ? t('presetDefaultTitleOn') : t('presetDefaultTitleOff', { category: activeMode });
+    const delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.className = 'pe-del';
+    delBtn.textContent = t('presetDeleteTitle');
+    const list = presetsCache[activeMode] || [];
+    delBtn.disabled = list.length < 2 || p.isDefault;
+    actions.append(defBtn, delBtn);
+    ed.appendChild(actions);
+
+    // Edits write straight into the cache object, then queue an autosave.
+    iconIn.addEventListener('input', () => { p.icon = iconIn.value.trim(); renderList(); schedulePresetSave(); });
+    nameIn.addEventListener('input', () => {
+      const next = nameIn.value.trim();
+      const clash = flattenPresets().some((o) => o !== p && o.label === next);
+      nameIn.classList.toggle('invalid', !next || clash);
+      if (!next || clash) return;
+      p.label = next;
+      renderList();
+      schedulePresetSave();
+    });
+    nameIn.addEventListener('blur', () => { nameIn.value = p.label; nameIn.classList.remove('invalid'); });
+    toneIn.addEventListener('input', () => { p.tone = toneIn.value.trim(); schedulePresetSave(); });
+    blurbIn.addEventListener('input', () => { p.blurb = blurbIn.value.trim(); schedulePresetSave(); });
+    promptEl.addEventListener('input', () => { p.prompt = promptEl.value; syncEdited(); schedulePresetSave(); });
+    reset.addEventListener('click', () => { p.prompt = p.originalPrompt; promptEl.value = p.prompt; syncEdited(); schedulePresetSave(); });
+    wmwBox.addEventListener('change', () => { p.useWriteMyWay = wmwBox.checked; schedulePresetSave(); });
+    defBtn.addEventListener('click', () => {
+      list.forEach((x) => { x.isDefault = false; });
+      p.isDefault = true;
+      renderList();
+      renderEditor();
+      schedulePresetSave();
+    });
+    delBtn.addEventListener('click', async () => {
+      if (!confirm(t('presetDeleteConfirm', { label: p.label }))) return;
+      await flushPresetSave();
+      await window.api.deletePreset(p.originalLabel);
+      presetsCache[activeMode] = list.filter((x) => x !== p);
+      selected = presetsCache[activeMode].find((x) => x.isDefault) || presetsCache[activeMode][0] || null;
+      renderAll();
+      flashSaved();
+    });
+  }
 
   // Added presets need a unique name up front — savePreset overwrites
   // in place when the label already matches an existing preset, so a second
   // "New Action" would silently replace the first instead of adding another.
-  function nextNewPresetLabel(mode) {
-    const existing = new Set((presetsCache[mode] || []).map((p) => p.label));
+  function nextNewPresetLabel() {
+    const existing = new Set(flattenPresets().map((p) => p.label));
     if (!existing.has('New Action')) return 'New Action';
     let n = 2;
     while (existing.has(`New Action ${n}`)) n++;
     return `New Action ${n}`;
   }
 
-  $('#addPresetBtn').addEventListener('click', async () => {
+  $('#peAddBtn').addEventListener('click', async () => {
     if (!activeMode) return;
-    const label = nextNewPresetLabel(activeMode);
+    await flushPresetSave();
+    const label = nextNewPresetLabel();
     const r = await window.api.savePreset({ label, category: activeMode, icon: '', blurb: '', prompt: '', isEmail: false });
     if (!r.success) return presetStatus(r.error, false);
-    presetsCache = groupByMode(r.presets.map(tagOriginal), toneModes);
-    renderTabstrip();
-    renderActiveEditor();
-    presetStatus(window.I18n.t(currentLang, 'presetsAdded', { label, category: activeMode }), true);
-    const rows = $('#presetEditorActive').querySelectorAll('.preset-row');
-    const newRow = rows[rows.length - 1];
-    if (newRow) {
-      const input = newRow.querySelector('.preset-row-label-input');
-      newRow.scrollIntoView({ block: 'nearest' });
-      input.focus();
-      input.select();
-    }
+    presetStatus('', true);
+    selected = { label };
+    loadPresets(r.presets);
+    renderAll();
+    flashSaved();
+    const nameIn = $('#peEditor .pe-row2 input:last-child');
+    if (nameIn) { nameIn.focus(); nameIn.select(); }
   });
 
-  $('#addModeBtn').addEventListener('click', async () => {
-    syncEditsFromDOM();
-    const r = await window.api.addToneMode();
-    if (!r.success) return presetStatus(r.error, false);
+  // Edit tabs popover -----------------------------------------------------
+  let tabDrag = null;
+  function renderPop() {
+    const pop = $('#pePop');
+    pop.innerHTML = '';
+    toneModes.forEach((mode) => {
+      const row = document.createElement('div');
+      row.className = 'pe-pop-row';
+      row.draggable = true;
+      row.addEventListener('dragstart', (e) => { if (e.target !== row) return; tabDrag = mode; row.classList.add('dragging'); });
+      row.addEventListener('dragend', () => { tabDrag = null; row.classList.remove('dragging'); });
+      row.addEventListener('dragover', (e) => { if (!tabDrag) return; e.preventDefault(); row.classList.add('drop-target'); });
+      row.addEventListener('dragleave', () => row.classList.remove('drop-target'));
+      row.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        row.classList.remove('drop-target');
+        if (!tabDrag || tabDrag === mode) return;
+        const dragged = tabDrag;
+        tabDrag = null;
+        const next = toneModes.filter((m) => m !== dragged);
+        next.splice(next.indexOf(mode), 0, dragged);
+        const r = await window.api.reorderToneModes(next);
+        toneModes = r.modes;
+        renderAll();
+        renderPop();
+      });
+      const grip = document.createElement('span');
+      grip.className = 'pe-grip';
+      grip.textContent = '⠿';
+      const input = peInput('', mode);
+      input.setAttribute('aria-label', window.I18n.t(currentLang, 'presetsTabName'));
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+        else if (e.key === 'Escape') { input.value = mode; input.blur(); }
+      });
+      input.addEventListener('blur', () => commitModeRename(mode, input));
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'pe-x';
+      del.title = window.I18n.t(currentLang, 'presetsDeleteModeTitle');
+      del.textContent = '×';
+      del.disabled = toneModes.length < 2;
+      del.addEventListener('click', async () => {
+        if (!confirm(window.I18n.t(currentLang, 'presetsDeleteModeConfirm', { mode }))) return;
+        await flushPresetSave();
+        const r = await window.api.deleteToneMode(mode);
+        if (!r.success) return presetStatus(r.error, false);
+        toneModes = r.modes;
+        if (activeMode === mode) activeMode = toneModes[0];
+        loadPresets(r.presets);
+        renderAll();
+        flashSaved();
+      });
+      row.append(grip, input, del);
+      pop.appendChild(row);
+    });
+    const add = document.createElement('button');
+    add.type = 'button';
+    add.className = 'btn-outline';
+    add.textContent = window.I18n.t(currentLang, 'presetsAddModeBtn');
+    add.addEventListener('click', async () => {
+      await flushPresetSave();
+      const r = await window.api.addToneMode();
+      if (!r.success) return presetStatus(r.error, false);
+      toneModes = r.modes;
+      presetsCache = groupByMode(flattenPresetsFrom(presetsCache), toneModes);
+      renderAll();
+      renderPop();
+      flashSaved();
+      const last = $('#pePop .pe-pop-row:last-of-type input');
+      if (last) { last.focus(); last.select(); }
+    });
+    pop.appendChild(add);
+  }
+
+  function flattenPresetsFrom(cache) {
+    return Object.values(cache).flat();
+  }
+
+  async function commitModeRename(mode, inputEl) {
+    const next = inputEl.value.trim();
+    if (!next || next === mode) { inputEl.value = mode; return; }
+    await flushPresetSave();
+    const r = await window.api.renameToneMode(mode, next);
+    if (!r.success) {
+      inputEl.value = mode;
+      return presetStatus(r.error, false);
+    }
+    presetStatus('', true);
     toneModes = r.modes;
-    presetsCache = groupByMode(flattenPresets().map((p) => ({ ...p, originalLabel: p.originalLabel || p.label })), toneModes);
-    activeMode = toneModes[toneModes.length - 1];
-    renderTabstrip();
-    renderActiveEditor();
-    const strip = $('#toneModeTabstrip');
-    const lastTab = strip.querySelector('.tone-mode-tab:last-child .tone-mode-tab-name');
-    if (lastTab) { lastTab.readOnly = false; lastTab.focus(); lastTab.select(); }
-  });
+    if (activeMode === mode) activeMode = next;
+    loadPresets(r.presets);
+    renderAll();
+    flashSaved();
+  }
+
+  function setPopOpen(open) {
+    $('#pePop').classList.toggle('open', open);
+    if (open) renderPop();
+  }
+  $('#peEditTabsBtn').addEventListener('click', (e) => { e.stopPropagation(); setPopOpen(!$('#pePop').classList.contains('open')); });
+  $('#pePop').addEventListener('click', (e) => e.stopPropagation());
+  document.addEventListener('click', () => setPopOpen(false));
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setPopOpen(false); });
+
+  (async () => {
+    const [flat, modes] = await Promise.all([window.api.getPresets(), window.api.getToneModes()]);
+    toneModes = modes;
+    activeMode = toneModes[0];
+    loadPresets(flat);
+    renderAll();
+  })();
 
   // Write My Way (Advanced tab) --------------------------------------------
   // Mockup UI only: toggles and selections here are local page state, not
