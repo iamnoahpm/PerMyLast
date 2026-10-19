@@ -135,7 +135,8 @@ const STRINGS = {
     comingSoon: 'Coming soon',
 
     // Settings — Advanced: Write My Way (mockup)
-    wmwHint: 'Mockup preview — not yet connected to your rewrites. Tell Per My Last how you write, so future rewrites already sound like you.',
+    wmwHint: 'Tell Per My Last how you write. Switch on "Use my Write My Way settings" for any action under Tone Presets and these settings are added to its prompt.',
+    presetUseWmw: 'Use my Write My Way settings',
     wmwEnglishLevelTitle: 'English Level',
     wmwEnglishLevelHint: 'Off by default. When on, pick the test you know your level from and enter your score — a recent actual score or your own best estimate.',
     wmwTestLabel: 'Test',
@@ -334,7 +335,8 @@ const STRINGS = {
     comingSoon: 'Sắp ra mắt',
 
     // Settings — Advanced: Write My Way (mockup)
-    wmwHint: 'Bản xem trước — chưa được kết nối vào nội dung viết lại. Cho Per My Last biết bạn viết như thế nào, để những lần viết lại sau này đã mang đúng chất của bạn.',
+    wmwHint: 'Cho Per My Last biết bạn viết như thế nào. Bật "Dùng cài đặt Write My Way của tôi" cho bất kỳ tùy chọn nào trong Giọng điệu mẫu để các cài đặt này được thêm vào câu lệnh của nó.',
+    presetUseWmw: 'Dùng cài đặt Write My Way của tôi',
     wmwEnglishLevelTitle: 'Trình độ tiếng Anh',
     wmwEnglishLevelHint: 'Mặc định tắt. Khi bật, chọn bài kiểm tra bạn biết trình độ của mình và nhập điểm số — điểm thi thực tế gần nhất hoặc điểm bạn tự ước lượng.',
     wmwTestLabel: 'Bài kiểm tra',

@@ -99,6 +99,8 @@
   .wmw-seg-btn:hover, .effort-seg-btn:hover { transform:none; background:transparent; }
   .wmw-seg-btn.active, .effort-seg-btn.active { background:#fff; color:var(--fg); font-weight:700; box-shadow:var(--sh-knob); }
   .effort-custom-note, .effort-unsupported-note { font-style:italic; }
+  .preset-row-wmw-toggle { display:flex; align-items:center; gap:8px; margin-top:8px; font-size:var(--t-meta); color:var(--vc-label-muted); cursor:pointer; }
+  .preset-row-wmw-toggle input { width:auto; margin:0; }
   .wmw-length-custom { display:none; gap:8px; margin-top:8px; }
   .wmw-length-custom input, .wmw-length-custom select { flex:1; }
   .shortcut-recorder { display:flex; align-items:center; min-height:44px; padding:6px 10px; border:1px solid var(--vc-border-strong); border-radius:var(--r-input); cursor:pointer; transition:border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease); }
@@ -790,6 +792,7 @@
     $('#appLanguage').value = s.appLanguage || 'en-US';
     setShortcut(s.shortcut || 'Command+Shift+W');
     $('#showInDock').checked = !!s.showInDock;
+    applyWmw(s.writeMyWay);
     $('#launchAtLogin').checked = !!s.launchAtLogin;
     $('#wtptEnabled').checked = !!s.wartimePeacetimeEnabled;
     toggleWtptCard($('#wtptEnabled').checked);
@@ -966,6 +969,7 @@
       p.icon = row.querySelector('.preset-row-icon-input').value.trim();
       p.label = row.querySelector('.preset-row-label-input').value.trim() || p.label;
       p.tone = row.querySelector('.preset-row-tone-input').value.trim();
+      p.useWriteMyWay = row.querySelector('.preset-row-wmw').checked;
     });
   }
 
@@ -1195,6 +1199,16 @@
     main.appendChild(promptEl);
     main.appendChild(footer);
 
+    const wmwLabel = document.createElement('label');
+    wmwLabel.className = 'preset-row-wmw-toggle';
+    const wmwBox = document.createElement('input');
+    wmwBox.type = 'checkbox';
+    wmwBox.className = 'preset-row-wmw';
+    wmwBox.checked = !!p.useWriteMyWay;
+    wmwLabel.appendChild(wmwBox);
+    wmwLabel.appendChild(document.createTextNode(window.I18n.t(currentLang, 'presetUseWmw')));
+    main.appendChild(wmwLabel);
+
     row.appendChild(handle);
     row.appendChild(main);
     return row;
@@ -1234,7 +1248,8 @@
       icon: p.icon,
       blurb: p.blurb,
       tone: p.tone,
-      isDefault: p.isDefault
+      isDefault: p.isDefault,
+      useWriteMyWay: p.useWriteMyWay
     }));
     const r = await window.api.reorderPresets(incoming);
     presetsCache = groupByMode(r.presets.map(tagOriginal), toneModes);
@@ -1297,6 +1312,52 @@
   }
   $('#wmwEnabled').addEventListener('change', (e) => toggleWmwCard(e.target.checked));
   toggleWmwCard(false);
+
+  // Persisted as one object; every control saves on change, like the
+  // Wartime / Peacetime switch (this tab has no Save button of its own).
+  function readWmw() {
+    const lengthBtn = $('#wmwLengthSegmented').querySelector('.wmw-seg-btn.active');
+    return {
+      enabled: $('#wmwEnabled').checked,
+      englishLevelEnabled: $('#wmwEnglishLevelEnabled').checked,
+      testType: $('#wmwTestType').value,
+      testScore: $('#wmwTestScore').value,
+      tone: $('#wmwTone').value,
+      toneCustom: $('#wmwToneCustom').value,
+      length: lengthBtn ? lengthBtn.dataset.length : 'short',
+      lengthCustomValue: $('#wmwLengthCustomValue').value,
+      lengthCustomUnit: $('#wmwLengthCustomUnit').value,
+      format: $('#wmwFormat').value
+    };
+  }
+
+  function applyWmw(w) {
+    if (!w) return;
+    $('#wmwEnabled').checked = w.enabled;
+    toggleWmwCard(w.enabled);
+    $('#wmwEnglishLevelEnabled').checked = w.englishLevelEnabled;
+    $('#wmwEnglishLevelFields').style.display = w.englishLevelEnabled ? 'block' : 'none';
+    $('#wmwTestType').value = w.testType;
+    $('#wmwTestScore').value = w.testScore;
+    $('#wmwTone').value = w.tone;
+    $('#wmwToneCustom').value = w.toneCustom;
+    $('#wmwToneCustom').style.display = w.tone === 'other' ? 'block' : 'none';
+    $('#wmwLengthSegmented').querySelectorAll('.wmw-seg-btn').forEach((b) => b.classList.toggle('active', b.dataset.length === w.length));
+    $('#wmwLengthCustomFields').style.display = w.length === 'custom' ? 'flex' : 'none';
+    $('#wmwLengthCustomValue').value = w.lengthCustomValue;
+    $('#wmwLengthCustomUnit').value = w.lengthCustomUnit;
+    $('#wmwFormat').value = w.format;
+  }
+
+  let wmwSaveTimer;
+  function saveWmw() {
+    clearTimeout(wmwSaveTimer);
+    wmwSaveTimer = setTimeout(() => window.api.saveSettings({ writeMyWay: readWmw() }), 300);
+  }
+  $('#wmwEnabled').addEventListener('change', saveWmw);
+  $('#wmwCard').addEventListener('input', saveWmw);
+  $('#wmwCard').addEventListener('change', saveWmw);
+  $('#wmwLengthSegmented').addEventListener('click', saveWmw);
 
   $('#wmwEnglishLevelEnabled').addEventListener('change', (e) => {
     $('#wmwEnglishLevelFields').style.display = e.target.checked ? 'block' : 'none';

@@ -60,7 +60,7 @@ describe('normalizePresets', () => {
   it('fills in category/blurb/isDefault/tone/originalPrompt/uses for legacy presets missing those fields', () => {
     const legacy = [{ label: 'Old Tone', prompt: 'Be old:', isEmail: false }];
     const result = normalizePresets(legacy, DEFAULT_MODES);
-    expect(result[0]).toEqual({ label: 'Old Tone', category: 'Reply', icon: '', blurb: '', tone: '', prompt: 'Be old:', originalPrompt: 'Be old:', uses: 0, isEmail: false, isDefault: true, requiresMotherLanguage: false });
+    expect(result[0]).toEqual({ label: 'Old Tone', category: 'Reply', icon: '', blurb: '', tone: '', prompt: 'Be old:', originalPrompt: 'Be old:', uses: 0, isEmail: false, isDefault: true, useWriteMyWay: false, requiresMotherLanguage: false });
   });
 
   it('demotes all but the first isDefault:true within a category', () => {
@@ -391,5 +391,45 @@ describe('buildAskRequest', () => {
 
   it('allows a longer answer than a rewrite', () => {
     expect(ASK_MAX_TOKENS).toBe(4096);
+  });
+});
+
+describe('Write My Way', () => {
+  const { normalizeWriteMyWay, buildWriteMyWayText, DEFAULT_WRITE_MY_WAY } = require('./presets');
+
+  it('defaults to casual, short, message, and is off', () => {
+    const w = normalizeWriteMyWay(undefined);
+    expect(w).toMatchObject({ enabled: false, tone: 'casual', length: 'short', format: 'message' });
+    expect(buildWriteMyWayText(undefined)).toBe('');
+  });
+
+  it('rejects unknown values and bad custom lengths', () => {
+    const w = normalizeWriteMyWay({ enabled: true, tone: 'angry', length: 'huge', format: 'poem', lengthCustomValue: '-5' });
+    expect(w).toMatchObject({ tone: 'casual', length: 'short', format: 'message', lengthCustomValue: '' });
+  });
+
+  it('describes tone, length and format when on', () => {
+    expect(buildWriteMyWayText({ enabled: true })).toBe('Write it in a casual tone, short in length, formatted as a chat message (Teams or Slack).');
+  });
+
+  it('uses a custom tone and a custom length limit', () => {
+    const text = buildWriteMyWayText({ enabled: true, tone: 'other', toneCustom: 'dry and wry', length: 'custom', lengthCustomValue: '80', lengthCustomUnit: 'words', format: 'email' });
+    expect(text).toBe('Write it in a dry and wry tone, at most 80 words in length, formatted as an email.');
+  });
+
+  it('adds the English level only when asked and when a score is set', () => {
+    const w = { enabled: true, englishLevelEnabled: true, testType: 'IELTS', testScore: '7.0' };
+    expect(buildWriteMyWayText(w)).not.toMatch(/English level/);
+    expect(buildWriteMyWayText(w, { includeEnglishLevel: true })).toMatch(/Match my English level \(IELTS 7\.0\)\./);
+    expect(buildWriteMyWayText({ ...w, testScore: '' }, { includeEnglishLevel: true })).not.toMatch(/English level/);
+  });
+
+  it('only Like Me ships with Write My Way switched on, and presets keep the flag through edits', () => {
+    expect(DEFAULT_PRESETS.filter((p) => p.useWriteMyWay).map((p) => p.label)).toEqual(['Like Me']);
+    const incoming = DEFAULT_PRESETS.map((p) => ({ originalLabel: p.label, label: p.label, prompt: p.prompt, isDefault: p.isDefault }));
+    const kept = applyPresetEdits(DEFAULT_PRESETS, incoming, DEFAULT_MODES);
+    expect(kept.find((p) => p.label === 'Like Me').useWriteMyWay).toBe(true);
+    const turnedOn = applyPresetEdits(DEFAULT_PRESETS, incoming.map((e) => (e.label === 'Email' ? { ...e, useWriteMyWay: true } : e)), DEFAULT_MODES);
+    expect(turnedOn.find((p) => p.label === 'Email').useWriteMyWay).toBe(true);
   });
 });

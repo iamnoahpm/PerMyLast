@@ -2,7 +2,7 @@ const { app, BrowserWindow, globalShortcut, ipcMain, Tray, Menu, clipboard, nati
 const Store = require('electron-store');
 const path = require('path');
 const { execFile } = require('child_process');
-const { DEFAULT_MODES, DEFAULT_PRESETS, migrateLegacyDefaults, validateLabel, normalizePresets, upsertPreset, deletePreset, incrementUses, applyPresetEdits, addMode, renameMode, deleteMode, reorderModes, buildClaudeRequest, buildAskRequest, ASK_MAX_TOKENS } = require('./presets');
+const { DEFAULT_MODES, DEFAULT_PRESETS, migrateLegacyDefaults, validateLabel, normalizePresets, upsertPreset, deletePreset, incrementUses, applyPresetEdits, addMode, renameMode, deleteMode, reorderModes, buildClaudeRequest, buildAskRequest, ASK_MAX_TOKENS, normalizeWriteMyWay, buildWriteMyWayText } = require('./presets');
 const { findShortcutConflict } = require('./renderer/shortcutConflicts');
 
 // Distinguishes a dev/test run from the packaged app installed from the DMG —
@@ -382,6 +382,7 @@ ipcMain.handle('get-settings', () => ({
   showInDock: store.get('showInDock', true),
   launchAtLogin: app.getLoginItemSettings().openAtLogin,
   wartimePeacetimeEnabled: store.get('wartimePeacetimeEnabled', false),
+  writeMyWay: normalizeWriteMyWay(store.get('writeMyWay')),
   motherLanguage: store.get('motherLanguage', ''),
   appLanguage: store.get('appLanguage', detectDefaultAppLanguage())
 }));
@@ -392,6 +393,7 @@ ipcMain.handle('save-settings', (e, s) => {
   if (s.effort !== undefined && EFFORT_LEVELS.includes(s.effort)) store.set('effort', s.effort);
   if (s.workspaceId !== undefined) store.set('workspaceId', s.workspaceId);
   if (s.wartimePeacetimeEnabled !== undefined) store.set('wartimePeacetimeEnabled', s.wartimePeacetimeEnabled);
+  if (s.writeMyWay !== undefined) store.set('writeMyWay', normalizeWriteMyWay(s.writeMyWay));
   if (s.motherLanguage !== undefined) store.set('motherLanguage', s.motherLanguage);
   if (s.appLanguage !== undefined && SUPPORTED_APP_LANGUAGES.includes(s.appLanguage)) {
     store.set('appLanguage', s.appLanguage);
@@ -467,9 +469,9 @@ function broadcastModesUpdate(modes) {
   if (mainWindow) mainWindow.webContents.send('modes-updated', modes);
 }
 
-ipcMain.handle('save-preset', (e, { label, prompt, category, icon, blurb, tone, isEmail, isDefault }) => {
+ipcMain.handle('save-preset', (e, { label, prompt, category, icon, blurb, tone, isEmail, isDefault, useWriteMyWay }) => {
   if (!validateLabel(label)) return { success: false, error: 'Please enter a preset name' };
-  const presets = upsertPreset(store.get('presets', DEFAULT_PRESETS), { label, prompt, category, icon, blurb, tone, isEmail, isDefault }, getModes());
+  const presets = upsertPreset(store.get('presets', DEFAULT_PRESETS), { label, prompt, category, icon, blurb, tone, isEmail, isDefault, useWriteMyWay }, getModes());
   store.set('presets', presets);
   broadcastPresetsUpdate(presets);
   return { success: true, presets };
@@ -526,6 +528,16 @@ ipcMain.handle('reorder-tone-modes', (e, orderedNames) => {
   return { success: true, modes };
 });
 
+// Appends the user's Write My Way style to an action's prompt when that action
+// has "Use my Write My Way settings" on and the tool is switched on. English
+// level only goes to Like Me, the action that writes in the user's own voice.
+function withWriteMyWay(prompt, presetLabel) {
+  const preset = presetLabel ? store.get('presets', DEFAULT_PRESETS).find((p) => p.label === presetLabel) : null;
+  if (!preset || !preset.useWriteMyWay) return prompt;
+  const extra = buildWriteMyWayText(store.get('writeMyWay'), { includeEnglishLevel: preset.label === 'Like Me' });
+  return extra ? `${prompt}\n\n${extra}` : prompt;
+}
+
 ipcMain.handle('claude-request', async (e, { text, prompt, isEmail, presetLabel, ask }) => {
   const apiKey = store.get('apiKey', '');
   const model = store.get('model', DEFAULT_MODEL);
@@ -533,7 +545,7 @@ ipcMain.handle('claude-request', async (e, { text, prompt, isEmail, presetLabel,
   const workspaceId = store.get('workspaceId', '');
   if (!apiKey) return { success: false, error: 'API key not set. Open Settings from the menu bar icon.' };
 
-  const { system, content } = ask ? buildAskRequest(text) : buildClaudeRequest(text, prompt, isEmail);
+  const { system, content } = ask ? buildAskRequest(text) : buildClaudeRequest(text, withWriteMyWay(prompt, presetLabel), isEmail);
   const body = { model, max_tokens: ask ? ASK_MAX_TOKENS : 1024, system, messages: [{ role: 'user', content }] };
   // Sonnet 5, Opus 5, and Fable 5 default to adaptive thinking with no
   // `thinking` param needed — effort just tunes how much of it they do.

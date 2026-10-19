@@ -623,7 +623,7 @@
     const nextPrompt = (!draft || draft === preset.originalPrompt) ? preset.originalPrompt : draft;
     const r = await window.api.savePreset({
       label: preset.label, category: preset.category, icon: preset.icon, blurb: preset.blurb,
-      tone: preset.tone, prompt: nextPrompt, isEmail: preset.isEmail, isDefault: preset.isDefault
+      tone: preset.tone, prompt: nextPrompt, isEmail: preset.isEmail, isDefault: preset.isDefault, useWriteMyWay: preset.useWriteMyWay
     });
     if (r.success) allPresets = r.presets;
     editing = false;

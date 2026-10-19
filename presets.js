@@ -18,14 +18,14 @@ const DEFAULT_PRESETS = [
   { label: 'Email', category: 'Reply', icon: '📧', blurb: 'Workplace email reply in your tone', tone: 'Direct', prompt: 'You are an expert email writer who drafts clear, professional email replies for workplace contexts. Write the reply in a Direct tone.', isEmail: true, isDefault: true },
   { label: 'Message', category: 'Reply', icon: '💬', blurb: 'Short chat / DM reply', tone: 'Warm', prompt: 'Write a short, natural reply to this message. Keep it conversational and to the point.', isEmail: false, isDefault: false },
   { label: 'Like Brit.', category: 'Write', icon: '🤴', blurb: 'Casual Teams message, native English', tone: 'Casual', prompt: LIKE_BRIT_PROMPT, isEmail: false, isDefault: true },
-  { label: 'Like Me', category: 'Write', icon: '🫆', blurb: 'Casual Teams message, still sounds like me', tone: 'Personal', prompt: LIKE_ME_PROMPT, isEmail: false, isDefault: false },
+  { label: 'Like Me', category: 'Write', icon: '🫆', blurb: 'Casual Teams message, still sounds like me', tone: 'Personal', prompt: LIKE_ME_PROMPT, isEmail: false, isDefault: false, useWriteMyWay: true },
   { label: 'Explain', category: 'Understand', icon: '💡', blurb: 'Plain-language summary', tone: 'Plain', prompt: EXPLAIN_PROMPT, isEmail: false, isDefault: true },
   // {{motherLanguage}} is resolved client-side from the Settings "mother
   // language" field before sending — see resolvedPromptText/resolvedBlurbText
   // in index.html. The blurb carries the same token so the chip hint on the
   // main page shows the actual configured language, not a generic label.
   { label: 'Translate', category: 'Understand', icon: '🌐', blurb: 'Into {{motherLanguage}}', tone: 'Neutral', prompt: TRANSLATE_PROMPT, isEmail: false, isDefault: false, requiresMotherLanguage: true }
-].map((p) => ({ ...p, originalPrompt: p.prompt, uses: 0 }));
+].map((p) => ({ useWriteMyWay: false, ...p, originalPrompt: p.prompt, uses: 0 }));
 
 // Defaults shipped by earlier versions, keyed by label. migrateLegacyDefaults
 // only touches a preset whose prompt still equals the shipped original, so a
@@ -53,7 +53,7 @@ function migrateLegacyDefaults(list) {
     if (!untouched) { out.push(p); return; }
     if (legacy.to === null) return;
     const next = fresh.get(legacy.to);
-    out.push({ ...p, label: next.label, icon: next.icon, blurb: next.blurb, tone: next.tone, prompt: next.prompt, originalPrompt: next.prompt });
+    out.push({ ...p, label: next.label, icon: next.icon, blurb: next.blurb, tone: next.tone, prompt: next.prompt, originalPrompt: next.prompt, useWriteMyWay: next.useWriteMyWay });
   });
   return out;
 }
@@ -101,6 +101,7 @@ function normalizePresets(list, modes) {
     uses: Number.isFinite(p.uses) ? p.uses : 0,
     isEmail: !!p.isEmail,
     isDefault: !!p.isDefault,
+    useWriteMyWay: !!p.useWriteMyWay,
     requiresMotherLanguage: !!p.requiresMotherLanguage
   }));
 
@@ -142,6 +143,7 @@ function upsertPreset(list, preset, modes) {
     uses: stored ? stored.uses : 0,
     isEmail: !!preset.isEmail,
     isDefault: !!preset.isDefault,
+    useWriteMyWay: typeof preset.useWriteMyWay === 'boolean' ? preset.useWriteMyWay : !!(stored && stored.useWriteMyWay),
     requiresMotherLanguage: !!preset.requiresMotherLanguage
   };
   let next;
@@ -210,6 +212,7 @@ function applyPresetEdits(stored, incoming, modes) {
       uses: base.uses,
       isEmail: base.isEmail,
       isDefault: !!entry.isDefault,
+      useWriteMyWay: typeof entry.useWriteMyWay === 'boolean' ? entry.useWriteMyWay : base.useWriteMyWay,
       requiresMotherLanguage: base.requiresMotherLanguage
     });
   });
@@ -261,6 +264,61 @@ function reorderModes(modes, orderedNames) {
   return next;
 }
 
+// Write My Way: the user's standing style (tone, length, format, and optionally
+// their English level), appended to the prompt of any action that has "Use my
+// Write My Way settings" on. Defaults match a casual Teams message.
+const DEFAULT_WRITE_MY_WAY = {
+  enabled: false,
+  englishLevelEnabled: false, testType: 'TOEIC', testScore: '',
+  tone: 'casual', toneCustom: '',
+  length: 'short', lengthCustomValue: '', lengthCustomUnit: 'words',
+  format: 'message'
+};
+const WMW_TONES = ['professional', 'casual', 'friendly', 'persuasive', 'other'];
+const WMW_LENGTHS = ['short', 'medium', 'long', 'custom'];
+const WMW_FORMATS = ['bullets', 'message', 'email', 'essay', 'blog'];
+const WMW_TESTS = ['TOEIC', 'IELTS', 'SAT', 'CEFR', 'TOEFL'];
+
+function normalizeWriteMyWay(raw) {
+  const r = raw && typeof raw === 'object' ? raw : {};
+  const pick = (v, allowed, dflt) => (allowed.includes(v) ? v : dflt);
+  const d = DEFAULT_WRITE_MY_WAY;
+  const n = Math.floor(Number(r.lengthCustomValue));
+  return {
+    enabled: !!r.enabled,
+    englishLevelEnabled: !!r.englishLevelEnabled,
+    testType: pick(r.testType, WMW_TESTS, d.testType),
+    testScore: trimmed(r.testScore),
+    tone: pick(r.tone, WMW_TONES, d.tone),
+    toneCustom: trimmed(r.toneCustom),
+    length: pick(r.length, WMW_LENGTHS, d.length),
+    lengthCustomValue: Number.isFinite(n) && n > 0 ? String(n) : '',
+    lengthCustomUnit: pick(r.lengthCustomUnit, ['words', 'characters'], d.lengthCustomUnit),
+    format: pick(r.format, WMW_FORMATS, d.format)
+  };
+}
+
+const WMW_FORMAT_TEXT = {
+  bullets: 'bullet points', message: 'a chat message (Teams or Slack)', email: 'an email', essay: 'an essay', blog: 'a blog post'
+};
+
+// Returns the sentence(s) to append, or '' when the user has the tool off.
+// English level only applies where `includeEnglishLevel` is set (the Like Me
+// action), since a native-English rewrite has no use for it.
+function buildWriteMyWayText(raw, { includeEnglishLevel = false } = {}) {
+  const w = normalizeWriteMyWay(raw);
+  if (!w.enabled) return '';
+  const tone = w.tone === 'other' ? (w.toneCustom || DEFAULT_WRITE_MY_WAY.tone) : w.tone;
+  let length;
+  if (w.length === 'custom') length = w.lengthCustomValue ? `at most ${w.lengthCustomValue} ${w.lengthCustomUnit}` : DEFAULT_WRITE_MY_WAY.length;
+  else length = w.length;
+  let text = `Write it in a ${tone} tone, ${length} in length, formatted as ${WMW_FORMAT_TEXT[w.format]}.`;
+  if (includeEnglishLevel && w.englishLevelEnabled && w.testScore) {
+    text += ` Match my English level (${w.testType} ${w.testScore}).`;
+  }
+  return text;
+}
+
 // The Ask tab sends the user's question straight to the model, with no preset
 // prompt wrapped around it. Answers can run longer than a rewrite, hence the
 // larger token budget.
@@ -288,5 +346,6 @@ module.exports = {
   DEFAULT_MODES, DEFAULT_PRESETS, migrateLegacyDefaults,
   validateLabel, normalizeCategory, normalizePresets, upsertPreset, deletePreset, incrementUses, applyPresetEdits,
   addMode, renameMode, deleteMode, reorderModes,
-  buildClaudeRequest, buildAskRequest, ASK_MAX_TOKENS
+  buildClaudeRequest, buildAskRequest, ASK_MAX_TOKENS,
+  DEFAULT_WRITE_MY_WAY, normalizeWriteMyWay, buildWriteMyWayText
 };
