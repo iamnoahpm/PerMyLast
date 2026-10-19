@@ -266,8 +266,6 @@
       <span id="footerVersion"></span>
       <span class="footer-divider"></span>
       <button type="button" class="link" id="footerFeedbackBtn">Send feedback</button>
-      <span class="footer-divider"></span>
-      <button type="button" class="link" id="footerUpdatesBtn">Check for updates</button>
     </div>
   </div>
 
@@ -803,7 +801,6 @@
   $('#maxBtn').addEventListener('click', () => window.api.toggleMaximizeWindow());
   $('#settingsBtn').addEventListener('click', () => window.api.openSettings());
   $('#footerFeedbackBtn').addEventListener('click', () => window.api.sendFeedback(''));
-  $('#footerUpdatesBtn').addEventListener('click', () => window.api.checkForUpdates());
   sendBtn.addEventListener('click', process);
   $('#regenBtn').addEventListener('click', process);
 
@@ -869,7 +866,6 @@
     $('#promptCancelBtn').textContent = tr('cancel');
     $('#promptSaveBtn').textContent = tr('saveOverwrite');
     $('#footerFeedbackBtn').textContent = tr('footerFeedback');
-    $('#footerUpdatesBtn').textContent = tr('footerUpdates');
     updateWordCount();
     renderTabs();
     updatePromptUI();

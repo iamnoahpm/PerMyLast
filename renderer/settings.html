@@ -494,8 +494,6 @@
       <span id="footerVersion"></span>
       <span class="footer-divider"></span>
       <button type="button" class="link" id="footerFeedbackBtn" data-i18n="footerFeedback">Send feedback</button>
-      <span class="footer-divider"></span>
-      <button type="button" class="link" id="footerUpdatesBtn" data-i18n="footerUpdates">Check for updates</button>
       <span class="footer-save-note" id="footerSaveNote" data-i18n="footerSaveNote">Changes save as you make them</span>
     </div>
   </div>
@@ -514,7 +512,6 @@
   window.api.getAppName().then((name) => { $('#titleText').textContent = name + ' Settings'; document.title = name + ' Settings'; });
   window.api.getAppVersion().then((v) => { appVersion = v; $('#footerVersion').textContent = window.I18n.t(currentLang, 'footerVersion', { version: v }); });
   $('#footerFeedbackBtn').addEventListener('click', () => { document.querySelector('.tab[data-tab="general"]').click(); $('#feedbackText').focus(); });
-  $('#footerUpdatesBtn').addEventListener('click', () => window.api.checkForUpdates());
 
   // "Saved" flash in the titlebar — fades in for 2s after any settings
   // change that actually persists. Structural preset edits (add/delete/

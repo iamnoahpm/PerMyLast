@@ -304,13 +304,26 @@ function positionWindow() {
   mainWindow.setBounds(computeDockedBounds());
 }
 
+// First-run setup (no key / not signed in yet) takes priority over the popup.
+function needsSetup() {
+  return !store.get('apiKey');
+}
+
+// What a left-click on the tray icon, a Dock-icon click, and a plain launch
+// all do: open the popup, or Settings if the app can't send anything yet.
+function openApp() {
+  if (needsSetup()) openSettingsWindow();
+  else showMainWindow();
+}
+
+// Left-click opens the app; right-click / Control-click pops up the menu.
+// The menu is deliberately NOT attached with tray.setContextMenu(): macOS
+// would then show it on left-click too and swallow the 'click' event.
 function createTray() {
   tray = new Tray(nativeImage.createEmpty());
+  tray.on('click', openApp);
+  tray.on('right-click', () => tray.popUpContextMenu(trayMenu));
   refreshTrayMenu();
-  // No 'click' handler: with a context menu set, macOS shows that menu on
-  // any click (left or right). A 'click' listener would instead intercept
-  // left-clicks and skip straight to showing the popup, bypassing the menu —
-  // "Open Per My Last" is already the first item for that.
 }
 
 function setShowInDock(value) {
@@ -328,23 +341,24 @@ function setLaunchAtLogin(value) {
   store.set('launchAtLogin', app.getLoginItemSettings().openAtLogin);
 }
 
+let trayMenu = null;
+
 function refreshTrayMenu() {
-  const menu = Menu.buildFromTemplate([
-    { label: isEnabled ? '✅ Enabled' : '❌ Disabled', click: () => { isEnabled = !isEnabled; store.set('isEnabled', isEnabled); refreshTrayMenu(); } },
-    { type: 'separator' },
-    { label: 'Open Per My Last', accelerator: store.get('shortcut', DEFAULT_SHORTCUT), click: showMainWindow },
+  trayMenu = Menu.buildFromTemplate([
+    { label: 'Enabled', type: 'checkbox', checked: isEnabled, click: (item) => { isEnabled = item.checked; store.set('isEnabled', isEnabled); refreshTrayMenu(); } },
     { label: 'Show in Dock', type: 'checkbox', checked: store.get('showInDock', true), click: (item) => { setShowInDock(item.checked); } },
-    { label: 'Settings…', click: openSettingsWindow },
     { type: 'separator' },
-    { label: 'Quit', accelerator: 'Command+Q', click: () => app.quit() }
+    { label: 'Settings…', accelerator: 'Command+,', click: openSettingsWindow },
+    { label: 'Check for Updates…', click: checkForUpdates },
+    { type: 'separator' },
+    { label: 'Quit Per My Last', accelerator: 'Command+Q', click: () => app.quit() }
   ]);
-  tray.setContextMenu(menu);
   updateTrayIcon();
 }
 
-// Lit flame while enabled, unlit/outline flame while disabled — monochrome
-// silhouettes, marked as template images so macOS auto-inverts them for
-// light/dark menu bars, same as every other menu-bar icon.
+// Solid open umbrella while enabled, outlined tilted umbrella while disabled —
+// single-colour black+alpha template images, so macOS tints them for light and
+// dark menu bars. The @2x siblings are picked up automatically.
 function updateTrayIcon() {
   const file = isEnabled ? 'tray-enabled.png' : 'tray-disabled.png';
   const icon = nativeImage.createFromPath(path.join(__dirname, 'assets', file));
@@ -606,15 +620,14 @@ ipcMain.handle('send-feedback', (e, body) => {
 
 // There's no update server or auto-updater wired up yet — this tells the
 // user that plainly instead of a spinner that implies a real check happened.
-ipcMain.handle('check-for-updates', () => {
+function checkForUpdates() {
   dialog.showMessageBox({
     type: 'info',
     title: 'Check for Updates',
     message: `You're on version ${app.getVersion()}`,
     detail: "Automatic update checking isn't set up yet — for now, download new builds from wherever you got this one."
   });
-  return { success: true };
-});
+}
 
 // The shortcut recorder needs the *currently active* global hotkey out of the
 // way while it's listening for a new combo — otherwise re-recording the
@@ -664,8 +677,7 @@ app.whenReady().then(() => {
   // like nothing happened beyond an icon appearing in the Dock/menu bar.
   // First-time setup (no API key yet) still takes priority and opens
   // Settings instead, same as before.
-  if (!store.get('apiKey')) openSettingsWindow();
-  else showMainWindow();
+  openApp();
 });
 
 // mainWindow.on('close') only lets the window actually close when
@@ -679,7 +691,7 @@ app.on('before-quit', () => { app.isQuitting = true; });
 // Electron doesn't auto-show a hidden window when a running app's Dock icon
 // is clicked (unlike native Mac apps) — 'activate' is the event for that,
 // and it only fires when the Dock icon is actually visible (Show in Dock on).
-app.on('activate', () => showMainWindow());
+app.on('activate', openApp);
 
 app.on('will-quit', () => globalShortcut.unregisterAll());
 app.on('window-all-closed', (e) => {});
