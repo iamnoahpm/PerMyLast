@@ -6,8 +6,7 @@
     {
       "binding": "DB",
       "database_name": "permylast",
-      // Replace with the id printed by `npx wrangler d1 create permylast`.
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "a64ad66c-3933-4ecf-af52-254cfcb345ac",
       "migrations_dir": "migrations"
     }
   ],
@@ -17,6 +16,8 @@
     "APPLE_CLIENT_ID": "app.permylast",
     // Google OAuth client id(s), comma-separated. Fill in after creating them.
     "GOOGLE_CLIENT_ID": "",
+    // Sender of sign-in emails. The domain must be verified in Resend; the key is the RESEND_API_KEY secret.
+    "MAIL_FROM": "Per My Last <login@permylast.app>",
     // Lemon Squeezy variant ids: fill in after creating the products in Lemon Squeezy.
     "LS_VARIANT_LIFETIME": "",
     "LS_VARIANT_LIFETIME_RENEWAL": "",

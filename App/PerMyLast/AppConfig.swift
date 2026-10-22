@@ -6,7 +6,7 @@ enum AppConfig {
     /// Where the backend Worker lives, e.g. https://permylast-api.<you>.workers.dev. Leave empty until it is
     /// deployed: with no backend the app behaves as before (your own key only, no sign-in).
     /// For development, set PML_BACKEND_URL (use http://127.0.0.1:8787 for `wrangler dev`).
-    private static let backendURLString = ""
+    private static let backendURLString = "https://permylast-api.iamnoahpm.workers.dev"
 
     static var backendURL: URL? {
         let override = ProcessInfo.processInfo.environment["PML_BACKEND_URL"] ?? UserDefaults.standard.string(forKey: "backendURL")
