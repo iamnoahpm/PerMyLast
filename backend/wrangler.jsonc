@@ -1,0 +1,29 @@
+{
+  "name": "permylast-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-09-01",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "permylast",
+      // Replace with the id printed by `npx wrangler d1 create permylast`.
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ],
+  // Public identifiers only. Secrets (JWT_SECRET, later ANTHROPIC_API_KEY) are set with `wrangler secret put`.
+  "vars": {
+    // Bundle ID of the app, as registered for Sign in with Apple.
+    "APPLE_CLIENT_ID": "app.permylast",
+    // Google OAuth client id(s), comma-separated. Fill in after creating them.
+    "GOOGLE_CLIENT_ID": "",
+    // Lemon Squeezy variant ids: fill in after creating the products in Lemon Squeezy.
+    "LS_VARIANT_LIFETIME": "",
+    "LS_VARIANT_LIFETIME_RENEWAL": "",
+    "LS_VARIANT_PRO_MONTHLY": "",
+    "LS_VARIANT_PRO_YEARLY": "",
+    // Set to "Production,Sandbox" and "true" while testing payments; remove both before launch.
+    "APPSTORE_ENVIRONMENTS": "Production",
+    "LS_ACCEPT_TEST_MODE": "false"
+  }
+}

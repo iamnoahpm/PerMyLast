@@ -1,0 +1,41 @@
+// Config for the backend (PRD section 11): one place, no hard-coded values elsewhere.
+// Values marked "placeholder" are the PRD's suggestions; set them from measured cost in Phase 3.
+export const config = {
+  /** Days a trial lasts. */
+  TRIAL_DAYS: 21,
+  /** Runs in the trial. Decided: 50. */
+  TRIAL_CREDITS: 50,
+  /** Runs per month for Pro (monthly and yearly). */
+  PRO_MONTHLY_RUNS: 1000,
+
+  /** Input cap per run. Placeholder. Used by /v1/run (Phase 3). */
+  MAX_INPUT_CHARS: 12_000,
+  /** Output cap per run. Placeholder. Used by /v1/run (Phase 3). */
+  MAX_OUTPUT_TOKENS: 1_024,
+  /** Model for templates without one. Placeholder: a Haiku-class model; confirm the id in Anthropic's docs. */
+  DEFAULT_MODEL: "claude-haiku-4-5",
+  /** Runs charged for a larger model (NFR-6). Placeholder. */
+  EXPENSIVE_MODEL_WEIGHT: 4,
+  RATE_LIMIT_PER_MIN: 20,
+  MAX_CONCURRENT_STREAMS: 2,
+  UPSTREAM_TIMEOUT_S: 60,
+
+  /** Email sign-in codes. */
+  EMAIL_CODE_TTL_S: 600,
+  EMAIL_CODE_MAX_ATTEMPTS: 5,
+  /** Codes sent to one address per 15 minutes. */
+  EMAIL_CODES_PER_WINDOW: 3,
+
+  /** Bundle id the App Store transactions must belong to. */
+  BUNDLE_ID: "app.permylast",
+  /** Months of updates a Lifetime purchase or renewal buys (PRD section 7). */
+  UPDATE_WINDOW_MONTHS: 12,
+  /** Days of access kept while a subscription payment is being retried (FR-P5). */
+  GRACE_DAYS: 7,
+  /** SHA-256 of Apple Root CA - G3 (DER). App Store signatures must chain to it. Source: apple.com/certificateauthority. */
+  APPLE_ROOT_SHA256: "63343abfb89a6a03ebb57e9b3f5fa7be7c4f5c756f3017b3a8c488c3653e9179",
+
+  /** Session lifetimes. */
+  ACCESS_TOKEN_TTL_S: 3600,
+  REFRESH_TOKEN_TTL_S: 60 * 60 * 24 * 90,
+} as const;
