@@ -22,7 +22,7 @@ struct LanguageSearchField: View {
                     if editing { editor } else { display }
                     // Same slot as the App Language picker's arrows, so both names end at the same x.
                     Image(systemName: "magnifyingglass")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(PMLColor.inkMuted)
                         .frame(width: 29)
                 }
             }
@@ -37,7 +37,7 @@ struct LanguageSearchField: View {
                         .buttonStyle(.plain)
                     }
                 }
-                .background(Color.primary.opacity(0.06), in: RoundedRectangle(cornerRadius: 6))
+                .background(PMLColor.surfaceSunken, in: RoundedRectangle(cornerRadius: PMLRadius.seg, style: .continuous))
             }
         }
         .onChange(of: selection) { if !editing { query = selection } }
@@ -50,9 +50,9 @@ struct LanguageSearchField: View {
             HStack(spacing: 6) {
                 if let flag { Text(flag) }
                 if selection.isEmpty {
-                    Text("Type to search — e.g. Spanish, Japanese, French").foregroundStyle(.secondary)
+                    Text("Type to search — e.g. Spanish, Japanese, French").foregroundStyle(PMLColor.inkMuted)
                 } else {
-                    Text(verbatim: selection).foregroundStyle(.primary)
+                    Text(verbatim: selection).foregroundStyle(PMLColor.ink)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .trailing)

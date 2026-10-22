@@ -96,14 +96,13 @@ struct ShortcutRecorderRow: View {
                 }
                 .help("Click here, then press a key combo…")
                 Button { recorder.clear() } label: { Image(systemName: "xmark.circle.fill") }
-                    .buttonStyle(.borderless)
+                    .buttonStyle(PMLGhostButtonStyle())
                     .help("Clear")
             }
             Text("Copy some text, then press \(model.shortcutDisplay) anywhere to open it in Per My Last.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                .font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted)
             if let error = model.hotKeyError {
-                Text(error).font(.caption).foregroundStyle(.red)
+                Text(error).font(PMLFont.hint).foregroundStyle(PMLColor.danger)
             }
             noteView
         }
@@ -114,16 +113,16 @@ struct ShortcutRecorderRow: View {
         switch recorder.note {
         case .systemConflict(let description):
             Text("This hotkey conflicts with \(description) — choose another before saving.")
-                .font(.caption).foregroundStyle(.red)
+                .font(PMLFont.hint).foregroundStyle(PMLColor.danger)
         case .appConflict(let app, let description):
             Text("Heads up: this is also \(app)'s shortcut for \(description). It'll still save, but may not always reach Per My Last while that app is frontmost.")
-                .font(.caption).foregroundStyle(.orange)
+                .font(PMLFont.hint).foregroundStyle(PMLColor.warning)
         case .needsModifier:
             Text("Hold ⌘, ⌃ or ⌥ and press a key.")
-                .font(.caption).foregroundStyle(.orange)
+                .font(PMLFont.hint).foregroundStyle(PMLColor.warning)
         case .required:
             Text("⚠ A shortcut is required — record one above.")
-                .font(.caption).foregroundStyle(.red)
+                .font(PMLFont.hint).foregroundStyle(PMLColor.danger)
         case nil:
             EmptyView()
         }

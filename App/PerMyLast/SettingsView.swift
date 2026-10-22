@@ -20,10 +20,12 @@ struct SettingsView: View {
                     .tabItem { Label("Advanced", systemImage: "slider.horizontal.3") }
                     .tag(Tab.advanced)
             }
-            Divider()
+            Rectangle().fill(PMLColor.divider).frame(height: 1)
             footer
         }
         .frame(minWidth: 620, minHeight: 520)
+        .background(PMLColor.surface)
+        .tint(PMLColor.accent)
         .navigationTitle("Per My Last Settings")
         // One place saves every settings change (the tabs just edit the model).
         .onChange(of: model.settings) { model.saveSettings() }
@@ -32,18 +34,19 @@ struct SettingsView: View {
 
     private var footer: some View {
         HStack(spacing: 14) {
-            Text("Version \(model.appVersion)").foregroundStyle(.secondary)
+            Text("Version \(model.appVersion)").foregroundStyle(PMLColor.inkMuted)
             Button("Send feedback") { model.sendFeedback() }
             Spacer()
             if model.settingsSavedFlash {
-                Label("Saved", systemImage: "checkmark").foregroundStyle(.green)
+                Label("Saved", systemImage: "checkmark").foregroundStyle(PMLColor.success)
             } else {
-                Text("Changes save as you make them").foregroundStyle(.tertiary)
+                Text("Changes save as you make them").foregroundStyle(PMLColor.inkMuted)
             }
         }
-        .font(.caption)
-        .buttonStyle(.link)
+        .font(PMLFont.hint)
+        .buttonStyle(PMLGhostButtonStyle())
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
+        .background(PMLColor.surface)
     }
 }
