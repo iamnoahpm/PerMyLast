@@ -20,6 +20,7 @@ struct PerMyLastApp: App {
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
+        PMLFontRegistration.register()
         Task { @MainActor in
             StatusItemController.shared.install()
             AppModel.shared.applyDockVisibility()
