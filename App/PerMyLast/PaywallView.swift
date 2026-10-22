@@ -7,6 +7,7 @@ struct PaywallView: View {
     @Environment(AppModel.self) private var model
     @State private var selected = PaywallProduct.proYearly
     @State private var licenseKey = ""
+    @FocusState private var licenseFocused: Bool
     private let purchases = PurchaseService.shared
 
     var body: some View {
@@ -72,7 +73,7 @@ struct PaywallView: View {
                     Text("Have a license key?").font(PMLFont.select.weight(.bold))
                     HStack {
                         TextField("License key", text: $licenseKey)
-                            .textFieldStyle(PMLTextFieldStyle())
+                            .pmlInput(focus: $licenseFocused)
                         Button("Activate") { Task { if await account.activateLicense(licenseKey) { licenseKey = "" } } }
                             .disabled(licenseKey.trimmingCharacters(in: .whitespaces).count < 8 || account.isBusy)
                             .buttonStyle(PMLSecondaryButtonStyle())

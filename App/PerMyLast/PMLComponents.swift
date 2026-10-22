@@ -210,22 +210,29 @@ struct PMLField: View {
     }
 }
 
-/// Single-line field: `line-strong` border on `surface`; `accent` border on focus.
-struct PMLTextFieldStyle: TextFieldStyle {
-    var radius: CGFloat = PMLRadius.inset
-    var height: CGFloat? = nil
-    @FocusState private var focused: Bool
+/// Single-line field chrome: `lineStrong` border on `surface`; `accent` border on focus.
+/// Use with `.textFieldStyle(.plain)` and a `@FocusState` on the same field.
+private struct PMLInputChrome: ViewModifier {
+    var focus: FocusState<Bool>.Binding
+    var radius: CGFloat
+    var height: CGFloat
 
-    func _body(configuration: TextField<Self._Label>) -> some View {
-        configuration
+    func body(content: Content) -> some View {
+        content
             .textFieldStyle(.plain)
             .font(PMLFont.input)
             .foregroundStyle(PMLColor.ink)
-            .focused($focused)
+            .focused(focus)
             .padding(.horizontal, PMLSpace.s3)
-            .frame(minHeight: height ?? 32)
+            .frame(minHeight: height)
             .background(RoundedRectangle(cornerRadius: radius, style: .continuous).fill(PMLColor.surface))
-            .overlay(RoundedRectangle(cornerRadius: radius, style: .continuous).strokeBorder(focused ? PMLColor.accent : PMLColor.lineStrong, lineWidth: 1))
+            .overlay(RoundedRectangle(cornerRadius: radius, style: .continuous).strokeBorder(focus.wrappedValue ? PMLColor.accent : PMLColor.lineStrong, lineWidth: 1))
+    }
+}
+
+extension View {
+    func pmlInput(focus: FocusState<Bool>.Binding, radius: CGFloat = PMLRadius.inset, height: CGFloat = 32) -> some View {
+        modifier(PMLInputChrome(focus: focus, radius: radius, height: height))
     }
 }
 

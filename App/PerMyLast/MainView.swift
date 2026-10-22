@@ -5,6 +5,7 @@ struct MainView: View {
     @Environment(AppModel.self) private var model
     @FocusState private var inputFocused: Bool
     @FocusState private var askFocused: Bool
+    @FocusState private var intentFocused: Bool
 
     var body: some View {
         @Bindable var model = model
@@ -112,7 +113,7 @@ struct MainView: View {
             Text("Your reply intent").font(PMLFont.meta).fontWeight(.semibold).foregroundStyle(PMLColor.inkMuted)
             HStack(alignment: .center, spacing: PMLSpace.s3) {
                 TextField("e.g. Confirm I can make it, but ask to push 30 minutes", text: text)
-                    .textFieldStyle(PMLTextFieldStyle(height: PMLLayout.controlHeight))
+                    .pmlInput(focus: $intentFocused, height: PMLLayout.controlHeight)
                 sendButton
             }
         }
