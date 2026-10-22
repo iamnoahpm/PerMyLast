@@ -2377,17 +2377,6 @@
         }
       }
     },
-    "Can't reach the server. Check your connection.": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Không thể kết nối máy chủ. Hãy kiểm tra kết nối mạng."
-          }
-        }
-      }
-    },
     "Sign in in Settings to start your free trial, or add your own API key.": {
       "extractionState": "manual",
       "localizations": {
@@ -2901,6 +2890,61 @@
           "stringUnit": {
             "state": "translated",
             "value": "Thời gian dùng thử miễn phí đã hết. Hãy chọn một gói, hoặc dùng khóa API Anthropic của riêng bạn (Cài đặt → Chung)."
+          }
+        }
+      }
+    },
+    "Renew updates to use this version. Your updates ended %@.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hãy gia hạn cập nhật để dùng phiên bản này. Quyền cập nhật của bạn đã hết hạn vào %@."
+          }
+        }
+      }
+    },
+    "Connect to the internet to verify your license.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hãy kết nối internet để xác minh bản quyền của bạn."
+          }
+        }
+      }
+    },
+    "Renew updates →": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gia hạn cập nhật →"
+          }
+        }
+      }
+    },
+    "Download your last version": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tải phiên bản cuối cùng của bạn"
+          }
+        }
+      }
+    },
+    "You're offline. Connect to the internet to use your plan.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bạn đang ngoại tuyến. Hãy kết nối internet để dùng gói của bạn."
           }
         }
       }

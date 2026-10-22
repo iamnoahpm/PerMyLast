@@ -53,7 +53,7 @@ struct PaywallView: View {
                 HStack {
                     Button(lifetimeTitle) { Task { await purchases.buy(.lifetime) } }
                         .disabled(!account.signedIn || !purchases.isAvailable(.lifetime) || purchases.isBusy)
-                    if account.entitlement?.ownsLifetime == true {
+                    if account.entitlement?.ownsLifetime == true || account.updateWindow != .ok {
                         Button("Renew updates") { Task { await purchases.buy(.lifetimeRenewal) } }
                             .disabled(!purchases.isAvailable(.lifetimeRenewal) || purchases.isBusy)
                     }

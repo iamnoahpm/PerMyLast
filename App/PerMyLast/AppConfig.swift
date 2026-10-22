@@ -46,6 +46,18 @@ enum AppConfig {
     /// Google OAuth client id (iOS/desktop type). Empty hides Google sign-in.
     static let googleClientID = ""
 
+    /// FR-P7: the date this build was released. Update it for every release. A Lifetime licence whose 12 months of updates
+    /// ended before this date cannot use the build (it shows "Renew updates to use this version").
+    static let releaseDate: Date = {
+        var c = DateComponents(); c.year = 2026; c.month = 10; c.day = 22
+        var cal = Calendar(identifier: .gregorian); cal.timeZone = TimeZone(identifier: "UTC")!
+        return cal.date(from: c) ?? Date()
+    }()
+    /// Set to true for a compatibility-fix build, which Lifetime users may keep using for 12 months longer.
+    static let isPatchBuild = false
+    /// Where Lifetime users can download the last build their licence covers. Empty hides the link.
+    static let lastEligibleDownloadURL = ""
+
     /// FR-A14: warn at this share of the allowance, and this many days before the trial ends.
     static let warnAtFraction = 0.8
     static let warnDaysBeforeTrialEnds = 3

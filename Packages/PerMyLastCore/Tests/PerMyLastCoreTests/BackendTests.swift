@@ -271,3 +271,53 @@ struct PurchaseTests {
         }
     }
 }
+
+@Suite("Offline and update-window rules")
+struct PolicyTests {
+    private let now = Date(timeIntervalSince1970: 1_800_000_000)
+    private func days(_ n: Double) -> Date { now.addingTimeInterval(n * 86_400) }
+
+    @Test func aLifetimeLicenceIsTrustedOfflineFor14Days() {
+        #expect(OfflinePolicy.lifetimeIsFresh(fetchedAt: days(-13.9), now: now))
+        #expect(OfflinePolicy.lifetimeIsFresh(fetchedAt: days(-14), now: now))
+        #expect(!OfflinePolicy.lifetimeIsFresh(fetchedAt: days(-14.1), now: now))
+        #expect(!OfflinePolicy.lifetimeIsFresh(fetchedAt: nil, now: now))
+        #expect(OfflinePolicy.graceDays == 14)
+    }
+
+    @Test func aStaleLifetimeMustBeVerifiedOnlineOnlyOnceLicencesAreEnforced() {
+        let lifetime = EntitlementInfo(plan: .lifetime, ownsLifetime: true)
+        func route(license: Bool, stale: Bool) -> AIRoute {
+            AIClientFactory.route(signedIn: true, entitlement: lifetime, hasOwnKey: true, preferOwnKey: false, ownKeyNeedsLicense: license, entitlementIsStale: stale)
+        }
+        #expect(route(license: true, stale: false) == .direct)
+        #expect(route(license: true, stale: true) == .verifyOnline)
+        #expect(route(license: false, stale: true) == .direct)
+        // Staleness never affects plans that already need the server.
+        #expect(AIClientFactory.route(signedIn: true, entitlement: EntitlementInfo(plan: .proYearly), hasOwnKey: false, preferOwnKey: false, ownKeyNeedsLicense: true, entitlementIsStale: true) == .proxy)
+    }
+
+    @Test func updateWindowOnlyBlocksLifetimeOnlyUsersOnNewerBuilds() {
+        let until = days(10)
+        func status(_ plan: PlanKind = .lifetime, until: Date? = days(10), build: Date, patch: Bool = false, at: Date? = nil) -> UpdateWindow.Status {
+            UpdateWindow.status(plan: plan, updatesUntil: until, buildDate: build, isPatchBuild: patch, now: at ?? now)
+        }
+        #expect(status(build: days(-30)) == .ok)
+        #expect(status(build: days(10)) == .ok)                                         // released the day updates end
+        #expect(status(build: days(11)) == .renewalNeeded(updatesUntil: until))
+        #expect(status(.proYearly, build: days(11)) == .ok)                             // Pro is unaffected
+        #expect(status(.trial, build: days(11)) == .ok)
+        #expect(status(until: nil, build: days(11)) == .ok)                             // unknown end: never lock anyone out
+    }
+
+    @Test func compatibilityPatchesStayAllowedForAnotherYear() {
+        let until = days(10)
+        #expect(UpdateWindow.status(plan: .lifetime, updatesUntil: until, buildDate: days(100), isPatchBuild: true, now: days(100)) == .ok)
+        #expect(UpdateWindow.status(plan: .lifetime, updatesUntil: until, buildDate: days(100), isPatchBuild: true, now: days(10 + 366)) == .renewalNeeded(updatesUntil: until))
+        #expect(UpdateWindow.status(plan: .lifetime, updatesUntil: until, buildDate: days(100), isPatchBuild: false, now: days(100)) == .renewalNeeded(updatesUntil: until))
+    }
+
+    @Test func updatesExpiredIsATypedError() {
+        #expect(BackendError(code: "updates_expired", message: "").kind == .updatesExpired)
+    }
+}

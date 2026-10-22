@@ -15,6 +15,8 @@ final class AccountModel {
     // MARK: State
     private(set) var session: AuthSession?
     private(set) var entitlement: EntitlementInfo?
+    /// When the server last confirmed the plan (NFR-11).
+    private(set) var entitlementFetchedAt: Date?
     var useOwnKey: Bool { didSet { UserDefaults.standard.set(useOwnKey, forKey: "useOwnKeyInsteadOfPro") } }
 
     // Email sign-in form
@@ -39,6 +41,7 @@ final class AccountModel {
             session = try? JSONDecoder().decode(AuthSession.self, from: data)
         }
         if let cached = Persistence.load("cachedEntitlement", as: EntitlementInfo.self) { entitlement = cached }
+        entitlementFetchedAt = UserDefaults.standard.object(forKey: "entitlementFetchedAt") as? Date
     }
 
     var backend: BackendClient? { AppConfig.backendURL.map { BackendClient(baseURL: $0) } }
@@ -50,7 +53,14 @@ final class AccountModel {
     func route(hasOwnKey: Bool) -> AIRoute {
         guard isConfigured else { return .direct }
         return AIClientFactory.route(signedIn: signedIn, entitlement: entitlement, hasOwnKey: hasOwnKey,
-                                     preferOwnKey: useOwnKey, ownKeyNeedsLicense: AppConfig.ownKeyNeedsLicense)
+                                     preferOwnKey: useOwnKey, ownKeyNeedsLicense: AppConfig.ownKeyNeedsLicense,
+                                     entitlementIsStale: !OfflinePolicy.lifetimeIsFresh(fetchedAt: entitlementFetchedAt))
+    }
+
+    /// FR-P7: whether this build is covered by the Lifetime licence. Only enforced once payments are live.
+    var updateWindow: UpdateWindow.Status {
+        guard AppConfig.paymentsLive, signedIn, let me = entitlement else { return .ok }
+        return UpdateWindow.status(plan: me.plan, updatesUntil: me.updatesUntil, buildDate: AppConfig.releaseDate, isPatchBuild: AppConfig.isPatchBuild)
     }
 
     // MARK: Session
@@ -85,6 +95,8 @@ final class AccountModel {
         warning = nil
         try? sessionStore.delete()
         UserDefaults.standard.removeObject(forKey: "cachedEntitlement")
+        UserDefaults.standard.removeObject(forKey: "entitlementFetchedAt")
+        entitlementFetchedAt = nil
         emailStep = .enterEmail
         code = ""
     }
@@ -232,9 +244,14 @@ final class AccountModel {
         }
     }
 
-    func apply(_ me: EntitlementInfo) {
+    /// `verified` is true when the server just told us this (not when we only adjusted the count after a run).
+    func apply(_ me: EntitlementInfo, verified: Bool = true) {
         entitlement = me
         Persistence.save(me, key: "cachedEntitlement")
+        if verified {
+            entitlementFetchedAt = Date()
+            UserDefaults.standard.set(entitlementFetchedAt, forKey: "entitlementFetchedAt")
+        }
         updateWarning()
     }
 
@@ -242,7 +259,7 @@ final class AccountModel {
     func noteRunsRemaining(_ remaining: Int?) {
         guard var me = entitlement, let remaining, let allowance = me.runsAllowance else { return }
         me.runsUsed = max(0, allowance - remaining)
-        apply(me)
+        apply(me, verified: false)
     }
 
     // MARK: Purchases (Phase 4)
@@ -344,7 +361,7 @@ final class AccountModel {
         case .emailUnavailable: return L("We couldn't send the email. Try again later.")
         case .trialAlreadyUsed: return L("A free trial has already been used on this Mac.")
         case .rateLimited: return L("Too many requests. Try again in \(error.retryAfter ?? 10) seconds.")
-        case .unreachable: return L("Can't reach the server. Check your connection.")
+        case .unreachable: return L("You're offline. Connect to the internet to use your plan.")
         default: return error.message
         }
     }

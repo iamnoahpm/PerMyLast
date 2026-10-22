@@ -14,8 +14,10 @@ export const config = {
   MAX_OUTPUT_TOKENS: 1_024,
   /** Model for templates without one. Placeholder: a Haiku-class model; confirm the id in Anthropic's docs. */
   DEFAULT_MODEL: "claude-haiku-4-5",
-  /** Runs charged for a larger model (NFR-6). Placeholder. */
+  /** Runs charged for a larger model (NFR-6). Placeholder: set it from the measured cost ratio. */
   EXPENSIVE_MODEL_WEIGHT: 4,
+  /** A model counts as larger when its id starts with one of these. The default model (Haiku class) is not listed. */
+  EXPENSIVE_MODEL_PREFIXES: ["claude-opus", "claude-sonnet", "claude-fable"],
   RATE_LIMIT_PER_MIN: 20,
   MAX_CONCURRENT_STREAMS: 2,
   UPSTREAM_TIMEOUT_S: 60,

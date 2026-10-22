@@ -456,6 +456,10 @@ final class AppModel {
         let account = AccountModel.shared
         switch account.route(hasOwnKey: !apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) {
         case .direct:
+            // FR-P7: a Lifetime licence covers builds released before its updates ended.
+            if case .renewalNeeded(let until) = account.updateWindow, account.entitlement?.plan == .lifetime {
+                throw BackendError(code: "updates_expired", message: L("Renew updates to use this version. Your updates ended \(until.formatted(date: .abbreviated, time: .omitted))."))
+            }
             return (DirectAnthropicClient(config: makeConfig()), false)
         case .proxy:
             guard let base = AppConfig.backendURL else { throw AnthropicError.missingAPIKey }
@@ -467,6 +471,8 @@ final class AppModel {
             throw AnthropicError.missingAPIKey
         case .paywall:
             throw BackendError(code: "no_entitlement", message: "")
+        case .verifyOnline:
+            throw BackendError(code: "unreachable", message: L("Connect to the internet to verify your license."))
         case .signIn:
             throw BackendError(code: "unauthenticated", message: L("Sign in in Settings to start your free trial, or add your own API key."))
         }
@@ -509,6 +515,9 @@ final class AppModel {
             }
             return L("You've used this month's runs.")
         case .byokRequired: return L("Your plan uses your own Anthropic API key. Add it in Settings.")
+        case .updatesExpired:
+            WindowCoordinator.shared.showPaywall()   // it has "Renew updates"
+            return e.message
         case .inputTooLarge: return L("That text is too long (limit \(e.limit ?? 0) characters).")
         case .unauthenticated: return e.message.isEmpty ? L("Sign in to continue.") : e.message
         default: return AccountModel.shared.friendly(e)

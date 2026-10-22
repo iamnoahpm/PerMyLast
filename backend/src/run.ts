@@ -4,7 +4,7 @@ import { config } from "../config.ts";
 import type { Deps, Env } from "./env.ts";
 import { releaseStreamSlot, takeRateSlot, takeStreamSlot } from "./limits.ts";
 import { getMe } from "./me.ts";
-import { commitRun, consumeRun, refundRun, RunError, type RunErrorCode } from "./metering.ts";
+import { commitRun, consumeRun, refundRun, runWeight, RunError, type RunErrorCode } from "./metering.ts";
 
 export interface Template {
   id: string;
@@ -47,7 +47,8 @@ const sse = (event: string, data: unknown) => new TextEncoder().encode(`event: $
 export async function handleRun(req: Request, env: Env, deps: Deps, ctx: ExecutionContext, userId: string, fail: Fail): Promise<Response> {
   const started = deps.now();
 
-  const rate = await takeRateSlot(env.DB, userId, started);
+  // The rate-limit write and reading the request body are independent, so they overlap.
+  const [rate, bodyText] = await Promise.all([takeRateSlot(env.DB, userId, started), req.text()]);
   if (!rate.ok) {
     const res = fail(429, "rate_limited", "Too many requests. Try again shortly.", { retry_after: rate.retryAfter });
     res.headers.set("retry-after", String(rate.retryAfter));
@@ -56,7 +57,7 @@ export async function handleRun(req: Request, env: Env, deps: Deps, ctx: Executi
 
   let body: { template_id?: unknown; variables?: unknown };
   try {
-    const text = await req.text();
+    const text = bodyText;
     if (text.length > config.MAX_INPUT_CHARS * 4 + 4096) return fail(413, "input_too_large", "That input is too large.", { limit: config.MAX_INPUT_CHARS });
     body = JSON.parse(text);
   } catch {
@@ -83,7 +84,7 @@ export async function handleRun(req: Request, env: Env, deps: Deps, ctx: Executi
   const slot: string = slotOrNull;
   let reservation: string;
   try {
-    reservation = await consumeRun(env.DB, userId, started);
+    reservation = await consumeRun(env.DB, userId, started, runWeight(template.model ?? config.DEFAULT_MODEL));
   } catch (error) {
     await releaseStreamSlot(env.DB, slot);
     if (error instanceof RunError) {

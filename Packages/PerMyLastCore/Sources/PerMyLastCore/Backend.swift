@@ -78,6 +78,8 @@ public enum AIRoute: Equatable, Sendable {
     case paywall
     /// Backend is in use but nobody is signed in.
     case signIn
+    /// A Lifetime licence that has not been confirmed by the server within the offline grace period.
+    case verifyOnline
 }
 
 public enum AIClientFactory {
@@ -85,7 +87,7 @@ public enum AIClientFactory {
     ///   until purchases exist (Phase 4), so people who already use their own key are not locked out. While it is
     ///   `false`, a saved key is used instead of trial credits, so existing key users never spend your money.
     public static func route(signedIn: Bool, entitlement: EntitlementInfo?, hasOwnKey: Bool,
-                             preferOwnKey: Bool, ownKeyNeedsLicense: Bool) -> AIRoute {
+                             preferOwnKey: Bool, ownKeyNeedsLicense: Bool, entitlementIsStale: Bool = false) -> AIRoute {
         let plan = entitlement?.plan ?? .none
         let keyIsFree = !ownKeyNeedsLicense && hasOwnKey
 
@@ -99,6 +101,7 @@ public enum AIClientFactory {
         case .trial:
             return keyIsFree ? .direct : .proxy
         case .lifetime:
+            if entitlementIsStale && ownKeyNeedsLicense { return .verifyOnline }   // NFR-11: trusted offline for the grace period only
             return hasOwnKey ? .direct : .keySetup
         case .none:
             return keyIsFree ? .direct : .paywall
@@ -114,7 +117,7 @@ public struct BackendError: Error, LocalizedError, Equatable, Sendable {
         case unauthenticated, invalidToken, invalidCode
         case noEntitlement, trialExpired, trialCreditsExhausted, quotaExhausted, byokRequired
         case trialAlreadyUsed, inputTooLarge, rateLimited, upstream, emailUnavailable, unreachable
-        case unknownLicense, licenseAlreadyUsed, invalidReceipt, wrongAccount, other
+        case unknownLicense, licenseAlreadyUsed, invalidReceipt, wrongAccount, updatesExpired, other
     }
 
     public let code: String
@@ -149,6 +152,7 @@ public struct BackendError: Error, LocalizedError, Equatable, Sendable {
         case "license_already_used": return .licenseAlreadyUsed
         case "invalid_receipt", "unknown_product": return .invalidReceipt
         case "wrong_account": return .wrongAccount
+        case "updates_expired": return .updatesExpired
         default: return .other
         }
     }

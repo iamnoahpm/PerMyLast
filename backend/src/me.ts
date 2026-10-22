@@ -1,5 +1,5 @@
 import { config } from "../config.ts";
-import { loadEntitlements, loadTrialUsage } from "./metering.ts";
+import { loadPlanInputs } from "./metering.ts";
 import { monthlyPeriod, resolvePlan, type Plan } from "./plans.ts";
 
 export interface Me {
@@ -16,9 +16,8 @@ const iso = (ms: number | null | undefined) => (ms == null ? null : new Date(ms)
 
 /** Body of GET /v1/me. */
 export async function getMe(db: D1Database, userId: string, now = Date.now()): Promise<Me> {
-  const rows = await loadEntitlements(db, userId);
+  const { rows, trialUsage } = await loadPlanInputs(db, userId);
   const trial = rows.find((r) => r.plan === "trial");
-  const trialUsage = await loadTrialUsage(db, userId, rows);
   const { plan, entitlement } = resolvePlan(rows, trialUsage, now);
 
   const lifetimes = rows.filter((r) => r.plan === "lifetime" && r.status === "active");

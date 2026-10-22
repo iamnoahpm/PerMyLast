@@ -350,6 +350,12 @@ struct OutputPanel: View {
                         Task { await model.send() }
                     }
                 }
+                if model.lastErrorKind == .updatesExpired {
+                    Button("Renew updates →") { WindowCoordinator.shared.showPaywall() }
+                    if let url = URL(string: AppConfig.lastEligibleDownloadURL), !AppConfig.lastEligibleDownloadURL.isEmpty {
+                        Link("Download your last version", destination: url)
+                    }
+                }
                 if model.lastErrorKind == .noEntitlement || model.lastErrorKind == .trialExpired || model.lastErrorKind == .trialCreditsExhausted {
                     Button("See plans →") { WindowCoordinator.shared.showPaywall() }
                 }

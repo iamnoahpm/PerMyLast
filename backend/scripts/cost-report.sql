@@ -18,3 +18,17 @@ SELECT status, COUNT(*) AS n FROM usage_events GROUP BY status;
 -- Trial usage: how many trials ended, and how many credits were used on average.
 SELECT COUNT(*) AS trials, ROUND(AVG(used), 1) AS avg_credits_used, SUM(used = allowance) AS fully_used
 FROM usage_periods WHERE kind = 'trial';
+
+-- Cost by plan: tokens used by users on each plan right now (multiply by your model prices).
+SELECT COALESCE(e.plan, 'none') AS plan, COUNT(DISTINCT u.user_id) AS users, COUNT(*) AS runs,
+       SUM(COALESCE(u.input_tokens, 0)) AS input_tokens, SUM(COALESCE(u.output_tokens, 0)) AS output_tokens
+FROM usage_events u
+LEFT JOIN entitlements e ON e.user_id = u.user_id AND e.status = 'active' AND e.plan <> 'trial'
+WHERE u.status = 'ok'
+GROUP BY COALESCE(e.plan, 'none');
+
+-- Trial-to-paid conversion: of everyone who started a trial, how many now hold a paid entitlement.
+SELECT COUNT(*) AS trials_started,
+       SUM(EXISTS (SELECT 1 FROM entitlements p WHERE p.user_id = t.user_id AND p.plan <> 'trial' AND p.status <> 'refunded')) AS converted,
+       ROUND(100.0 * SUM(EXISTS (SELECT 1 FROM entitlements p WHERE p.user_id = t.user_id AND p.plan <> 'trial' AND p.status <> 'refunded')) / COUNT(*), 1) AS conversion_percent
+FROM entitlements t WHERE t.plan = 'trial';
