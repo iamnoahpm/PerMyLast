@@ -8,33 +8,51 @@ struct MainView: View {
 
     var body: some View {
         @Bindable var model = model
-        VStack(spacing: 0) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    ShortcutWarningBanner()
-                    AccountWarningBanner()
-                    header
-                    tabs(selection: $model.activeMode)
-                    if model.isAsk {
-                        askBox(text: $model.askPrompt)
-                    } else {
-                        chips
-                        PromptPanel()
+        GeometryReader { geo in
+            let wide = geo.size.width >= PMLLayout.railBreakpoint
+            VStack(spacing: 0) {
+                HStack(alignment: .top, spacing: 0) {
+                    if wide {
+                        ModeRail(modes: model.modes, selection: $model.activeMode, wide: true) { WindowCoordinator.shared.showSettings() }
+                            .padding(PMLSpace.s4)
+                            .frame(width: PMLLayout.railWidth)
+                            .frame(maxHeight: .infinity, alignment: .top)
+                            .background(PMLColor.surfaceInset)
+                            .overlay(alignment: .trailing) { Rectangle().fill(PMLColor.divider).frame(width: 1) }
                     }
-                    if !model.isAsk { inputBox(text: $model.inputText) }
-                    if model.activeModeTakesIntent {
-                        intentRow(text: $model.intent)
-                    } else {
-                        sendRow
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: PMLSpace.s4) {
+                            ShortcutWarningBanner()
+                            AccountWarningBanner()
+                            if wide {
+                                description
+                            } else {
+                                header
+                                ModeRail(modes: model.modes, selection: $model.activeMode, wide: false) { WindowCoordinator.shared.showSettings() }
+                            }
+                            if model.isAsk {
+                                askBox(text: $model.askPrompt)
+                            } else {
+                                chips
+                                PromptPanel()
+                            }
+                            if !model.isAsk { inputBox(text: $model.inputText) }
+                            if model.activeModeTakesIntent {
+                                intentRow(text: $model.intent)
+                            } else {
+                                sendRow
+                            }
+                            OutputPanel()
+                        }
+                        .padding(wide ? PMLSpace.s5 : PMLLayout.windowPadding)
                     }
-                    OutputPanel()
                 }
-                .padding(20)
+                Rectangle().fill(PMLColor.divider).frame(height: 1)
+                FooterBar()
             }
-            Divider()
-            FooterBar()
         }
-        .frame(minWidth: 380, minHeight: 460)
+        .background(PMLColor.surface)
+        .frame(minWidth: PMLLayout.popupMinWidth, minHeight: PMLLayout.popupMinHeight)
         .navigationTitle("Per My Last")
         .onChange(of: model.activeMode) {
             model.selectDefaultPreset()
@@ -49,34 +67,20 @@ struct MainView: View {
     // MARK: Pieces
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("What are you trying to do?")
-                .font(.caption.weight(.bold))
-                .textCase(.uppercase)
-                .foregroundStyle(Color.accentColor)
-            Text("Say what you mean, but professionally. Saving careers, one email, one message at a time.")
-                .font(.callout)
-                .foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: PMLSpace.s1) {
+            Text("What are you trying to do?").pmlEyebrow()
+            description
         }
     }
 
-    private func tabs(selection: Binding<String>) -> some View {
-        HStack {
-            Picker("Mode", selection: selection) {
-                ForEach(model.modes, id: \.self) { Text($0).tag($0) }
-                // Ask isn't one of the user's tabs: it's always last, and can't be renamed or removed.
-                Text("Ask").tag(AppModel.askTab)
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            Button { WindowCoordinator.shared.showSettings() } label: { Image(systemName: "gearshape") }
-                .buttonStyle(.borderless)
-                .help("Settings")
-        }
+    private var description: some View {
+        Text("Say what you mean, but professionally. Saving careers, one email, one message at a time.")
+            .font(PMLFont.body)
+            .foregroundStyle(PMLColor.inkSoft)
     }
 
     private var chips: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: PMLSpace.s2) {
             FlowLayout(spacing: 8) {
                 ForEach(model.presetsInActiveMode) { preset in
                     let selected = preset.label == model.selectedLabel
@@ -85,14 +89,11 @@ struct MainView: View {
                     } label: {
                         HStack(spacing: 5) {
                             if !preset.icon.isEmpty { Text(preset.icon) }
-                            Text(preset.label).fontWeight(.medium)
+                            Text(preset.label)
                         }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(selected ? Color.accentColor.opacity(0.18) : Color.primary.opacity(0.06), in: Capsule())
-                        .overlay(Capsule().strokeBorder(selected ? Color.accentColor : .clear, lineWidth: 1.5))
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(PMLChipStyle(selected: selected))
+                    .accessibilityAddTraits(selected ? .isSelected : [])
                 }
             }
             .focusable()
@@ -100,18 +101,18 @@ struct MainView: View {
             .onKeyPress(.leftArrow) { model.selectNeighbour(-1); return .handled }
             .onKeyPress(.rightArrow) { model.selectNeighbour(1); return .handled }
             if let preset = model.currentPreset, !preset.blurb.isEmpty {
-                Text(model.blurb(for: preset)).font(.callout).foregroundStyle(.secondary)
+                Text(model.blurb(for: preset)).font(PMLFont.meta).foregroundStyle(PMLColor.inkMuted)
             }
         }
     }
 
     /// On tabs that take an intent, Send sits beside the intent field.
     private func intentRow(text: Binding<String>) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Your reply intent").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-            HStack(alignment: .center, spacing: 10) {
+        VStack(alignment: .leading, spacing: PMLSpace.s2) {
+            Text("Your reply intent").font(PMLFont.meta).fontWeight(.semibold).foregroundStyle(PMLColor.inkMuted)
+            HStack(alignment: .center, spacing: PMLSpace.s3) {
                 TextField("e.g. Confirm I can make it, but ask to push 30 minutes", text: text)
-                    .textFieldStyle(.roundedBorder)
+                    .textFieldStyle(PMLTextFieldStyle(height: PMLLayout.controlHeight))
                 sendButton
             }
         }
@@ -119,52 +120,24 @@ struct MainView: View {
 
     /// The Ask tab's prompt: a plain box, like a chat app's message field.
     private func askBox(text: Binding<String>) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Your question").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-            ZStack(alignment: .topLeading) {
-                TextEditor(text: text)
-                    .font(.body)
-                    .scrollContentBackground(.hidden)
-                    .focused($askFocused)
-                    .padding(8)
-                if text.wrappedValue.isEmpty {
-                    Text("Ask anything…")
-                        .foregroundStyle(.tertiary)
-                        .padding(.horizontal, 13).padding(.vertical, 16)
-                        .allowsHitTesting(false)
-                }
-            }
-            .frame(minHeight: 220)
-            .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 10))
-            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color.accentColor.opacity(askFocused ? 0.6 : 0), lineWidth: 1.5))
+        VStack(alignment: .leading, spacing: PMLSpace.s2) {
+            Text("Your question").font(PMLFont.meta).fontWeight(.semibold).foregroundStyle(PMLColor.inkMuted)
+            PMLField(text: text, placeholder: "Ask anything…", minHeight: 220, focus: $askFocused)
         }
     }
 
     private func inputBox(text: Binding<String>) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            ZStack(alignment: .topLeading) {
-                TextEditor(text: text)
-                    .font(.body)
-                    .scrollContentBackground(.hidden)
-                    .focused($inputFocused)
-                    .padding(8)
-                if text.wrappedValue.isEmpty {
-                    Text("Copy some text, then press \(model.shortcutDisplay) — or paste it here.")
-                        .foregroundStyle(.tertiary)
-                        .padding(.horizontal, 13).padding(.vertical, 16)
-                        .allowsHitTesting(false)
-                }
-            }
-            .frame(minHeight: 150)
-            .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 10))
+        let words = TextCleanup.wordCount(text.wrappedValue)
+        return PMLField(
+            text: text,
+            placeholder: "Copy some text, then press \(model.shortcutDisplay) — or paste it here.",
+            minHeight: 150, focus: $inputFocused,
+            footer: words > 0 ? "\(words) words" : nil)
             // A paste lands as one big jump in length; run it through the same
             // clean-up as captured text. (Ordinary typing never triggers this.)
             .onChange(of: text.wrappedValue) { old, new in
                 if new.count - old.count > 20 { text.wrappedValue = TextCleanup.beautify(new) }
             }
-            let words = TextCleanup.wordCount(text.wrappedValue)
-            if words > 0 { Text("\(words) words").font(.caption).foregroundStyle(.secondary) }
-        }
     }
 
     private var sendRow: some View {
@@ -175,21 +148,19 @@ struct MainView: View {
     }
 
     private var sendButton: some View {
-        HStack(spacing: 8) {
-            Button {
-                Task { await model.send() }
-            } label: {
-                HStack(spacing: 6) {
-                    if model.isSending { ProgressView().controlSize(.small) }
-                    Text(LocalizedStringKey(model.isSending ? "Sending…" : (model.hasResult ? "Send again" : "Send")))
-                }
+        Button {
+            Task { await model.send() }
+        } label: {
+            HStack(spacing: PMLSpace.s2) {
+                if model.isSending { ProgressView().controlSize(.small) }
+                Text(LocalizedStringKey(model.isSending ? "Sending…" : (model.hasResult ? "Send again" : "Send")))
+                Text("⌘↵").font(PMLFont.kbd).opacity(0.75)
             }
-            .keyboardShortcut(.return, modifiers: .command)
-            .buttonStyle(.borderedProminent)
-            .disabled(!model.canSend)
-            .help(sendTooltip)
-            Text("⌘↩").font(.caption).foregroundStyle(.tertiary)
         }
+        .keyboardShortcut(.return, modifiers: .command)
+        .buttonStyle(PMLPrimaryButtonStyle())
+        .disabled(!model.canSend)
+        .help(sendTooltip)
     }
 
     private var sendTooltip: String {
@@ -210,20 +181,19 @@ struct PromptPanel: View {
     var body: some View {
         @Bindable var model = model
         if let preset = model.currentPreset {
-            VStack(alignment: .leading, spacing: 10) {
-                header(preset)
-                if model.promptOpen {
-                    if model.editingPrompt { editor(preset, draft: $model.promptDraft) } else { reader(preset) }
-                }
-                if let flash = model.savedFlash {
-                    Label(flash, systemImage: "checkmark.circle.fill")
-                        .font(.caption)
-                        .foregroundStyle(.green)
+            PMLPanel(fill: PMLColor.surfaceInset, radius: PMLRadius.inset) {
+                VStack(alignment: .leading, spacing: PMLSpace.s3) {
+                    header(preset)
+                    if model.promptOpen {
+                        if model.editingPrompt { editor(preset, draft: $model.promptDraft) } else { reader(preset) }
+                    }
+                    if let flash = model.savedFlash {
+                        Label(flash, systemImage: "checkmark.circle.fill")
+                            .font(PMLFont.hint)
+                            .foregroundStyle(PMLColor.success)
+                    }
                 }
             }
-            .padding(12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 10))
         }
     }
 
@@ -231,14 +201,15 @@ struct PromptPanel: View {
         Button { model.togglePrompt() } label: {
             HStack(spacing: 6) {
                 Image(systemName: "chevron.right")
-                    .font(.caption.weight(.bold))
+                    .font(.system(size: 10, weight: .bold))
                     .rotationEffect(model.promptOpen ? .degrees(90) : .zero)
-                Text("Prompt").font(.callout.weight(.semibold))
+                Text("Prompt").font(PMLFont.select).fontWeight(.bold)
                 if model.isEdited(preset) {
                     Text("Edited")
-                        .font(.caption2.weight(.bold))
+                        .font(PMLFont.badge).tracking(0.42).textCase(.uppercase)
+                        .foregroundStyle(PMLColor.warning)
                         .padding(.horizontal, 6).padding(.vertical, 2)
-                        .background(Color.orange.opacity(0.2), in: Capsule())
+                        .background(PMLColor.warningSoft, in: RoundedRectangle(cornerRadius: PMLRadius.badge, style: .continuous))
                 }
                 Spacer()
                 if !preset.tone.isEmpty {
@@ -246,10 +217,11 @@ struct PromptPanel: View {
                         Text("Tone")
                         Text(preset.tone).fontWeight(.bold)
                     }
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(PMLFont.meta)
+                    .foregroundStyle(PMLColor.inkMuted)
                 }
             }
+            .foregroundStyle(PMLColor.ink)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -260,7 +232,8 @@ struct PromptPanel: View {
             Text(model.motherLanguageMissing
                  ? preset.prompt.replacingOccurrences(of: PresetLibrary.motherLanguageToken, with: "…")
                  : model.resolvedPrompt(for: preset))
-                .font(.callout)
+                .font(PMLFont.body)
+                .foregroundStyle(PMLColor.inkSoft)
                 .textSelection(.enabled)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .contentShape(Rectangle())
@@ -268,36 +241,39 @@ struct PromptPanel: View {
                 .help("Click to edit")
             if model.writeMyWayApplies(to: preset) {
                 Label("Plus your Write My Way settings", systemImage: "wand.and.stars")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(PMLFont.hint)
+                    .foregroundStyle(PMLColor.inkMuted)
             }
             if model.motherLanguageMissing {
                 Button("your mother language — set it in Settings") { WindowCoordinator.shared.showSettings() }
-                    .buttonStyle(.link)
-                    .font(.callout)
+                    .buttonStyle(PMLGhostButtonStyle())
             }
         }
     }
 
     private func editor(_ preset: Preset, draft: Binding<String>) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: PMLSpace.s2) {
             TextEditor(text: draft)
-                .font(.callout)
+                .font(PMLFont.body)
+                .foregroundStyle(PMLColor.ink)
                 .scrollContentBackground(.hidden)
                 .padding(6)
                 .frame(minHeight: 110)
-                .background(Color.primary.opacity(0.06), in: RoundedRectangle(cornerRadius: 8))
+                .background(PMLColor.surfaceSunken, in: RoundedRectangle(cornerRadius: PMLRadius.input, style: .continuous))
             Text("Saves to \(model.savedTargetLabel(preset)) in Settings")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                .font(PMLFont.hint)
+                .foregroundStyle(PMLColor.inkMuted)
             HStack {
                 Button("Cancel") { model.cancelPromptEdit() }
+                    .buttonStyle(PMLSecondaryButtonStyle())
                 if model.isEdited(preset) || model.promptDraft != preset.originalPrompt {
                     Button("Reset to original") { model.revertPromptDraft() }
+                        .buttonStyle(PMLGhostButtonStyle())
                 }
                 Spacer()
+                // Send stays the only accent fill in the view.
                 Button("Save & overwrite") { model.savePromptEdit() }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(PMLInkButtonStyle())
             }
         }
     }
@@ -320,28 +296,30 @@ struct OutputPanel: View {
     }
 
     private var emptyState: some View {
-        VStack(spacing: 4) {
-            Text("Your draft appears here.").font(.callout.weight(.semibold))
+        VStack(spacing: PMLSpace.s1) {
+            Text("Your draft appears here.").font(PMLFont.select).fontWeight(.bold).foregroundStyle(PMLColor.ink)
             Text(LocalizedStringKey(model.isAsk
                  ? "Type your question above, then press ⌘↵."
                  : (model.activeModeTakesIntent
                     ? "Pick a preset above, add your intent if you want, then press ⌘↵."
                     : "Pick a preset above, then press ⌘↵.")))
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                .font(PMLFont.hint)
+                .foregroundStyle(PMLColor.inkMuted)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
-        .padding(20)
-        .background(RoundedRectangle(cornerRadius: 10).strokeBorder(Color.primary.opacity(0.12), style: StrokeStyle(lineWidth: 1, dash: [4, 3])))
+        .padding(PMLSpace.s5)
+        .background(RoundedRectangle(cornerRadius: PMLRadius.card, style: .continuous).fill(PMLColor.surfaceInset))
+        .overlay(RoundedRectangle(cornerRadius: PMLRadius.card, style: .continuous).strokeBorder(PMLColor.line, lineWidth: 1))
     }
 
     private func errorBox(_ message: String) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: PMLSpace.s2) {
             Text("Error: \(message)")
-                .foregroundStyle(.red)
+                .font(PMLFont.body)
+                .foregroundStyle(PMLColor.danger)
                 .textSelection(.enabled)
-            HStack(spacing: 12) {
+            FlowLayout(spacing: PMLSpace.s1) {
                 Button("Retry") { Task { await model.send() } }.disabled(!model.canSend)
                 if model.lastErrorKind == .quotaExhausted, AccountModel.shared.entitlement?.ownsLifetime == true, !model.apiKey.isEmpty {
                     Button("Use my own API key instead") {
@@ -354,6 +332,7 @@ struct OutputPanel: View {
                     Button("Renew updates →") { WindowCoordinator.shared.showPaywall() }
                     if let url = URL(string: AppConfig.lastEligibleDownloadURL), !AppConfig.lastEligibleDownloadURL.isEmpty {
                         Link("Download your last version", destination: url)
+                            .font(PMLFont.select).foregroundStyle(PMLColor.accentText)
                     }
                 }
                 if model.lastErrorKind == .noEntitlement || model.lastErrorKind == .trialExpired || model.lastErrorKind == .trialCreditsExhausted {
@@ -364,32 +343,36 @@ struct OutputPanel: View {
                 }
                 Button("Dismiss") { model.errorMessage = nil }
             }
-            .buttonStyle(.link)
+            .buttonStyle(PMLGhostButtonStyle())
         }
+        .padding(PMLSpace.s3)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
-        .background(Color.red.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
+        .background(RoundedRectangle(cornerRadius: PMLRadius.card, style: .continuous).fill(PMLColor.dangerSoft))
     }
 
     private var result: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Text(resultTitle).font(.caption).foregroundStyle(.secondary)
-                Spacer()
-                Button("Regenerate") { Task { await model.send() } }
-                    .disabled(!model.canSend)
-                Button(LocalizedStringKey(copied ? "✅ Copied!" : "📋 Copy")) {
-                    model.copyOutput()
-                    copied = true
-                    Task { try? await Task.sleep(for: .seconds(1.5)); copied = false }
+        PMLPanel {
+            VStack(alignment: .leading, spacing: PMLSpace.s3) {
+                HStack(spacing: PMLSpace.s2) {
+                    Text(verbatim: resultTitle).pmlEyebrow(PMLColor.inkMuted).lineLimit(1)
+                    Spacer()
+                    Button("Regenerate") { Task { await model.send() } }
+                        .buttonStyle(PMLSecondaryButtonStyle())
+                        .disabled(!model.canSend)
+                    Button(LocalizedStringKey(copied ? "✅ Copied!" : "📋 Copy")) {
+                        model.copyOutput()
+                        copied = true
+                        Task { try? await Task.sleep(for: .seconds(1.5)); copied = false }
+                    }
+                    .buttonStyle(PMLInkButtonStyle())
                 }
+                Text(model.output)
+                    .font(PMLFont.input)
+                    .foregroundStyle(PMLColor.ink)
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
-            Text(model.output)
-                .textSelection(.enabled)
-                .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(12)
-        .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 10))
     }
 
     private var resultTitle: String {
@@ -405,16 +388,17 @@ struct FooterBar: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
-        HStack(spacing: 16) {
-            Text("Version \(model.appVersion)").foregroundStyle(.secondary)
+        HStack(spacing: PMLSpace.s4) {
+            Text("Version \(model.appVersion)").foregroundStyle(PMLColor.inkMuted)
             UsageMeterLabel()
             Spacer()
             Button("Send feedback") { model.sendFeedback() }
+                .buttonStyle(PMLGhostButtonStyle())
         }
-        .font(.caption)
-        .buttonStyle(.link)
-        .padding(.horizontal, 20)
-        .padding(.vertical, 10)
+        .font(PMLFont.hint)
+        .padding(.horizontal, PMLLayout.windowPadding)
+        .padding(.vertical, PMLSpace.s2)
+        .background(PMLColor.surface)
     }
 }
 
@@ -427,18 +411,23 @@ struct ShortcutWarningBanner: View {
 
     var body: some View {
         if let conflict = model.shortcutAppConflict, !model.shortcutBannerDismissed {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Your shortcut (\(model.shortcutDisplay)) is known to conflict with \(conflict.app ?? "")'s \(conflict.description) — it may not always reach Per My Last there. Consider choosing a different combo in Settings.")
-                    .font(.callout)
-                HStack(spacing: 12) {
-                    Button("Open Settings →") { WindowCoordinator.shared.showSettings() }
-                    Button("Dismiss") { model.shortcutBannerDismissed = true }
+            PMLBanner {
+                VStack(alignment: .leading, spacing: PMLSpace.s2) {
+                    Label {
+                        Text("Your shortcut (\(model.shortcutDisplay)) is known to conflict with \(conflict.app ?? "")'s \(conflict.description) — it may not always reach Per My Last there. Consider choosing a different combo in Settings.")
+                            .font(PMLFont.body)
+                            .foregroundStyle(PMLColor.ink)
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(PMLColor.warning)
+                    }
+                    HStack(spacing: PMLSpace.s2) {
+                        Button("Open Settings →") { WindowCoordinator.shared.showSettings() }
+                            .buttonStyle(PMLInkButtonStyle())
+                        Button("Dismiss") { model.shortcutBannerDismissed = true }
+                            .buttonStyle(PMLGhostButtonStyle())
+                    }
                 }
-                .buttonStyle(.link)
             }
-            .padding(12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.orange.opacity(0.14), in: RoundedRectangle(cornerRadius: 10))
         }
     }
 }

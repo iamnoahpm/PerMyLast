@@ -173,11 +173,13 @@ struct PMLBanner<Content: View>: View {
 }
 
 /// Multi-line field: `surfaceSunken` with no border; on focus `surface` with a 1px `accent` border.
+/// `footer` (the word count) sits bottom right in `inkMuted`.
 struct PMLField: View {
     @Binding var text: String
     var placeholder: LocalizedStringKey
     var minHeight: CGFloat = 150
-    var isFocused: Bool
+    var focus: FocusState<Bool>.Binding
+    var footer: String? = nil
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -185,6 +187,7 @@ struct PMLField: View {
                 .font(PMLFont.input)
                 .foregroundStyle(PMLColor.ink)
                 .scrollContentBackground(.hidden)
+                .focused(focus)
                 .padding(PMLSpace.s2)
             if text.isEmpty {
                 Text(placeholder)
@@ -195,9 +198,16 @@ struct PMLField: View {
             }
         }
         .frame(minHeight: minHeight)
-        .background(RoundedRectangle(cornerRadius: PMLRadius.card, style: .continuous).fill(isFocused ? PMLColor.surface : PMLColor.surfaceSunken))
-        .overlay(RoundedRectangle(cornerRadius: PMLRadius.card, style: .continuous).strokeBorder(isFocused ? PMLColor.accent : .clear, lineWidth: 1))
-        .animation(PMLMotion.fast, value: isFocused)
+        .overlay(alignment: .bottomTrailing) {
+            if let footer {
+                Text(footer).font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted)
+                    .padding(.horizontal, PMLSpace.s3).padding(.vertical, PMLSpace.s2)
+                    .allowsHitTesting(false)
+            }
+        }
+        .background(RoundedRectangle(cornerRadius: PMLRadius.card, style: .continuous).fill(focus.wrappedValue ? PMLColor.surface : PMLColor.surfaceSunken))
+        .overlay(RoundedRectangle(cornerRadius: PMLRadius.card, style: .continuous).strokeBorder(focus.wrappedValue ? PMLColor.accent : .clear, lineWidth: 1))
+        .animation(PMLMotion.fast, value: focus.wrappedValue)
     }
 }
 

@@ -72,7 +72,7 @@ struct UsageMeterLabel: View {
 
     var body: some View {
         if let text = account.meterText {
-            Text(text).foregroundStyle(.secondary)
+            Text(text).foregroundStyle(PMLColor.inkMuted)
         }
     }
 }
@@ -83,13 +83,17 @@ struct AccountWarningBanner: View {
 
     var body: some View {
         if let warning = account.warning {
-            HStack {
-                Text(warning).font(.callout)
-                Spacer()
-                Button("Dismiss") { account.warning = nil }.buttonStyle(.link)
+            PMLBanner {
+                HStack(spacing: PMLSpace.s2) {
+                    Label {
+                        Text(warning).font(PMLFont.body).foregroundStyle(PMLColor.ink)
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(PMLColor.warning)
+                    }
+                    Spacer()
+                    Button("Dismiss") { account.warning = nil }.buttonStyle(PMLGhostButtonStyle())
+                }
             }
-            .padding(12)
-            .background(Color.orange.opacity(0.14), in: RoundedRectangle(cornerRadius: 10))
         }
     }
 }
