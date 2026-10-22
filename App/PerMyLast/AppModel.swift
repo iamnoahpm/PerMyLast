@@ -35,6 +35,8 @@ final class AppModel {
     var errorMessage: String?
     var isSending = false
     var hasResult = false
+    /// Set when the last run failed with a backend error, so the error box can offer the right next step.
+    var lastErrorKind: BackendError.Kind?
     /// Bumped each time the popup opens so the text box can grab focus.
     var focusToken = 0
 
@@ -45,11 +47,17 @@ final class AppModel {
     var savedFlash: String?
     private var flashTask: Task<Void, Never>?
 
-    private let client = AnthropicClient()
-    /// Where the key lives: the app's own preferences, inside its sandbox
-    /// container (same idea as the Electron app's config file). Not the Keychain,
-    /// which prompts for a password whenever the app is rebuilt or re-signed.
-    private static let apiKeyDefaultsKey = "anthropicAPIKey"
+    /// The user's own Anthropic key lives in the Keychain. Earlier builds kept it
+    /// in app preferences under `legacyAPIKeyDefaultsKey`; it is moved on first launch.
+    private let keyStore: any APIKeyStore = KeychainAPIKeyStore()
+    private static let legacyAPIKeyDefaultsKey = "anthropicAPIKey"
+    private var keySaveTask: Task<Void, Never>?
+
+    /// Result of the last "Test key" (FR-A11). Any edit to the key resets it.
+    enum KeyStatus: Equatable { case untested, testing, valid, invalid(String) }
+    var keyStatus = KeyStatus.untested
+    /// Set when the Keychain refused to read or write the key.
+    var keyStoreError: String?
 
     private init() {
         let modes = Persistence.load("modes", as: [String].self) ?? PresetLibrary.defaultModes
@@ -66,7 +74,11 @@ final class AppModel {
         if upgraded != loaded { Persistence.save(normalized, key: "presets") }
         self.intentModes = Persistence.load("intentModes", as: [String].self) ?? (modes.contains("Reply") ? ["Reply"] : [])
         self.settings = Persistence.load("settings", as: AppSettings.self) ?? AppSettings()
-        self.apiKey = UserDefaults.standard.string(forKey: Self.apiKeyDefaultsKey) ?? ""
+        let migrated = APIKeyMigration.migrate(
+            legacy: UserDefaults.standard.string(forKey: Self.legacyAPIKeyDefaultsKey), store: keyStore,
+            clearLegacy: { UserDefaults.standard.removeObject(forKey: Self.legacyAPIKeyDefaultsKey) })
+        self.apiKey = migrated.key
+        self.keyStoreError = migrated.error.map { L("Couldn't reach the Keychain: \($0.localizedDescription)") }
         self.enabled = UserDefaults.standard.object(forKey: "isEnabled") as? Bool ?? true
         self.writeMyWay = Persistence.load("writeMyWay", as: WriteMyWaySettings.self) ?? WriteMyWaySettings()
         self.activeMode = modes.first ?? PresetLibrary.defaultModes[0]
@@ -129,17 +141,50 @@ final class AppModel {
         if NSApp.activationPolicy() != policy { NSApp.setActivationPolicy(policy) }
     }
 
-    /// Saves the key as it's typed. Skips anything that isn't an Anthropic key
-    /// (the field can still show it, flagged), as the Electron app did.
+    /// Saves the key shortly after it's typed. Skips anything that isn't an
+    /// Anthropic key (the field can still show it, flagged), as the Electron app did.
     func saveAPIKey() {
         let trimmed = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        keyStatus = .untested
         guard trimmed.isEmpty || trimmed.hasPrefix("sk-ant-") else { return }
-        if trimmed.isEmpty {
-            UserDefaults.standard.removeObject(forKey: Self.apiKeyDefaultsKey)
-        } else {
-            UserDefaults.standard.set(trimmed, forKey: Self.apiKeyDefaultsKey)
+        keySaveTask?.cancel()
+        keySaveTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(500))
+            if !Task.isCancelled { self?.persistAPIKey(trimmed) }
         }
-        flashSaved()
+    }
+
+    /// Writes the key to the Keychain now (empty removes it).
+    private func persistAPIKey(_ key: String) {
+        keySaveTask?.cancel()
+        do {
+            if key.isEmpty { try keyStore.delete() } else { try keyStore.save(key) }
+            keyStoreError = nil
+            flashSaved()
+        } catch {
+            keyStoreError = L("Couldn't save the key to the Keychain: \(error.localizedDescription)")
+        }
+    }
+
+    func removeAPIKey() {
+        apiKey = ""
+        keyStatus = .untested
+        persistAPIKey("")
+    }
+
+    /// "Test key": a one-token request to Anthropic (FR-A11).
+    func testAPIKey() async {
+        let key = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !key.isEmpty, !apiKeyLooksInvalid, keyStatus != .testing else { return }
+        persistAPIKey(key)
+        keyStatus = .testing
+        do {
+            try await AnthropicClient().testKey(
+                apiKey: key, workspaceId: settings.workspaceId.trimmingCharacters(in: .whitespacesAndNewlines))
+            if apiKey.trimmingCharacters(in: .whitespacesAndNewlines) == key { keyStatus = .valid }
+        } catch {
+            if apiKey.trimmingCharacters(in: .whitespacesAndNewlines) == key { keyStatus = .invalid(error.localizedDescription) }
+        }
     }
 
     var apiKeyLooksInvalid: Bool {
@@ -405,6 +450,71 @@ final class AppModel {
             workspaceId: settings.workspaceId.trimmingCharacters(in: .whitespacesAndNewlines))
     }
 
+    /// Every AI request goes through `AIClient`: the shared key via the backend for trial and Pro, or the
+    /// user's own key straight to Anthropic (FR-A4).
+    private func makeClient(forceRefresh: Bool = false) async throws -> (client: any AIClient, viaProxy: Bool) {
+        let account = AccountModel.shared
+        switch account.route(hasOwnKey: !apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) {
+        case .direct:
+            return (DirectAnthropicClient(config: makeConfig()), false)
+        case .proxy:
+            guard let base = AppConfig.backendURL else { throw AnthropicError.missingAPIKey }
+            let token = try await account.validAccessToken(forceRefresh: forceRefresh)
+            return (ProxyClient(baseURL: base, accessToken: token, onRunsRemaining: { remaining in
+                Task { @MainActor in AccountModel.shared.noteRunsRemaining(remaining) }
+            }), true)
+        case .keySetup:
+            throw AnthropicError.missingAPIKey
+        case .paywall:
+            throw BackendError(code: "no_entitlement", message: "")
+        case .signIn:
+            throw BackendError(code: "unauthenticated", message: L("Sign in in Settings to start your free trial, or add your own API key."))
+        }
+    }
+
+    /// Runs a template and shows the answer as it streams in.
+    private func stream(_ run: TemplateRun) async throws {
+        output = ""
+        hasResult = false
+        var text = ""
+        for attempt in 0..<2 {
+            let (client, viaProxy) = try await makeClient(forceRefresh: attempt == 1)
+            do {
+                for try await delta in client.run(templateID: run.templateID, variables: run.variables) {
+                    text += delta
+                    output = TextCleanup.beautify(text)
+                    hasResult = true
+                }
+                return
+            } catch let error as BackendError where viaProxy && attempt == 0 && error.kind == .unauthenticated && text.isEmpty {
+                continue   // the token was rejected: refresh it once and try again
+            } catch let error as BackendError {
+                if viaProxy { Task { await AccountModel.shared.refreshEntitlement() } }
+                throw error
+            }
+        }
+    }
+
+    /// A readable message for any failure of a run.
+    private func describe(_ error: Error) -> String {
+        lastErrorKind = (error as? BackendError)?.kind
+        guard let e = error as? BackendError else { return error.localizedDescription }
+        switch e.kind {
+        case .noEntitlement, .trialExpired, .trialCreditsExhausted:
+            WindowCoordinator.shared.showPaywall()   // FR-A15
+            return L("Your free trial has ended. Choose a plan, or use your own Anthropic API key (Settings → General).")
+        case .quotaExhausted:
+            if let end = AccountModel.shared.entitlement?.periodEnd {
+                return L("You've used this month's runs. They reset on \(end.formatted(date: .abbreviated, time: .omitted)).")
+            }
+            return L("You've used this month's runs.")
+        case .byokRequired: return L("Your plan uses your own Anthropic API key. Add it in Settings.")
+        case .inputTooLarge: return L("That text is too long (limit \(e.limit ?? 0) characters).")
+        case .unauthenticated: return e.message.isEmpty ? L("Sign in to continue.") : e.message
+        default: return AccountModel.shared.friendly(e)
+        }
+    }
+
     func send() async {
         guard !isSending else { return }
         if isAsk { await sendAsk(); return }
@@ -418,6 +528,7 @@ final class AppModel {
 
         isSending = true
         errorMessage = nil
+        lastErrorKind = nil
         defer { isSending = false }
 
         let prompt = PromptBuilder.finalPrompt(
@@ -425,14 +536,12 @@ final class AppModel {
             intent: intent, tabTakesIntent: activeModeTakesIntent,
             writeMyWay: writeMyWay)
         do {
-            let result = try await client.process(config: makeConfig(), text: text, prompt: prompt, isEmail: preset.isEmail)
-            output = TextCleanup.beautify(result)
-            hasResult = true
+            try await stream(PromptBuilder.templateRun(text: text, prompt: prompt, isEmail: preset.isEmail))
             presets = PresetLibrary.incrementUses(presets, label: preset.label)
             savePresets()
         } catch {
             hasResult = false
-            errorMessage = error.localizedDescription
+            errorMessage = describe(error)
         }
     }
 
@@ -447,11 +556,10 @@ final class AppModel {
         errorMessage = nil
         defer { isSending = false }
         do {
-            output = TextCleanup.beautify(try await client.ask(config: makeConfig(), prompt: prompt, input: ""))
-            hasResult = true
+            try await stream(PromptBuilder.askRun(prompt: prompt, input: ""))
         } catch {
             hasResult = false
-            errorMessage = error.localizedDescription
+            errorMessage = describe(error)
         }
     }
 

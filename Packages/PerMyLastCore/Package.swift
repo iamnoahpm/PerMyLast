@@ -8,7 +8,7 @@ let package = Package(
         .library(name: "PerMyLastCore", targets: ["PerMyLastCore"])
     ],
     targets: [
-        .target(name: "PerMyLastCore"),
+        .target(name: "PerMyLastCore", resources: [.process("Resources")]),
         .testTarget(name: "PerMyLastCoreTests", dependencies: ["PerMyLastCore"])
     ]
 )

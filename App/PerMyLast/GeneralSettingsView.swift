@@ -13,6 +13,7 @@ struct GeneralSettingsView: View {
     var body: some View {
         @Bindable var model = model
         Form {
+            AccountSection()
             anthropicSection(model: $model)
             modelSection(model: $model)
             Section { ShortcutRecorderRow() }
@@ -30,16 +31,42 @@ struct GeneralSettingsView: View {
                 .onChange(of: self.model.apiKey) { self.model.saveAPIKey() }
             HStack(spacing: 4) {
                 Text("Get one at")
-                Link("console.anthropic.com", destination: URL(string: "https://console.anthropic.com/")!)
+                Link("console.anthropic.com", destination: URL(string: "https://console.anthropic.com/settings/keys")!)
             }
             .font(.caption)
             .foregroundStyle(.secondary)
             if self.model.apiKeyLooksInvalid {
                 Text("API key must start with \"sk-ant-\"").font(.caption).foregroundStyle(.red)
             }
+            HStack {
+                Button("Test key") { Task { await self.model.testAPIKey() } }
+                    .disabled(self.model.apiKey.trimmingCharacters(in: .whitespaces).isEmpty
+                              || self.model.apiKeyLooksInvalid || self.model.keyStatus == .testing)
+                Button("Remove key", role: .destructive) { self.model.removeAPIKey() }
+                    .disabled(self.model.apiKey.isEmpty)
+                keyStatusLabel
+            }
+            if let error = self.model.keyStoreError {
+                Text(error).font(.caption).foregroundStyle(.red)
+            }
+            Text("Your key is kept in your Mac's Keychain and is only ever sent to Anthropic. You pay Anthropic directly for every request made with your own key.")
+                .font(.caption).foregroundStyle(.secondary)
             TextField("Workspace ID (optional)", text: model.settings.workspaceId)
             Text("Only needed if you see \"anthropic-workspace-id is required\" — that means your key is linked to your identity within an org, not a standalone workspace key.")
                 .font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    @ViewBuilder private var keyStatusLabel: some View {
+        switch model.keyStatus {
+        case .untested: EmptyView()
+        case .testing:
+            ProgressView().controlSize(.small)
+            Text("Testing…").font(.caption).foregroundStyle(.secondary)
+        case .valid:
+            Label("Key works", systemImage: "checkmark.circle.fill").font(.caption).foregroundStyle(.green)
+        case .invalid(let message):
+            Label(message, systemImage: "xmark.octagon.fill").font(.caption).foregroundStyle(.red)
         }
     }
 

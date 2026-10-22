@@ -12,6 +12,7 @@ struct MainView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     ShortcutWarningBanner()
+                    AccountWarningBanner()
                     header
                     tabs(selection: $model.activeMode)
                     if model.isAsk {
@@ -342,6 +343,16 @@ struct OutputPanel: View {
                 .textSelection(.enabled)
             HStack(spacing: 12) {
                 Button("Retry") { Task { await model.send() } }.disabled(!model.canSend)
+                if model.lastErrorKind == .quotaExhausted, AccountModel.shared.entitlement?.ownsLifetime == true, !model.apiKey.isEmpty {
+                    Button("Use my own API key instead") {
+                        AccountModel.shared.useOwnKey = true
+                        model.errorMessage = nil
+                        Task { await model.send() }
+                    }
+                }
+                if model.lastErrorKind == .noEntitlement || model.lastErrorKind == .trialExpired || model.lastErrorKind == .trialCreditsExhausted {
+                    Button("See plans →") { WindowCoordinator.shared.showPaywall() }
+                }
                 if message == AnthropicError.missingAPIKey.errorDescription {
                     Button("Open Settings →") { WindowCoordinator.shared.showSettings() }
                 }
@@ -390,6 +401,7 @@ struct FooterBar: View {
     var body: some View {
         HStack(spacing: 16) {
             Text("Version \(model.appVersion)").foregroundStyle(.secondary)
+            UsageMeterLabel()
             Spacer()
             Button("Send feedback") { model.sendFeedback() }
         }

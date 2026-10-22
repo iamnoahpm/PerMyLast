@@ -21,6 +21,8 @@ public enum AnthropicError: Error, LocalizedError, Equatable {
     case api(String)
     case emptyResponse(String)
     case transport(String)
+    case unknownTemplate(String)
+    case missingVariable(String)
 
     public var errorDescription: String? {
         switch self {
@@ -28,6 +30,8 @@ public enum AnthropicError: Error, LocalizedError, Equatable {
         case .api(let message): return message
         case .emptyResponse(let detail): return "No text in response: \(detail)"
         case .transport(let message): return message
+        case .unknownTemplate(let id): return "Unknown prompt template: \(id)"
+        case .missingVariable(let name): return "The prompt template needs a value for \"\(name)\"."
         }
     }
 }
@@ -64,7 +68,8 @@ public struct AnthropicClient: Sendable {
                         maxTokens: Self.maxTokens)
     }
 
-    public func makeRequest(config: AnthropicConfig, content built: ClaudeRequestContent, maxTokens: Int) throws -> URLRequest {
+    public func makeRequest(config: AnthropicConfig, content built: ClaudeRequestContent, maxTokens: Int,
+                            stream: Bool = false) throws -> URLRequest {
         guard !config.apiKey.isEmpty else { throw AnthropicError.missingAPIKey }
 
         var body: [String: Any] = [
@@ -73,6 +78,7 @@ public struct AnthropicClient: Sendable {
             "system": built.system,
             "messages": [["role": "user", "content": built.content]]
         ]
+        if stream { body["stream"] = true }
         // Sonnet 5 / Opus 5 / Fable 5 think adaptively; effort only tunes how
         // much. Haiku 4.5 rejects the parameter.
         if ModelCatalog.supportsEffort(config.model) {
@@ -100,6 +106,28 @@ public struct AnthropicClient: Sendable {
     public func ask(config: AnthropicConfig, prompt: String, input: String) async throws -> String {
         let content = PromptBuilder.buildAskRequest(prompt: prompt, input: input)
         return try await send(try makeRequest(config: config, content: content, maxTokens: Self.askMaxTokens))
+    }
+
+    /// Model used for "Test key": cheap, and it takes no effort parameter.
+    public static let keyTestModel = "claude-haiku-4-5"
+
+    /// Sends a one-token request to check that a key works (FR-A11). Throws the
+    /// API's own message (invalid key, no credit, rate limit) when it doesn't.
+    public func testKey(apiKey: String, workspaceId: String? = nil) async throws {
+        let config = AnthropicConfig(apiKey: apiKey, model: Self.keyTestModel, workspaceId: workspaceId)
+        let request = try makeRequest(config: config, content: ClaudeRequestContent(system: "Reply with one word.", content: "Hi"), maxTokens: 1)
+        let data: Data
+        let response: URLResponse
+        do {
+            (data, response) = try await transport.data(for: request)
+        } catch {
+            throw AnthropicError.transport(error.localizedDescription)
+        }
+        let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+        guard (200..<300).contains(status) else {
+            _ = try Self.parseResponse(data: data, statusCode: status)
+            throw AnthropicError.api("API Error: \(status)")
+        }
     }
 
     private func send(_ request: URLRequest) async throws -> String {

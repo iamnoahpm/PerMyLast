@@ -61,6 +61,12 @@ final class StatusItemController: NSObject {
         settings.target = self
         menu.addItem(settings)
 
+        if AccountModel.shared.isConfigured, AccountModel.shared.entitlement?.plan.isPro != true {
+            let upgrade = NSMenuItem(title: L("Upgrade…"), action: #selector(openPaywall), keyEquivalent: "")
+            upgrade.target = self
+            menu.addItem(upgrade)
+        }
+
         let updates = NSMenuItem(title: L("Check for Updates…"), action: #selector(checkForUpdates), keyEquivalent: "")
         updates.target = self
         menu.addItem(updates)
@@ -75,6 +81,7 @@ final class StatusItemController: NSObject {
 
     @objc private func toggleEnabled() { AppModel.shared.setEnabled(!AppModel.shared.enabled) }
     @objc private func toggleDock() { AppModel.shared.setShowInDock(!AppModel.shared.settings.showInDock) }
+    @objc private func openPaywall() { WindowCoordinator.shared.showPaywall() }
     @objc private func openSettings() { WindowCoordinator.shared.showSettings() }
     @objc private func checkForUpdates() { AppModel.shared.checkForUpdates() }
     @objc private func quit() { NSApp.terminate(nil) }

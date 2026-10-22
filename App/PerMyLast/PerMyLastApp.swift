@@ -24,6 +24,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             StatusItemController.shared.install()
             AppModel.shared.applyDockVisibility()
             AppModel.shared.applyShortcut()
+            PurchaseService.shared.startListening()
+            Task { @MainActor in
+                await AccountModel.shared.startTrialIfNeeded()
+                await AccountModel.shared.refreshEntitlement()
+            }
 
             // Dev aids: PML_SHOW_POPUP=1 / PML_SHOW_SETTINGS=1 open a window at launch.
             let env = ProcessInfo.processInfo.environment

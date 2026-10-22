@@ -29,6 +29,18 @@ public enum PromptBuilder {
         return ClaudeRequestContent(system: askSystemPrompt, content: parts.joined(separator: "\n\n"))
     }
 
+    /// The same requests as `buildRequest` / `buildAskRequest`, expressed as a
+    /// bundled template plus its variables, for `AIClient`.
+    public static func templateRun(text: String, prompt: String, isEmail: Bool) -> TemplateRun {
+        let content = buildRequest(text: text, prompt: prompt, isEmail: isEmail).content
+        let id = (isEmail && !prompt.contains(originalMessageToken)) ? TemplateID.emailReply : TemplateID.textProcess
+        return TemplateRun(templateID: id, variables: ["content": content])
+    }
+
+    public static func askRun(prompt: String, input: String) -> TemplateRun {
+        TemplateRun(templateID: TemplateID.ask, variables: ["content": buildAskRequest(prompt: prompt, input: input).content])
+    }
+
     private static let textSystemPrompt = "You are a text processing assistant. Respond ONLY with the processed result, no preamble, explanation, or surrounding quotation marks."
 
     public static func buildRequest(text: String, prompt: String, isEmail: Bool) -> ClaudeRequestContent {
