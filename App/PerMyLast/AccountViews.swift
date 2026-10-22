@@ -12,14 +12,14 @@ struct AccountSection: View {
             Section("Account") {
                 if account.signedIn { signedIn(account: $account) } else { signedOut(account: $account) }
                 if let message = account.message {
-                    Text(message).font(.caption).foregroundStyle(account.messageIsError ? Color.red : Color.secondary)
+                    Text(message).font(PMLFont.hint).foregroundStyle(account.messageIsError ? PMLColor.danger : PMLColor.inkMuted)
                 }
             }
         }
     }
 
     @ViewBuilder private func signedOut(account: Bindable<AccountModel>) -> some View {
-        Text("Sign in to start your free trial.").foregroundStyle(.secondary)
+        Text("Sign in to start your free trial.").foregroundStyle(PMLColor.inkMuted)
         switch self.account.emailStep {
         case .enterEmail:
             HStack {
@@ -27,6 +27,7 @@ struct AccountSection: View {
                     .textContentType(.emailAddress)
                     .onSubmit { Task { await self.account.sendCode() } }
                 Button("Send code") { Task { await self.account.sendCode() } }
+                    .buttonStyle(PMLSecondaryButtonStyle())
                     .disabled(self.account.isBusy || self.account.email.trimmingCharacters(in: .whitespaces).isEmpty)
             }
         case .enterCode:
@@ -34,8 +35,9 @@ struct AccountSection: View {
                 TextField("6-digit code", text: account.code)
                     .onSubmit { Task { await self.account.verifyCode() } }
                 Button("Sign in") { Task { await self.account.verifyCode() } }
+                    .buttonStyle(PMLSecondaryButtonStyle())
                     .disabled(self.account.isBusy || self.account.code.trimmingCharacters(in: .whitespaces).count != 6)
-                Button("Use a different email") { self.account.useDifferentEmail() }.buttonStyle(.link)
+                Button("Use a different email") { self.account.useDifferentEmail() }.buttonStyle(PMLGhostButtonStyle())
             }
         }
         if AppConfig.appleSignInEnabled || !AppConfig.googleClientID.isEmpty {

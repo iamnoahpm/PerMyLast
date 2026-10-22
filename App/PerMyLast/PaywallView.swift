@@ -12,20 +12,25 @@ struct PaywallView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             VStack(alignment: .leading, spacing: 6) {
-                Text("Choose how to use Per My Last").font(.title2.bold())
-                Text(reason).foregroundStyle(.secondary)
+                Text("Choose how to use Per My Last").font(PMLFont.pageTitle)
+                Text(reason).foregroundStyle(PMLColor.inkMuted)
             }
 
             if !AppConfig.paymentsLive {
-                Label("Plans aren't open yet. You can still use your own Anthropic API key in Settings.", systemImage: "info.circle")
-                    .font(.callout).padding(10)
-                    .background(Color.orange.opacity(0.14), in: RoundedRectangle(cornerRadius: 8))
+                PMLBanner {
+                    Label {
+                        Text("Plans aren't open yet. You can still use your own Anthropic API key in Settings.")
+                            .font(PMLFont.body).foregroundStyle(PMLColor.ink)
+                    } icon: {
+                        Image(systemName: "info.circle").foregroundStyle(PMLColor.warning)
+                    }
+                }
             }
 
             if !account.signedIn {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Sign in first so your plan follows your account.")
-                    Button("Open Settings →") { WindowCoordinator.shared.showSettings() }.buttonStyle(.link)
+                    Button("Open Settings →") { WindowCoordinator.shared.showSettings() }.buttonStyle(PMLGhostButtonStyle())
                 }
             }
 
@@ -39,51 +44,57 @@ struct PaywallView: View {
                     Text(account.isWaitingForPurchase ? "Waiting for your purchase…" : "Continue")
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent).controlSize(.large)
+                .buttonStyle(PMLPrimaryButtonStyle())
                 .disabled(!account.signedIn || !purchases.isAvailable(selected) || purchases.isBusy || account.isWaitingForPurchase)
                 if account.isWaitingForPurchase || purchases.isBusy { ProgressView().controlSize(.small) }
             }
 
-            Divider()
+            Rectangle().fill(PMLColor.divider).frame(height: 1)
 
             VStack(alignment: .leading, spacing: 6) {
-                Text("Prefer to use your own Anthropic API key?").font(.callout.weight(.semibold))
+                Text("Prefer to use your own Anthropic API key?").font(PMLFont.select.weight(.bold))
                 Text("Lifetime: a one-time purchase, updates for 12 months, and you pay Anthropic directly.")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted)
                 HStack {
                     Button(lifetimeTitle) { Task { await purchases.buy(.lifetime) } }
                         .disabled(!account.signedIn || !purchases.isAvailable(.lifetime) || purchases.isBusy)
+                        .buttonStyle(PMLSecondaryButtonStyle())
                     if account.entitlement?.ownsLifetime == true || account.updateWindow != .ok {
                         Button("Renew updates") { Task { await purchases.buy(.lifetimeRenewal) } }
                             .disabled(!purchases.isAvailable(.lifetimeRenewal) || purchases.isBusy)
+                            .buttonStyle(PMLSecondaryButtonStyle())
                     }
                 }
             }
 
             if purchases.channel == .direct {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Have a license key?").font(.callout.weight(.semibold))
+                    Text("Have a license key?").font(PMLFont.select.weight(.bold))
                     HStack {
                         TextField("License key", text: $licenseKey)
+                            .textFieldStyle(PMLTextFieldStyle())
                         Button("Activate") { Task { if await account.activateLicense(licenseKey) { licenseKey = "" } } }
                             .disabled(licenseKey.trimmingCharacters(in: .whitespaces).count < 8 || account.isBusy)
+                            .buttonStyle(PMLSecondaryButtonStyle())
                     }
                 }
             }
 
             HStack {
-                Button("Restore purchases") { Task { await purchases.restore() } }.buttonStyle(.link)
+                Button("Restore purchases") { Task { await purchases.restore() } }.buttonStyle(PMLGhostButtonStyle())
                 Spacer()
                 Button("Close") { WindowCoordinator.shared.hidePaywall() }
+                    .buttonStyle(PMLSecondaryButtonStyle())
             }
 
             if let text = purchases.message ?? account.message {
-                Text(text).font(.caption)
-                    .foregroundStyle((purchases.message != nil ? purchases.messageIsError : account.messageIsError) ? Color.red : Color.secondary)
+                Text(text).font(PMLFont.hint)
+                    .foregroundStyle((purchases.message != nil ? purchases.messageIsError : account.messageIsError) ? PMLColor.danger : PMLColor.inkMuted)
             }
         }
-        .padding(24)
+        .padding(PMLSpace.s5)
         .frame(width: 460)
+        .background(PMLColor.surface)
         .task { await purchases.loadProducts() }
         .onChange(of: account.entitlement) {
             if let plan = account.entitlement?.plan, plan.isPro || account.entitlement?.ownsLifetime == true { WindowCoordinator.shared.hidePaywall() }
@@ -105,20 +116,22 @@ struct PaywallView: View {
     private func planRow(_ product: PaywallProduct, title: LocalizedStringKey, detail: LocalizedStringKey, badge: LocalizedStringKey?) -> some View {
         Button { selected = product } label: {
             HStack(alignment: .top, spacing: 12) {
-                Image(systemName: selected == product ? "largecircle.fill.circle" : "circle").foregroundStyle(Color.accentColor)
+                Image(systemName: selected == product ? "largecircle.fill.circle" : "circle").foregroundStyle(selected == product ? PMLColor.accentText : PMLColor.inkMuted)
                 VStack(alignment: .leading, spacing: 3) {
                     HStack {
-                        Text(title).font(.headline)
-                        if let badge { Text(badge).font(.caption2.bold()).padding(.horizontal, 6).padding(.vertical, 2)
-                            .background(Color.accentColor.opacity(0.18), in: Capsule()) }
+                        Text(title).font(PMLFont.cardTitle).foregroundStyle(PMLColor.ink)
+                        if let badge { Text(badge).font(PMLFont.badge).padding(.horizontal, 6).padding(.vertical, 2)
+                            .foregroundStyle(PMLColor.accentText)
+                            .background(PMLColor.accentSoft, in: Capsule()) }
                     }
-                    Text(detail).font(.caption).foregroundStyle(.secondary)
+                    Text(detail).font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted)
                 }
                 Spacer()
-                if let price = purchases.price(product) { Text(price).font(.headline) }
+                if let price = purchases.price(product) { Text(price).font(PMLFont.cardTitle).foregroundStyle(PMLColor.ink) }
             }
             .padding(12)
-            .background(RoundedRectangle(cornerRadius: 10).strokeBorder(selected == product ? Color.accentColor : Color.primary.opacity(0.15), lineWidth: selected == product ? 2 : 1))
+            .background(RoundedRectangle(cornerRadius: PMLRadius.card, style: .continuous).fill(selected == product ? PMLColor.accentSoft : PMLColor.surface))
+            .overlay(RoundedRectangle(cornerRadius: PMLRadius.card, style: .continuous).strokeBorder(selected == product ? PMLColor.accent : PMLColor.line, lineWidth: selected == product ? 1.5 : 1))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
