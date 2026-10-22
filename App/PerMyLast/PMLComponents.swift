@@ -135,7 +135,6 @@ struct PMLChipStyle: ButtonStyle {
             .padding(.vertical, 6)
             .background(Capsule().fill(selected ? PMLColor.accentSoft : (hovering ? PMLColor.lineStrong : PMLColor.surfaceSunken)))
             .overlay(Capsule().strokeBorder(selected ? PMLColor.accent : .clear, lineWidth: 1.5))
-            .pmlFocusRing(radius: 16)
             .animation(PMLMotion.fast, value: hovering)
             .onHover { hovering = $0 }
     }

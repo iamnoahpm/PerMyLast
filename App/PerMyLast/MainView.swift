@@ -394,6 +394,7 @@ struct FooterBar: View {
             Spacer()
             Button("Send feedback") { model.sendFeedback() }
                 .buttonStyle(PMLGhostButtonStyle())
+                .fixedSize()
         }
         .font(PMLFont.hint)
         .padding(.horizontal, PMLLayout.windowPadding)

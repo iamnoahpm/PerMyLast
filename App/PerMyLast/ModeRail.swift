@@ -14,11 +14,24 @@ struct ModeRail: View {
 
     var body: some View {
         Group { wide ? AnyView(rail) : AnyView(strip) }
+    }
+
+    /// Arrow keys move between modes; the ring marks the selected mode while the list has focus.
+    private func keyboard<V: View>(_ view: V) -> some View {
+        view
             .focusable()
             .focused($focused)
             .focusEffectDisabled()
             .onKeyPress(wide ? .upArrow : .leftArrow) { move(-1); return .handled }
             .onKeyPress(wide ? .downArrow : .rightArrow) { move(1); return .handled }
+    }
+
+    private func ring(_ selected: Bool) -> some View {
+        RoundedRectangle(cornerRadius: PMLRadius.card + 2, style: .continuous)
+            .strokeBorder(PMLColor.focusRing, lineWidth: 2)
+            .padding(-2)
+            .opacity(selected && focused ? 1 : 0)
+            .allowsHitTesting(false)
     }
 
     private func move(_ delta: Int) {
@@ -36,6 +49,7 @@ struct ModeRail: View {
                 settingsButton
             }
             .padding(.bottom, PMLSpace.s2)
+            keyboard(VStack(alignment: .leading, spacing: PMLSpace.s1) {
             ForEach(all, id: \.self) { mode in
                 let selected = mode == selection
                 Button { selection = mode } label: {
@@ -54,8 +68,10 @@ struct ModeRail: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(RailItemStyle())
+                .overlay(ring(selected))
                 .accessibilityAddTraits(selected ? .isSelected : [])
             }
+            })
             Spacer(minLength: 0)
         }
     }
@@ -65,7 +81,7 @@ struct ModeRail: View {
     private var strip: some View {
         HStack(alignment: .bottom, spacing: PMLSpace.s2) {
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: PMLSpace.s4) {
+                keyboard(HStack(spacing: PMLSpace.s4) {
                     ForEach(all, id: \.self) { mode in
                         let selected = mode == selection
                         Button { selection = mode } label: {
@@ -79,9 +95,11 @@ struct ModeRail: View {
                                 .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
+                        .overlay(ring(selected))
                         .accessibilityAddTraits(selected ? .isSelected : [])
                     }
-                }
+                })
+                .padding(.horizontal, 2)
             }
             settingsButton.padding(.bottom, 2)
         }
