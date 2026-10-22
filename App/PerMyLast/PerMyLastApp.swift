@@ -33,6 +33,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
             // Dev aids: PML_SHOW_POPUP=1 / PML_SHOW_SETTINGS=1 open a window at launch.
             let env = ProcessInfo.processInfo.environment
+            // PML_APPEARANCE=dark|light forces the appearance, to check both themes without changing the system setting.
+            if let name = env["PML_APPEARANCE"] { NSApp.appearance = NSAppearance(named: name == "dark" ? .darkAqua : .aqua) }
             if env["PML_SHOW_POPUP"] == "1" { WindowCoordinator.shared.showPopup() }
             if env["PML_SHOW_SETTINGS"] == "1" { WindowCoordinator.shared.showSettings() }
             // First run opens Settings; otherwise the popup, as the Electron app did.
