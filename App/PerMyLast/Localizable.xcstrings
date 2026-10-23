@@ -3806,6 +3806,28 @@
           }
         }
       }
+    },
+    "Start %lld-day free trial": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bắt đầu dùng thử miễn phí %lld ngày"
+          }
+        }
+      }
+    },
+    "%lld days free, then billed yearly. Best value. Runs included, no key needed.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Miễn phí %lld ngày, sau đó tính phí theo năm. Giá tốt nhất. Đã gồm lượt chạy, không cần khóa."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

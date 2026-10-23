@@ -49,9 +49,13 @@ enum AppConfig {
     ]
 
     /// Sign in with Apple needs the app signed with a real team and the capability enabled (see backend/README).
-    static let appleSignInEnabled = false
+    /// The Mac App Store build signs in with Apple only (one tap, no email codes). Enable the Sign in with Apple
+    /// capability in Xcode for the release target. The direct build keeps email and Google.
+    static var appleSignInEnabled: Bool { channel == .appStore }
+    static var emailSignInEnabled: Bool { channel != .appStore }
     /// Google OAuth client id (iOS/desktop type). Empty hides Google sign-in.
     static let googleClientID = ""
+    static var googleSignInEnabled: Bool { !googleClientID.isEmpty && channel != .appStore }
 
     /// FR-P7: the date this build was released. Update it for every release. A Lifetime licence whose 12 months of updates
     /// ended before this date cannot use the build (it shows "Renew updates to use this version").

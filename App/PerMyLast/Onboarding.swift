@@ -68,6 +68,14 @@ final class OnboardingModel {
         go(to: Step.sequence[i + 1])
     }
 
+    /// The paywall appears once, right after the first win: the person has seen the app work, and the plans (free
+    /// credits, a trial, a subscription) are the next question. Never before payments are open.
+    func showPlansAfterFirstWin() {
+        guard AppConfig.paymentsLive, !defaults.bool(forKey: "plansShownAfterFirstWin") else { return }
+        defaults.set(true, forKey: "plansShownAfterFirstWin")
+        WindowCoordinator.shared.showPaywall()
+    }
+
     func back() {
         guard let i = step.index, i > 0 else { return }
         go(to: Step.sequence[i - 1])

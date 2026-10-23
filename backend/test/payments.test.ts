@@ -279,6 +279,16 @@ describe("POST /v1/purchases/storekit", () => {
     expect(await res.json()).toMatchObject({ plan: "pro_yearly", runs_allowance: config.PRO_MONTHLY_RUNS });
   });
 
+  it("a free-trial transaction grants Pro until the trial ends, with no extra cap", async () => {
+    const u = await freeUser();
+    const res = await submit(u, txn(u, { originalTransactionId: "trial-sk-1", offerType: 1, offerDiscountType: "FREE_TRIAL", expiresDate: clock + 14 * DAY }));
+    expect(res.status).toBe(200);
+    const m = await me(u);
+    expect(m).toMatchObject({ plan: "pro_yearly", runs_allowance: config.PRO_MONTHLY_RUNS });
+    clock += 15 * DAY;                                                    // trial over, never converted: back to Free
+    expect((await me(u)).plan).toBe("free");
+  });
+
   it("AC-6: a Lifetime purchase gives the licence", async () => {
     const u = await freeUser();
     await submit(u, txn(u, { productId: "lifetime_byok", originalTransactionId: "lt-sk-1", expiresDate: undefined }));

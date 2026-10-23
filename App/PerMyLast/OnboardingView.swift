@@ -72,7 +72,7 @@ struct OnboardingView: View {
             case .shortcut:
                 Button("Start using Per My Last") { flow.finish() }.buttonStyle(PMLPrimaryButtonStyle())
             case .firstWin:
-                Button("Next") { flow.advance() }.buttonStyle(PMLPrimaryButtonStyle())
+                Button("Next") { flow.advance(); flow.showPlansAfterFirstWin() }.buttonStyle(PMLPrimaryButtonStyle())
             case .access:
                 if !hasAccess { Button("Skip for now") { flow.skip() }.buttonStyle(PMLGhostButtonStyle(tint: PMLColor.inkSoft)) }
                 Button("Start using Per My Last") { flow.finish() }
@@ -433,6 +433,10 @@ private struct AccessStep: View {
                 if account.signedIn {
                     Label(account.meterText ?? L("Free credits ready"), systemImage: "checkmark.circle.fill")
                         .font(PMLFont.select).foregroundStyle(PMLColor.success)
+                } else if AppConfig.appleSignInEnabled {
+                    Button("Sign in with Apple") { account.signInWithApple(); FunnelLog.shared.log(.trialCodeSent) }
+                        .buttonStyle(PMLPrimaryButtonStyle(size: .compact))
+                        .disabled(account.isBusy)
                 } else {
                     emailForm
                 }

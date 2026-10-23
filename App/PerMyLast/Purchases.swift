@@ -11,6 +11,8 @@ final class PurchaseService {
     static let shared = PurchaseService()
 
     private(set) var products: [PaywallProduct: Product] = [:]
+    /// Days of free trial each subscription offers this Apple ID (set up as an introductory offer in App Store Connect).
+    private(set) var freeTrialDaysByProduct: [PaywallProduct: Int] = [:]
     var message: String?
     var messageIsError = false
     var isBusy = false
@@ -32,6 +34,9 @@ final class PurchaseService {
     /// The store's own price string (App Store build); nil in the direct build, where the checkout page shows it.
     func price(_ product: PaywallProduct) -> String? { products[product]?.displayPrice }
 
+    /// The free trial this person can still get on a product, if any. Apple allows a trial once per subscription group.
+    func freeTrialDays(_ product: PaywallProduct) -> Int? { freeTrialDaysByProduct[product] }
+
     // MARK: StoreKit
 
     func loadProducts() async {
@@ -39,6 +44,21 @@ final class PurchaseService {
         do {
             let found = try await Product.products(for: PaywallProduct.allCases.map(\.storeKitID))
             products = Dictionary(uniqueKeysWithValues: found.compactMap { p in PaywallProduct(storeKitID: p.id).map { ($0, p) } })
+            var trials: [PaywallProduct: Int] = [:]
+            for (kind, product) in products {
+                guard let sub = product.subscription, let offer = sub.introductoryOffer, offer.paymentMode == .freeTrial,
+                      await sub.isEligibleForIntroOffer else { continue }
+                let unitDays: Int
+                switch offer.period.unit {
+                case .day: unitDays = 1
+                case .week: unitDays = 7
+                case .month: unitDays = 30
+                case .year: unitDays = 365
+                @unknown default: unitDays = 1
+                }
+                trials[kind] = offer.period.value * unitDays
+            }
+            freeTrialDaysByProduct = trials
         } catch {
             show(L("Couldn't load the store: \(error.localizedDescription)"), error: true)
         }

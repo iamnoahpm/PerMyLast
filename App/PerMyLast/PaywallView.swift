@@ -32,7 +32,11 @@ struct PaywallView: View {
             if !account.signedIn {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Sign in first so your plan follows your account.")
-                    Button("Open Settings →") { WindowCoordinator.shared.showSettings() }.buttonStyle(PMLGhostButtonStyle())
+                    if AppConfig.appleSignInEnabled {
+                        Button("Sign in with Apple") { account.signInWithApple() }.buttonStyle(PMLSecondaryButtonStyle()).disabled(account.isBusy)
+                    } else {
+                        Button("Open Settings →") { WindowCoordinator.shared.showSettings() }.buttonStyle(PMLGhostButtonStyle())
+                    }
                 }
             }
 
@@ -48,14 +52,13 @@ struct PaywallView: View {
                     .font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted)
             }
             VStack(spacing: 10) {
-                planRow(.proYearly, title: "Pro Yearly", detail: "Best value. Runs included every month, no key needed.", badge: "Recommended")
+                planRow(.proYearly, title: "Pro Yearly", detail: yearlyDetail, badge: "Recommended")
                 planRow(.proMonthly, title: "Pro Monthly", detail: "Runs included every month, no key needed.", badge: nil)
             }
 
             HStack {
                 Button { Task { await purchases.buy(selected) } } label: {
-                    Text(account.isWaitingForPurchase ? "Waiting for your purchase…" : "Continue")
-                        .frame(maxWidth: .infinity)
+                    continueLabel.frame(maxWidth: .infinity)
                 }
                 .buttonStyle(PMLPrimaryButtonStyle())
                 .disabled(!account.signedIn || !purchases.isAvailable(selected) || purchases.isBusy || account.isWaitingForPurchase)
@@ -119,6 +122,21 @@ struct PaywallView: View {
         case .some(.free) where account.entitlement?.runsLeft == 0: return "You've used this month's free credits."
         default: return "Pick a plan to keep going."
         }
+    }
+
+    @ViewBuilder private var continueLabel: some View {
+        if account.isWaitingForPurchase {
+            Text("Waiting for your purchase…")
+        } else if let days = purchases.freeTrialDays(selected) {
+            Text("Start \(days)-day free trial")
+        } else {
+            Text("Continue")
+        }
+    }
+
+    private var yearlyDetail: LocalizedStringKey {
+        if let days = purchases.freeTrialDays(.proYearly) { return "\(days) days free, then billed yearly. Best value. Runs included, no key needed." }
+        return "Best value. Runs included every month, no key needed."
     }
 
     private var lifetimeTitle: LocalizedStringKey {
