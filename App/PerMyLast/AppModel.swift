@@ -426,12 +426,33 @@ final class AppModel {
 
     // MARK: Hotkey
 
-    /// The hotkey opens the popup with whatever is on the clipboard (the user presses ⌘C first). The Services
-    /// menu entry (see `ServicesProvider`) is the way to send a selection without copying it. Nothing on the
-    /// clipboard means nothing happens.
+    /// The hotkey copies the current selection in the frontmost app (a synthetic ⌘C) and opens the popup with it.
+    /// macOS only allows that once the user grants Accessibility; without it, or with nothing selected, it uses
+    /// whatever is already on the clipboard. The Services entry (see `ServicesProvider`) needs no permission.
     func handleHotKey() {
-        guard let text = NSPasteboard.general.string(forType: .string) else { return }
-        open(with: text)
+        guard enabled else { return }
+        Task { @MainActor in
+            await Self.copySelection()
+            guard let text = NSPasteboard.general.string(forType: .string) else { return }
+            self.open(with: text)
+        }
+    }
+
+    /// Sends ⌘C to the frontmost app and waits briefly for the clipboard to change.
+    private static func copySelection() async {
+        guard CGPreflightPostEventAccess() || CGRequestPostEventAccess() else { return }
+        let pasteboard = NSPasteboard.general
+        let before = pasteboard.changeCount
+        let source = CGEventSource(stateID: .combinedSessionState)
+        let cKey: CGKeyCode = 8 // kVK_ANSI_C
+        for down in [true, false] {
+            let event = CGEvent(keyboardEventSource: source, virtualKey: cKey, keyDown: down)
+            event?.flags = .maskCommand // overrides any modifiers still held from the hotkey
+            event?.post(tap: .cgSessionEventTap)
+        }
+        for _ in 0..<20 where pasteboard.changeCount == before {
+            try? await Task.sleep(for: .milliseconds(25))
+        }
     }
 
     /// Opens the popup with `text` as the input, or as the question in Ask mode.

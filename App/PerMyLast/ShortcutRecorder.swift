@@ -99,9 +99,9 @@ struct ShortcutRecorderRow: View {
                     .buttonStyle(PMLGhostButtonStyle())
                     .help("Clear")
             }
-            Text("Copy some text, then press \(model.shortcutDisplay) anywhere to open it in Per My Last.")
+            Text("Select some text, then press \(model.shortcutDisplay) anywhere to open it in Per My Last.")
                 .font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted)
-            Text("To skip copying, select text and use Services → Open in Per My Last. Give it a shortcut in System Settings → Keyboard → Keyboard Shortcuts → Services.")
+            Text("The first time, macOS asks you to allow Per My Last to copy your selection. To avoid that permission, use Services → Open in Per My Last instead and give it a shortcut in System Settings → Keyboard → Keyboard Shortcuts → Services.")
                 .font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted)
             if let error = model.hotKeyError {
                 Text(error).font(PMLFont.hint).foregroundStyle(PMLColor.danger)
