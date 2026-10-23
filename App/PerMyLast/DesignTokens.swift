@@ -110,7 +110,7 @@ enum PMLRadius {
 
 enum PMLLayout {
     /// Width of the mode rail on wide windows.
-    static let railWidth : CGFloat = 210
+    static let railWidth : CGFloat = 252
     /// Window content width at which the tab strip becomes the rail.
     static let railBreakpoint : CGFloat = 640
     /// Narrowest the popup may be resized to.

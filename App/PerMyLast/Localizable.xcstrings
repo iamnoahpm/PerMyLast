@@ -3224,17 +3224,6 @@
         }
       }
     },
-    "Select text in Mail, Slack, a browser, anything, then press the shortcut. Per My Last opens with your text ready.": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bôi đen văn bản trong Mail, Slack, trình duyệt hay bất kỳ đâu, rồi nhấn phím tắt. Per My Last sẽ mở ra với văn bản đã sẵn sàng."
-          }
-        }
-      }
-    },
     "Not your style? You can change this anytime in Settings.": {
       "extractionState": "manual",
       "localizations": {
@@ -3737,6 +3726,259 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bước %lld/%lld"
+          }
+        }
+      }
+    },
+    "Select text, press one shortcut.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bôi đen văn bản, nhấn một phím tắt."
+          }
+        }
+      }
+    },
+    "It works in any app: email, chat, your browser, documents. Three quick steps and you are set.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dùng được trong mọi ứng dụng: email, chat, trình duyệt, tài liệu. Ba bước nhanh là xong."
+          }
+        }
+      }
+    },
+    "Allow access": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cho phép truy cập"
+          }
+        }
+      }
+    },
+    "Select some text": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bôi đen một đoạn văn bản"
+          }
+        }
+      }
+    },
+    "A word, a phrase, a sentence or a whole paragraph. Select this sample, or any text in another app.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Một từ, một cụm, một câu hay cả đoạn văn. Hãy bôi đen đoạn mẫu này, hoặc văn bản bất kỳ trong ứng dụng khác."
+          }
+        }
+      }
+    },
+    "Press the shortcut": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhấn phím tắt"
+          }
+        }
+      }
+    },
+    "We suggest keeping this one. You can change it now or later in Settings.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bạn nên giữ phím tắt này. Có thể đổi ngay bây giờ hoặc sau trong Cài đặt."
+          }
+        }
+      }
+    },
+    "Per My Last only got what is on your clipboard. Allow access in step 1, then select the text and press the shortcut again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Per My Last chỉ lấy được nội dung trong bộ nhớ tạm. Hãy cho phép truy cập ở bước 1, rồi bôi đen văn bản và nhấn phím tắt lần nữa."
+          }
+        }
+      }
+    },
+    "Change": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đổi"
+          }
+        }
+      }
+    },
+    "Press new keys… (Esc to cancel)": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhấn tổ hợp phím mới… (Esc để hủy)"
+          }
+        }
+      }
+    },
+    "Select the sample text, then press %@. We will notice when it works.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bôi đen đoạn mẫu, rồi nhấn %@. Khi thành công, chúng tôi sẽ nhận ra."
+          }
+        }
+      }
+    },
+    "Open sidebar (⌘/)": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mở thanh bên (⌘/)"
+          }
+        }
+      }
+    },
+    "Close sidebar (⌘/)": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đóng thanh bên (⌘/)"
+          }
+        }
+      }
+    },
+    "Open sidebar": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mở thanh bên"
+          }
+        }
+      }
+    },
+    "Close sidebar": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đóng thanh bên"
+          }
+        }
+      }
+    },
+    "Your plan": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gói của bạn"
+          }
+        }
+      }
+    },
+    "Free": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Miễn phí"
+          }
+        }
+      }
+    },
+    "21 credits every month": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "21 lượt mỗi tháng"
+          }
+        }
+      }
+    },
+    "Subscription": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đăng ký"
+          }
+        }
+      }
+    },
+    "Monthly or yearly, no key needed": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Theo tháng hoặc năm, không cần khóa"
+          }
+        }
+      }
+    },
+    "Power user": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Người dùng nâng cao"
+          }
+        }
+      }
+    },
+    "Bring your own Claude key. Updates for a year, then 50% off each upgrade.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dùng khóa Claude của bạn. Cập nhật trong một năm, sau đó giảm 50% cho mỗi lần nâng cấp."
+          }
+        }
+      }
+    },
+    "Current": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hiện tại"
           }
         }
       }

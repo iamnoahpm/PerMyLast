@@ -6,6 +6,9 @@ struct MainView: View {
     @FocusState private var inputFocused: Bool
     @FocusState private var askFocused: Bool
     @FocusState private var intentFocused: Bool
+    /// Pinned: the rail is part of the layout. Unpinned: it hides, and slides over the content while the pointer is at the left edge.
+    @AppStorage("railPinned") private var railPinned = true
+    @State private var railPeek = false
 
     private let onboarding = OnboardingModel.shared
 
@@ -19,20 +22,13 @@ struct MainView: View {
             let wide = geo.size.width >= PMLLayout.railBreakpoint
             VStack(spacing: 0) {
                 HStack(alignment: .top, spacing: 0) {
-                    if wide {
-                        VStack(spacing: PMLSpace.s3) {
-                            ModeRail(modes: model.modes, selection: $model.activeMode, wide: true) { WindowCoordinator.shared.showSettings() }
-                            SetupProgressCard()
-                            AccountFooter()
-                        }
-                            .padding(PMLSpace.s4)
-                            .frame(width: PMLLayout.railWidth)
-                            .frame(maxHeight: .infinity, alignment: .top)
-                            .background(PMLColor.surfaceInset)
-                            .overlay(alignment: .trailing) { Rectangle().fill(PMLColor.divider).frame(width: 1) }
-                    }
+                    if wide && railPinned { railColumn }
                     ScrollView {
                         VStack(alignment: .leading, spacing: PMLSpace.s4) {
+                            if wide && !railPinned {
+                                SidebarToggleButton(collapsed: true) { withAnimation(PMLMotion.base) { railPinned = true; railPeek = false } }
+                                    .offset(x: -PMLSpace.s2)
+                            }
                             ShortcutWarningBanner()
                             AccountWarningBanner()
                             if !wide { SetupProgressCard() }
@@ -58,6 +54,7 @@ struct MainView: View {
                         .padding(wide ? PMLSpace.s5 : PMLLayout.windowPadding)
                     }
                 }
+                .overlay(alignment: .leading) { if wide && !railPinned { peekRail } }
                 Rectangle().fill(PMLColor.divider).frame(height: 1)
                 FooterBar()
             }
@@ -73,6 +70,41 @@ struct MainView: View {
             if model.isAsk { askFocused = true } else { inputFocused = true }
         }
         .onExitCommand { WindowCoordinator.shared.hidePopup() }
+    }
+
+    // MARK: Sidebar
+
+    /// Modes, setup progress or plans, and the account: the whole left column.
+    private var railColumn: some View {
+        @Bindable var model = model
+        return VStack(spacing: PMLSpace.s3) {
+            ModeRail(modes: model.modes, selection: $model.activeMode, wide: true,
+                     onSettings: { WindowCoordinator.shared.showSettings() },
+                     onToggleSidebar: { withAnimation(PMLMotion.base) { railPinned = false; railPeek = false } })
+            SetupProgressCard()
+            PlansCard()
+            AccountFooter()
+        }
+        .padding(PMLSpace.s3)
+        .frame(width: PMLLayout.railWidth)
+        .frame(maxHeight: .infinity, alignment: .top)
+        .background(PMLColor.surfaceInset)
+        .overlay(alignment: .trailing) { Rectangle().fill(PMLColor.divider).frame(width: 1) }
+    }
+
+    /// While the rail is collapsed: a thin strip at the left edge reveals it on hover, and leaving it hides it again.
+    private var peekRail: some View {
+        ZStack(alignment: .leading) {
+            Color.clear.frame(width: 10).frame(maxHeight: .infinity).contentShape(Rectangle())
+                .onHover { if $0 { withAnimation(PMLMotion.base) { railPeek = true } } }
+            if railPeek {
+                railColumn
+                    .shadow(color: .black.opacity(0.18), radius: 14, x: 4)
+                    .transition(.move(edge: .leading))
+                    .onHover { if !$0 { withAnimation(PMLMotion.base) { railPeek = false } } }
+            }
+        }
+        .frame(maxHeight: .infinity)
     }
 
     // MARK: Pieces

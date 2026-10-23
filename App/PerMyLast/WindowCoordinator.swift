@@ -70,9 +70,11 @@ final class WindowCoordinator: NSObject, NSWindowDelegate {
     private func makePopup() -> NSWindow {
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 480, height: 640),
-            styleMask: [.titled, .closable, .resizable, .miniaturizable],
+            styleMask: [.titled, .closable, .resizable, .miniaturizable, .fullSizeContentView],
             backing: .buffered, defer: false)
-        window.title = "Per My Last"
+        window.title = "Per My Last" // kept for Mission Control and the Dock; not drawn in the title bar
+        window.titleVisibility = .hidden
+        window.titlebarAppearsTransparent = true
         window.contentViewController = NSHostingController(rootView: LocalizedRoot { MainView() }.environment(AppModel.shared).environment(AccountModel.shared))
         window.isReleasedWhenClosed = false
         window.collectionBehavior = [.moveToActiveSpace]

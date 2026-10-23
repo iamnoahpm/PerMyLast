@@ -231,19 +231,14 @@ private struct ShortcutStep: View {
     @State private var accessGranted = AppModel.canCopySelection
 
     var body: some View {
-        heading("Use it anywhere", "Press one shortcut, in any app.",
-                "Select text in Mail, Slack, a browser, anything, then press the shortcut. Per My Last opens with your text ready.")
-        HStack(spacing: PMLSpace.s3) {
-            KeyCaps(shortcut: shortcutKeys)
-            Spacer()
-        }
-        Label("Not your style? You can change this anytime in Settings.", systemImage: "gearshape")
-            .font(PMLFont.select).foregroundStyle(PMLColor.inkMuted)
+        heading("Use it anywhere", "Select text, press one shortcut.",
+                "It works in any app: email, chat, your browser, documents. Three quick steps and you are set.")
         accessPanel
             .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
                 accessGranted = AppModel.canCopySelection
             }
-        tryItPanel
+        selectPanel
+        pressPanel
     }
 
     /// The shortcut as bare key symbols, e.g. "⇧⌘W".
@@ -299,11 +294,12 @@ private struct ShortcutStep: View {
         }
     }
 
-    private var tryItPanel: some View {
+    private var selectPanel: some View {
         PMLPanel(fill: PMLColor.surfaceInset) {
             VStack(alignment: .leading, spacing: PMLSpace.s2) {
-                stepHeader(2, "Try it now")
-                Text("Select the text below…").font(PMLFont.select).fontWeight(.bold).foregroundStyle(PMLColor.ink)
+                stepHeader(2, "Select some text")
+                Text("A word, a phrase, a sentence or a whole paragraph. Select this sample, or any text in another app.")
+                    .font(PMLFont.body).foregroundStyle(PMLColor.inkSoft).fixedSize(horizontal: false, vertical: true)
                 Text("Hi, could you send me the invoice by Friday? Thank you!")
                     .font(PMLFont.input).foregroundStyle(PMLColor.ink)
                     .textSelection(.enabled)
@@ -312,23 +308,64 @@ private struct ShortcutStep: View {
                     .background(RoundedRectangle(cornerRadius: PMLRadius.input, style: .continuous).fill(PMLColor.surface))
                     .overlay(RoundedRectangle(cornerRadius: PMLRadius.input, style: .continuous)
                         .strokeBorder(PMLColor.accent, style: StrokeStyle(lineWidth: 1.5, dash: [5, 4])))
-                Text("…then press \(model.shortcutDisplay).").font(PMLFont.select).fontWeight(.bold).foregroundStyle(PMLColor.ink)
+            }
+        }
+    }
+
+    private var pressPanel: some View {
+        PMLPanel(fill: PMLColor.surfaceInset) {
+            VStack(alignment: .leading, spacing: PMLSpace.s2) {
+                stepHeader(3, "Press the shortcut")
+                HStack(spacing: PMLSpace.s3) {
+                    KeyCaps(shortcut: shortcutKeys)
+                    Spacer(minLength: 0)
+                    ShortcutChanger()
+                }
+                Text("We suggest keeping this one. You can change it now or later in Settings.")
+                    .font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted).fixedSize(horizontal: false, vertical: true)
                 if let caught = flow.caught, caught.source == .clipboard {
                     Label("Not yet: it could not read your selection", systemImage: "exclamationmark.triangle.fill")
                         .font(PMLFont.select).foregroundStyle(PMLColor.warning)
-                    Text("Per My Last only got what is on your clipboard. Allow access above, then select the text and press the shortcut again.")
-                        .font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted)
+                    Text("Per My Last only got what is on your clipboard. Allow access in step 1, then select the text and press the shortcut again.")
+                        .font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted).fixedSize(horizontal: false, vertical: true)
                 } else if let caught = flow.caught {
                     Label("It worked!", systemImage: "checkmark.circle.fill")
                         .font(PMLFont.select).foregroundStyle(PMLColor.success)
                     Text(verbatim: "“\(String(caught.text.prefix(120)))”")
                         .font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted).lineLimit(2)
                 } else {
-                    Text("Or try it in any other app. We will notice when it works.")
-                        .font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted)
+                    Text("Select the sample text, then press \(model.shortcutDisplay). We will notice when it works.")
+                        .font(PMLFont.select).foregroundStyle(PMLColor.ink).fixedSize(horizontal: false, vertical: true)
                 }
             }
         }
+    }
+}
+
+/// A small "Change" control for the shortcut: records a new combo in place, keeping the default one click away.
+private struct ShortcutChanger: View {
+    @StateObject private var recorder = ShortcutRecorder()
+
+    var body: some View {
+        VStack(alignment: .trailing, spacing: PMLSpace.s1) {
+            Button { recorder.toggle() } label: {
+                if recorder.recording { Text("Press new keys… (Esc to cancel)") } else { Text("Change") }
+            }
+            .buttonStyle(PMLGhostButtonStyle(tint: PMLColor.accentText))
+            switch recorder.note {
+            case .systemConflict(let description):
+                Text("This hotkey conflicts with \(description) — choose another before saving.")
+                    .font(PMLFont.hint).foregroundStyle(PMLColor.danger)
+            case .appConflict(let app, let description):
+                Text("Heads up: this is also \(app)'s shortcut for \(description). It'll still save, but may not always reach Per My Last while that app is frontmost.")
+                    .font(PMLFont.hint).foregroundStyle(PMLColor.warning)
+            case .needsModifier:
+                Text("Hold ⌘, ⌃ or ⌥ and press a key.").font(PMLFont.hint).foregroundStyle(PMLColor.warning)
+            case .required, nil:
+                EmptyView()
+            }
+        }
+        .onDisappear { if recorder.recording { recorder.stop() } }
     }
 }
 
@@ -537,7 +574,7 @@ private struct AccessStep: View {
 // MARK: - Setup progress (popup, after the flow)
 
 /// A compact reminder in the rail (or above the content when narrow) while setup items are still open.
-/// Tapping it reopens the flow at the first open step; it disappears once everything is done.
+/// Lists every step at once. Tapping it restarts the onboarding flow from the beginning; it disappears once everything is done.
 struct SetupProgressCard: View {
     private let flow = OnboardingModel.shared
     @State private var hovering = false
@@ -546,9 +583,7 @@ struct SetupProgressCard: View {
         let items = flow.checklist
         let done = items.filter(\.done).count
         if done < items.count {
-            let next = items.first { !$0.done && $0.id != .firstWin }
-            let current = items.first { !$0.done }
-            Button { if let next { flow.reopen(at: next.id) } } label: {
+            Button { flow.restart(); WindowCoordinator.shared.showPopup() } label: {
                 VStack(alignment: .leading, spacing: PMLSpace.s2) {
                     HStack {
                         Text("Finish setup").font(PMLFont.select).fontWeight(.bold).foregroundStyle(PMLColor.ink)
@@ -562,19 +597,77 @@ struct SetupProgressCard: View {
                             }
                     }
                     .frame(height: 4)
-                    if let current {
-                        Text(current.title).font(PMLFont.hint).foregroundStyle(PMLColor.inkSoft)
-                            .multilineTextAlignment(.leading)
+                    VStack(alignment: .leading, spacing: PMLSpace.s1) {
+                        ForEach(items) { item in
+                            HStack(alignment: .top, spacing: PMLSpace.s2) {
+                                Image(systemName: item.done ? "checkmark.circle.fill" : "circle")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(item.done ? PMLColor.success : PMLColor.lineStrong)
+                                Text(item.title).font(PMLFont.hint)
+                                    .foregroundStyle(item.done ? PMLColor.inkMuted : PMLColor.inkSoft)
+                                    .multilineTextAlignment(.leading).fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
                     }
                 }
                 .padding(PMLSpace.s3)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(RoundedRectangle(cornerRadius: PMLRadius.card, style: .continuous).fill(hovering && next != nil ? PMLColor.surfaceSunken : PMLColor.surface))
+                .background(RoundedRectangle(cornerRadius: PMLRadius.card, style: .continuous).fill(hovering ? PMLColor.surfaceSunken : PMLColor.surface))
                 .overlay(RoundedRectangle(cornerRadius: PMLRadius.card, style: .continuous).strokeBorder(PMLColor.line, lineWidth: 1))
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .onHover { hovering = $0 }
+        }
+    }
+}
+
+/// Takes the place of the setup card once setup is done: the three ways to use the app, the current one marked.
+struct PlansCard: View {
+    private let flow = OnboardingModel.shared
+    @Environment(AccountModel.self) private var account
+    @State private var hovering = false
+
+    private enum Tier { case free, subscription, power }
+
+    private var current: Tier {
+        guard account.signedIn, let plan = account.entitlement?.plan else { return .free }
+        if plan.isPro { return .subscription }
+        return plan == .lifetime ? .power : .free
+    }
+
+    var body: some View {
+        if flow.checklistComplete {
+            Button { WindowCoordinator.shared.showPaywall() } label: {
+                VStack(alignment: .leading, spacing: PMLSpace.s2) {
+                    Text("Your plan").pmlEyebrow()
+                    row(.free, "Free", "21 credits every month")
+                    row(.subscription, "Subscription", "Monthly or yearly, no key needed")
+                    row(.power, "Power user", "Bring your own Claude key. Updates for a year, then 50% off each upgrade.")
+                    Text("See plans →").font(PMLFont.hint).fontWeight(.semibold).foregroundStyle(PMLColor.accentText)
+                }
+                .padding(PMLSpace.s3)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(RoundedRectangle(cornerRadius: PMLRadius.card, style: .continuous).fill(hovering ? PMLColor.surfaceSunken : PMLColor.surface))
+                .overlay(RoundedRectangle(cornerRadius: PMLRadius.card, style: .continuous).strokeBorder(PMLColor.line, lineWidth: 1))
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .onHover { hovering = $0 }
+        }
+    }
+
+    private func row(_ tier: Tier, _ name: LocalizedStringKey, _ detail: LocalizedStringKey) -> some View {
+        VStack(alignment: .leading, spacing: 1) {
+            HStack(spacing: PMLSpace.s2) {
+                Text(name).font(PMLFont.select).fontWeight(.bold).foregroundStyle(PMLColor.ink)
+                if tier == current {
+                    Text("Current").font(PMLFont.badge).foregroundStyle(PMLColor.accentText)
+                        .padding(.horizontal, 6).padding(.vertical, 1)
+                        .background(Capsule().fill(PMLColor.accentSoft))
+                }
+            }
+            Text(detail).font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted).fixedSize(horizontal: false, vertical: true)
         }
     }
 }

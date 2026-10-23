@@ -7,6 +7,8 @@ struct ModeRail: View {
     @Binding var selection: String
     let wide: Bool
     var onSettings: () -> Void
+    /// Wide rail only: collapses the sidebar. Nil hides the button.
+    var onToggleSidebar: (() -> Void)? = nil
 
     @FocusState private var focused: Bool
     /// The ring is for keyboard navigation only; a mouse click must not leave an outline behind.
@@ -45,15 +47,19 @@ struct ModeRail: View {
 
     private var rail: some View {
         VStack(alignment: .leading, spacing: PMLSpace.s1) {
+            if let onToggleSidebar {
+                HStack { Spacer(); SidebarToggleButton(collapsed: false, action: onToggleSidebar) }
+            }
             Text("What are you trying to do?").pmlEyebrow()
-            .frame(maxWidth: .infinity, alignment: .leading)
+                .lineLimit(1).minimumScaleFactor(0.8)
+                .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, PMLSpace.s2)
             .padding(.bottom, PMLSpace.s3)
             keyboard(VStack(alignment: .leading, spacing: PMLSpace.s1) {
             ForEach(all, id: \.self) { mode in
                 let selected = mode == selection
                 Button { keyboardNav = false; selection = mode } label: {
-                    HStack(spacing: PMLSpace.s3) {
+                    HStack(spacing: PMLSpace.s2 + 2) {
                         if let icon = Self.icon(for: mode) {
                             Image(systemName: icon)
                                 .font(.system(size: 14, weight: .semibold))
@@ -70,7 +76,7 @@ struct ModeRail: View {
                         }
                         Spacer(minLength: 0)
                     }
-                    .padding(.vertical, PMLSpace.s2 + 2).padding(.horizontal, PMLSpace.s3)
+                    .padding(.vertical, PMLSpace.s2 + 2).padding(.horizontal, PMLSpace.s2 + 2)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(RoundedRectangle(cornerRadius: PMLRadius.card, style: .continuous).fill(selected ? PMLColor.accentSoft : .clear))
                     .contentShape(Rectangle())
@@ -166,5 +172,19 @@ private struct RailItemStyle: ButtonStyle {
             .opacity(configuration.isPressed ? 0.8 : 1)
             .background(RoundedRectangle(cornerRadius: PMLRadius.card, style: .continuous).fill(hovering ? PMLColor.surfaceSunken : .clear))
             .onHover { hovering = $0 }
+    }
+}
+
+/// Collapses or expands the sidebar (⌘/), the same control in both states.
+struct SidebarToggleButton: View {
+    let collapsed: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) { Image(systemName: "sidebar.left").font(.system(size: 14)) }
+            .buttonStyle(PMLGhostButtonStyle(tint: PMLColor.inkSoft))
+            .keyboardShortcut("/", modifiers: .command)
+            .help(collapsed ? "Open sidebar (⌘/)" : "Close sidebar (⌘/)")
+            .accessibilityLabel(Text(collapsed ? "Open sidebar" : "Close sidebar"))
     }
 }

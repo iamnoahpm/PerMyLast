@@ -118,7 +118,7 @@ struct AccountFooter: View {
 
     var body: some View {
         Button { WindowCoordinator.shared.showSettings() } label: {
-            HStack(spacing: PMLSpace.s3) {
+            HStack(spacing: PMLSpace.s2) {
                 Image(systemName: account.signedIn ? "person.crop.circle.fill" : "person.crop.circle")
                     .font(.system(size: 24))
                     .foregroundStyle(account.signedIn ? PMLColor.accentText : PMLColor.inkMuted)
@@ -128,13 +128,13 @@ struct AccountFooter: View {
                     if let subtitle {
                         Text(verbatim: subtitle).font(PMLFont.hint)
                             .foregroundStyle(account.signedIn ? PMLColor.inkMuted : PMLColor.accentText)
-                            .fixedSize(horizontal: false, vertical: true)
+                            .lineLimit(2).fixedSize(horizontal: false, vertical: true)
                     }
                 }
                 Spacer(minLength: 0)
                 Image(systemName: "gearshape").font(.system(size: 14)).foregroundStyle(PMLColor.inkSoft)
             }
-            .padding(PMLSpace.s3)
+            .padding(PMLSpace.s2)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(RoundedRectangle(cornerRadius: PMLRadius.card, style: .continuous).fill(hovering ? PMLColor.surfaceSunken : .clear))
             .contentShape(Rectangle())
