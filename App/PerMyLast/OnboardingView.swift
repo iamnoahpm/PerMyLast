@@ -239,13 +239,21 @@ private struct ShortcutStep: View {
 
     var body: some View {
         heading("Use it anywhere", "Select text, press one shortcut.",
-                "It works in any app: email, chat, your browser, documents. Three quick steps and you are set.")
-        accessPanel
+                "It works in any app: email, chat, your browser, documents. Two quick steps and you are set.")
+        selectPanel
+        pressPanel
+            .task { await poll() }
             .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
                 accessGranted = AppModel.canCopySelection
             }
-        selectPanel
-        pressPanel
+        // Access is asked for where it is needed: after the first press, when macOS has just shown its prompt.
+        if needsAccess { accessPanel }
+    }
+
+    /// The press could not read the selection, or the user already went to Settings: time to explain and guide.
+    private var needsAccess: Bool {
+        guard !accessGranted else { return false }
+        return askedForAccess || flow.caught?.source == .clipboard
     }
 
     /// The shortcut as bare key symbols, e.g. "⇧⌘W".
@@ -267,45 +275,27 @@ private struct ShortcutStep: View {
         }
     }
 
-    @ViewBuilder private var accessPanel: some View {
-        if accessGranted {
-            PMLPanel(fill: PMLColor.surfaceInset) {
-                VStack(alignment: .leading, spacing: PMLSpace.s2) {
-                    stepHeader(1, "Allow access", done: true)
-                    Text("Allowed: Per My Last can read the text you select.")
-                        .font(PMLFont.body).foregroundStyle(PMLColor.success)
-                }
-            }
-            .task { await poll() }
-        } else {
-            PMLBanner {
-                VStack(alignment: .leading, spacing: PMLSpace.s2) {
-                    stepHeader(1, "Allow access")
-                    Text("To grab the text you’ve selected, Per My Last needs permission in System Settings → Privacy & Security → Accessibility. Without it, the shortcut uses whatever’s on your clipboard instead.")
-                        .font(PMLFont.body).foregroundStyle(PMLColor.ink).fixedSize(horizontal: false, vertical: true)
-                    AccessGuide()
+    private var accessPanel: some View {
+        PMLBanner {
+            VStack(alignment: .leading, spacing: PMLSpace.s2) {
+                stepHeader(3, "Allow access")
+                Text("macOS needs your OK before Per My Last can read the text you select. Without it, the shortcut only uses your clipboard.")
+                    .font(PMLFont.body).foregroundStyle(PMLColor.ink).fixedSize(horizontal: false, vertical: true)
+                AccessGuide()
+                HStack(spacing: PMLSpace.s3) {
                     if askedForAccess {
-                        // Step 2 of granting: switch the app on in Settings, then restart so macOS applies it.
-                        Text("Switch Per My Last on in the list, then restart it so macOS applies the change. Your progress is saved.")
-                            .font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted).fixedSize(horizontal: false, vertical: true)
-                        HStack(spacing: PMLSpace.s3) {
-                            Button("Restart Per My Last") { AppModel.relaunch() }.buttonStyle(PMLPrimaryButtonStyle(size: .compact))
-                            Button("Open System Settings") { AppModel.requestCopyAccess() }.buttonStyle(PMLGhostButtonStyle(tint: PMLColor.accentText))
-                        }
-                        AccessStatusLine(granted: $accessGranted)
+                        Button("Restart Per My Last") { AppModel.relaunch() }.buttonStyle(PMLPrimaryButtonStyle(size: .compact))
+                        Button("Open System Settings") { AppModel.requestCopyAccess() }.buttonStyle(PMLGhostButtonStyle(tint: PMLColor.accentText))
                     } else {
-                        HStack(spacing: PMLSpace.s3) {
-                            Button("Allow access…") {
-                                FunnelLog.shared.log(.accessibilityRequested)
-                                AppModel.requestCopyAccess()
-                                askedForAccess = true
-                            }.buttonStyle(PMLInkButtonStyle())
-                            AccessStatusLine(granted: $accessGranted)
-                        }
+                        Button("Open System Settings") {
+                            FunnelLog.shared.log(.accessibilityRequested)
+                            AppModel.requestCopyAccess()
+                            askedForAccess = true
+                        }.buttonStyle(PMLPrimaryButtonStyle(size: .compact))
                     }
                 }
+                AccessStatusLine(granted: $accessGranted)
             }
-            .task { await poll() }
         }
     }
 
@@ -319,7 +309,7 @@ private struct ShortcutStep: View {
     private var selectPanel: some View {
         PMLPanel(fill: PMLColor.surfaceInset) {
             VStack(alignment: .leading, spacing: PMLSpace.s2) {
-                stepHeader(2, "Select some text")
+                stepHeader(1, "Select some text")
                 Text("A word, a phrase, a sentence or a whole paragraph. Select this sample, or any text in another app.")
                     .font(PMLFont.body).foregroundStyle(PMLColor.inkSoft).fixedSize(horizontal: false, vertical: true)
                 Text("Hi, could you send me the invoice by Friday? Thank you!")
@@ -337,7 +327,7 @@ private struct ShortcutStep: View {
     private var pressPanel: some View {
         PMLPanel(fill: PMLColor.surfaceInset) {
             VStack(alignment: .leading, spacing: PMLSpace.s2) {
-                stepHeader(3, "Press the shortcut")
+                stepHeader(2, "Press the shortcut")
                 HStack(spacing: PMLSpace.s3) {
                     KeyCaps(shortcut: shortcutKeys)
                     Spacer(minLength: 0)
@@ -348,7 +338,7 @@ private struct ShortcutStep: View {
                 if let caught = flow.caught, caught.source == .clipboard {
                     Label("Not yet: it could not read your selection", systemImage: "exclamationmark.triangle.fill")
                         .font(PMLFont.select).foregroundStyle(PMLColor.warning)
-                    Text("Per My Last only got what is on your clipboard. Allow access in step 1, then select the text and press the shortcut again.")
+                    Text("Allow access below, then select the text and press the shortcut again.")
                         .font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted).fixedSize(horizontal: false, vertical: true)
                 } else if let caught = flow.caught {
                     Label("It worked!", systemImage: "checkmark.circle.fill")
@@ -358,6 +348,10 @@ private struct ShortcutStep: View {
                 } else {
                     Text("Select the sample text, then press \(model.shortcutDisplay). We will notice when it works.")
                         .font(PMLFont.select).foregroundStyle(PMLColor.ink).fixedSize(horizontal: false, vertical: true)
+                    if !accessGranted {
+                        Text("The first time, macOS asks for permission. That is expected: choose Open System Settings and we will guide you.")
+                            .font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted).fixedSize(horizontal: false, vertical: true)
+                    }
                 }
             }
         }
@@ -392,7 +386,7 @@ private struct ShortcutChanger: View {
 }
 
 /// What the user will see in System Settings, drawn and animated here: the pointer finds the Per My Last row and
-/// switches it on. Replaces a second "Open System Settings" button that did the same thing as "Allow access…".
+/// switches it on.
 private struct AccessGuide: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var pointerAtToggle = false
@@ -400,7 +394,7 @@ private struct AccessGuide: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: PMLSpace.s2) {
-            Text("Click Allow access, then switch Per My Last on in the list that opens. Come back here after; we notice on our own.")
+            Text("In the list that opens, switch Per My Last on, then restart it. Your progress is saved.")
                 .font(PMLFont.hint).foregroundStyle(PMLColor.inkSoft).fixedSize(horizontal: false, vertical: true)
             mock
                 .accessibilityHidden(true)

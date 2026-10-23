@@ -4125,6 +4125,61 @@
           }
         }
       }
+    },
+    "It works in any app: email, chat, your browser, documents. Two quick steps and you are set.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dùng được trong mọi ứng dụng: email, chat, trình duyệt, tài liệu. Chỉ hai bước nhanh là xong."
+          }
+        }
+      }
+    },
+    "macOS needs your OK before Per My Last can read the text you select. Without it, the shortcut only uses your clipboard.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS cần bạn đồng ý trước khi Per My Last đọc được văn bản bạn chọn. Nếu không, phím tắt chỉ dùng nội dung trong clipboard."
+          }
+        }
+      }
+    },
+    "Allow access below, then select the text and press the shortcut again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hãy cho phép truy cập ở bên dưới, rồi chọn lại văn bản và nhấn phím tắt lần nữa."
+          }
+        }
+      }
+    },
+    "The first time, macOS asks for permission. That is expected: choose Open System Settings and we will guide you.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lần đầu, macOS sẽ hỏi quyền. Đây là bình thường: hãy chọn Open System Settings, chúng mình sẽ hướng dẫn tiếp."
+          }
+        }
+      }
+    },
+    "In the list that opens, switch Per My Last on, then restart it. Your progress is saved.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trong danh sách vừa mở, bật Per My Last, rồi khởi động lại app. Tiến độ của bạn được lưu."
+          }
+        }
+      }
     }
   },
   "version": "1.0"
