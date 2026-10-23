@@ -46,7 +46,7 @@ struct ModeRail: View {
     private var rail: some View {
         VStack(alignment: .leading, spacing: PMLSpace.s1) {
             HStack(alignment: .top) {
-                Text("What are you trying to do?").pmlEyebrow(PMLColor.inkMuted)
+                Text("What are you trying to do?").pmlEyebrow()
                 Spacer(minLength: PMLSpace.s2)
                 settingsButton
             }
@@ -63,10 +63,16 @@ struct ModeRail: View {
                                 .foregroundStyle(selected ? PMLColor.accentText : PMLColor.inkMuted)
                                 .frame(width: 18)
                         }
-                        label(mode).font(PMLFont.tab).fontWeight(selected ? .bold : .semibold)
+                        VStack(alignment: .leading, spacing: 1) {
+                            label(mode).font(PMLFont.tab).fontWeight(selected ? .bold : .semibold)
+                                .foregroundStyle(selected ? PMLColor.accentText : PMLColor.ink)
+                            if let summary = Self.summary(for: mode) {
+                                Text(summary).font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
                         Spacer(minLength: 0)
                     }
-                    .foregroundStyle(selected ? PMLColor.accentText : PMLColor.ink)
                     .padding(.vertical, PMLSpace.s2 + 2).padding(.horizontal, PMLSpace.s3)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(RoundedRectangle(cornerRadius: PMLRadius.card, style: .continuous).fill(selected ? PMLColor.accentSoft : .clear))
@@ -120,6 +126,28 @@ struct ModeRail: View {
     // The user's own mode names are shown as typed; Ask is a localised built-in.
     @ViewBuilder private func label(_ mode: String) -> some View {
         if mode == AppModel.askTab { Text("Ask") } else { Text(verbatim: mode) }
+    }
+
+    /// One line under a built-in mode's name: the job it does, at a glance. A custom mode has none.
+    static func summary(for mode: String) -> LocalizedStringKey? {
+        switch mode {
+        case "Reply": "Answer a message you got"
+        case "Write": "Say something new, polished"
+        case "Understand": "Make sense of a message"
+        case AppModel.askTab: "Get advice on tone or wording"
+        default: nil
+        }
+    }
+
+    /// The sentence under the heading of a built-in mode; a custom mode falls back to the app's tagline.
+    static func blurb(for mode: String) -> LocalizedStringKey {
+        switch mode {
+        case "Reply": "Paste the message you got and say what you want to answer. Get a reply in your tone."
+        case "Write": "Tell me what you need to say. Get a clear draft in the voice you pick."
+        case "Understand": "Paste a message that confuses you. Get what it means and what it wants from you."
+        case AppModel.askTab: "Ask about tone, wording or what to say next."
+        default: "Say what you mean, but professionally. Saving careers, one email, one message at a time."
+        }
     }
 
     /// Built-in modes get an SF Symbol; a custom mode shows its name alone.

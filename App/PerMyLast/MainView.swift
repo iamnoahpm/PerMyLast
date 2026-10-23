@@ -35,12 +35,11 @@ struct MainView: View {
                             ShortcutWarningBanner()
                             AccountWarningBanner()
                             if !wide { SetupProgressCard() }
-                            if wide {
-                                description
-                            } else {
+                            if !wide {
                                 header
                                 ModeRail(modes: model.modes, selection: $model.activeMode, wide: false) { WindowCoordinator.shared.showSettings() }
                             }
+                            modeHeading
                             if model.isAsk {
                                 askBox(text: $model.askPrompt)
                             } else {
@@ -78,16 +77,21 @@ struct MainView: View {
     // MARK: Pieces
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: PMLSpace.s1) {
-            Text("What are you trying to do?").pmlEyebrow()
-            description
-        }
+        Text("What are you trying to do?").pmlEyebrow()
     }
 
-    private var description: some View {
-        Text("Say what you mean, but professionally. Saving careers, one email, one message at a time.")
-            .font(PMLFont.body)
-            .foregroundStyle(PMLColor.inkSoft)
+    /// The active mode's name and what it does for you.
+    private var modeHeading: some View {
+        VStack(alignment: .leading, spacing: PMLSpace.s1) {
+            Group {
+                if model.isAsk { Text("Ask") } else { Text(verbatim: model.activeMode) }
+            }
+            .font(.custom("Plus Jakarta Sans", size: 22).weight(.bold))
+            .foregroundStyle(PMLColor.ink)
+            Text(ModeRail.blurb(for: model.activeMode))
+                .font(PMLFont.body)
+                .foregroundStyle(PMLColor.inkSoft)
+        }
     }
 
     private var chips: some View {

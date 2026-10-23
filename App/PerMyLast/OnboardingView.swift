@@ -261,15 +261,11 @@ private struct ShortcutStep: View {
                         Text("macOS needs your OK (Accessibility) before Per My Last can read what you select. Without it, the shortcut uses whatever is on your clipboard.")
                             .font(PMLFont.body).foregroundStyle(PMLColor.ink)
                     } icon: { Image(systemName: "hand.raised.fill").foregroundStyle(PMLColor.warning) }
-                    HStack(spacing: PMLSpace.s2) {
-                        Button("Allow access…") {
-                            FunnelLog.shared.log(.accessibilityRequested)
-                            AppModel.requestCopyAccess()
-                        }.buttonStyle(PMLInkButtonStyle())
-                        Button("Open System Settings") {
-                            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") { NSWorkspace.shared.open(url) }
-                        }.buttonStyle(PMLGhostButtonStyle())
-                    }
+                    AccessGuide()
+                    Button("Allow access…") {
+                        FunnelLog.shared.log(.accessibilityRequested)
+                        AppModel.requestCopyAccess()
+                    }.buttonStyle(PMLInkButtonStyle())
                 }
             }
             .task { await poll() }
@@ -312,6 +308,72 @@ private struct ShortcutStep: View {
                         .font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted)
                 }
             }
+        }
+    }
+}
+
+/// What the user will see in System Settings, drawn and animated here: the pointer finds the Per My Last row and
+/// switches it on. Replaces a second "Open System Settings" button that did the same thing as "Allow access…".
+private struct AccessGuide: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var pointerAtToggle = false
+    @State private var on = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: PMLSpace.s2) {
+            Text("Click Allow access, then switch Per My Last on in the list that opens. Come back here after; we notice on our own.")
+                .font(PMLFont.hint).foregroundStyle(PMLColor.inkSoft).fixedSize(horizontal: false, vertical: true)
+            mock
+                .accessibilityHidden(true)
+        }
+        .task { await loop() }
+    }
+
+    private var mock: some View {
+        VStack(spacing: 0) {
+            row("Magnet", icon: "rectangle.split.2x1.fill", tint: .blue, toggled: true)
+            Rectangle().fill(PMLColor.divider).frame(height: 1)
+            row("Per My Last", icon: "envelope.fill", tint: PMLColor.accent, toggled: on, highlight: true)
+        }
+        .background(RoundedRectangle(cornerRadius: PMLRadius.input, style: .continuous).fill(PMLColor.surface))
+        .overlay(RoundedRectangle(cornerRadius: PMLRadius.input, style: .continuous).strokeBorder(PMLColor.lineStrong, lineWidth: 1))
+        .overlay(alignment: .bottomTrailing) {
+            Image(systemName: "cursorarrow")
+                .font(.system(size: 20))
+                .foregroundStyle(PMLColor.ink)
+                .shadow(color: .black.opacity(0.25), radius: 2, y: 1)
+                .offset(x: pointerAtToggle ? -14 : 40, y: pointerAtToggle ? -4 : 30)
+                .opacity(pointerAtToggle || !reduceMotion ? 1 : 0)
+        }
+        .frame(maxWidth: 300)
+    }
+
+    private func row(_ name: String, icon: String, tint: Color, toggled: Bool, highlight: Bool = false) -> some View {
+        HStack(spacing: PMLSpace.s2) {
+            Image(systemName: icon).font(.system(size: 11)).foregroundStyle(.white)
+                .frame(width: 20, height: 20)
+                .background(RoundedRectangle(cornerRadius: 5, style: .continuous).fill(tint))
+            Text(verbatim: name).font(PMLFont.hint).foregroundStyle(PMLColor.ink)
+            Spacer()
+            Capsule().fill(toggled ? PMLColor.accent : PMLColor.lineStrong)
+                .frame(width: 30, height: 18)
+                .overlay(alignment: toggled ? .trailing : .leading) {
+                    Circle().fill(.white).padding(2).shadow(color: .black.opacity(0.2), radius: 1)
+                }
+        }
+        .padding(.horizontal, PMLSpace.s3).padding(.vertical, 7)
+        .background(highlight ? PMLColor.accentSoft : .clear)
+    }
+
+    private func loop() async {
+        if reduceMotion { pointerAtToggle = true; on = true; return }
+        while !Task.isCancelled {
+            on = false; pointerAtToggle = false
+            try? await Task.sleep(for: .milliseconds(900))
+            withAnimation(.easeInOut(duration: 0.8)) { pointerAtToggle = true }
+            try? await Task.sleep(for: .milliseconds(1100))
+            withAnimation(.easeInOut(duration: 0.2)) { on = true }
+            try? await Task.sleep(for: .milliseconds(1800))
         }
     }
 }

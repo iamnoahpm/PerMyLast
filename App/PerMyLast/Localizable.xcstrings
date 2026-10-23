@@ -3532,6 +3532,105 @@
         }
       }
     },
+    "Click Allow access, then switch Per My Last on in the list that opens. Come back here after; we notice on our own.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bấm Allow access, rồi bật Per My Last trong danh sách vừa mở. Sau đó quay lại đây, app sẽ tự nhận ra."
+          }
+        }
+      }
+    },
+    "Answer a message you got": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trả lời một tin nhắn bạn nhận được"
+          }
+        }
+      }
+    },
+    "Say something new, polished": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nói điều mới, chỉn chu"
+          }
+        }
+      }
+    },
+    "Make sense of a message": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hiểu một tin nhắn"
+          }
+        }
+      }
+    },
+    "Get advice on tone or wording": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhờ góp ý về giọng điệu hoặc cách diễn đạt"
+          }
+        }
+      }
+    },
+    "Paste the message you got and say what you want to answer. Get a reply in your tone.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dán tin nhắn bạn nhận được và nói bạn muốn trả lời gì. Nhận câu trả lời đúng giọng của bạn."
+          }
+        }
+      }
+    },
+    "Tell me what you need to say. Get a clear draft in the voice you pick.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cho mình biết bạn cần nói gì. Nhận bản nháp rõ ràng, đúng giọng bạn chọn."
+          }
+        }
+      }
+    },
+    "Paste a message that confuses you. Get what it means and what it wants from you.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dán tin nhắn khiến bạn khó hiểu. Biết nó có ý gì và người gửi muốn gì ở bạn."
+          }
+        }
+      }
+    },
+    "Ask about tone, wording or what to say next.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hỏi về giọng điệu, cách diễn đạt hoặc nên nói gì tiếp theo."
+          }
+        }
+      }
+    },
     "Getting started": {
       "extractionState": "manual",
       "localizations": {
