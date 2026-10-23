@@ -249,18 +249,38 @@ private struct ShortcutStep: View {
     /// The shortcut as bare key symbols, e.g. "⇧⌘W".
     private var shortcutKeys: String { model.shortcutDisplay.replacingOccurrences(of: " ", with: "").replacingOccurrences(of: "+", with: "") }
 
+    /// Numbered eyebrow shared by both steps, so the two panels read as 1 → 2. A finished step shows a check instead.
+    private func stepHeader(_ number: Int, _ title: LocalizedStringKey, done: Bool = false) -> some View {
+        HStack(spacing: PMLSpace.s2) {
+            ZStack {
+                Circle().fill(done ? PMLColor.success : PMLColor.accent)
+                if done {
+                    Image(systemName: "checkmark").font(.system(size: 10, weight: .bold)).foregroundStyle(.white)
+                } else {
+                    Text(verbatim: "\(number)").font(PMLFont.badge).foregroundStyle(.white)
+                }
+            }
+            .frame(width: 20, height: 20)
+            Text(title).pmlEyebrow()
+        }
+    }
+
     @ViewBuilder private var accessPanel: some View {
         if accessGranted {
-            Label("Allowed: Per My Last can read the text you select.", systemImage: "checkmark.circle.fill")
-                .font(PMLFont.body).foregroundStyle(PMLColor.success)
-                .task { await poll() }
+            PMLPanel(fill: PMLColor.surfaceInset) {
+                VStack(alignment: .leading, spacing: PMLSpace.s2) {
+                    stepHeader(1, "Allow access", done: true)
+                    Text("Allowed: Per My Last can read the text you select.")
+                        .font(PMLFont.body).foregroundStyle(PMLColor.success)
+                }
+            }
+            .task { await poll() }
         } else {
             PMLBanner {
                 VStack(alignment: .leading, spacing: PMLSpace.s2) {
-                    Label {
-                        Text("macOS needs your OK (Accessibility) before Per My Last can read what you select. Without it, the shortcut uses whatever is on your clipboard.")
-                            .font(PMLFont.body).foregroundStyle(PMLColor.ink)
-                    } icon: { Image(systemName: "hand.raised.fill").foregroundStyle(PMLColor.warning) }
+                    stepHeader(1, "Allow access")
+                    Text("macOS needs your OK (Accessibility) before Per My Last can read what you select. Without it, the shortcut uses whatever is on your clipboard.")
+                        .font(PMLFont.body).foregroundStyle(PMLColor.ink).fixedSize(horizontal: false, vertical: true)
                     AccessGuide()
                     Button("Allow access…") {
                         FunnelLog.shared.log(.accessibilityRequested)
@@ -282,7 +302,7 @@ private struct ShortcutStep: View {
     private var tryItPanel: some View {
         PMLPanel(fill: PMLColor.surfaceInset) {
             VStack(alignment: .leading, spacing: PMLSpace.s2) {
-                Text("Try it now").pmlEyebrow()
+                stepHeader(2, "Try it now")
                 Text("Select the text below…").font(PMLFont.select).fontWeight(.bold).foregroundStyle(PMLColor.ink)
                 Text("Hi, could you send me the invoice by Friday? Thank you!")
                     .font(PMLFont.input).foregroundStyle(PMLColor.ink)

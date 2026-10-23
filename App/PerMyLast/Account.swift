@@ -47,6 +47,8 @@ final class AccountModel {
     var backend: BackendClient? { AppConfig.backendURL.map { BackendClient(baseURL: $0) } }
     var isConfigured: Bool { AppConfig.backendURL != nil }
     var signedIn: Bool { session != nil }
+    /// The address used for email sign-in, kept so the rail can say who is signed in. Apple/Google sign-ins leave it empty.
+    private(set) var signedInEmail: String? = UserDefaults.standard.string(forKey: "signedInEmail")
 
     // MARK: Routing (FR-A4)
 
@@ -93,6 +95,8 @@ final class AccountModel {
         session = nil
         entitlement = nil
         warning = nil
+        signedInEmail = nil
+        UserDefaults.standard.removeObject(forKey: "signedInEmail")
         try? sessionStore.delete()
         UserDefaults.standard.removeObject(forKey: "cachedEntitlement")
         UserDefaults.standard.removeObject(forKey: "entitlementFetchedAt")
@@ -130,8 +134,10 @@ final class AccountModel {
         guard let backend else { return }
         isBusy = true; defer { isBusy = false }
         do {
-            let s = try await backend.verifyEmailCode(email: email.trimmingCharacters(in: .whitespacesAndNewlines),
-                                                      code: code.trimmingCharacters(in: .whitespaces))
+            let address = email.trimmingCharacters(in: .whitespacesAndNewlines)
+            let s = try await backend.verifyEmailCode(email: address, code: code.trimmingCharacters(in: .whitespaces))
+            signedInEmail = address
+            UserDefaults.standard.set(address, forKey: "signedInEmail")
             await didSignIn(s)
         } catch let error as BackendError {
             show(friendly(error), error: true)

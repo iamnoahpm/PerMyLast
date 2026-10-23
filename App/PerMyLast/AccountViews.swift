@@ -99,3 +99,48 @@ struct AccountWarningBanner: View {
         }
     }
 }
+
+/// Bottom of the left rail: who is using the app and the way into Settings.
+/// A guest is nudged to sign in so their setup is saved; a signed-in user sees their address and plan meter.
+struct AccountFooter: View {
+    @Environment(AccountModel.self) private var account
+    @State private var hovering = false
+
+    private var title: String {
+        guard account.signedIn else { return L("Guest") }
+        return account.signedInEmail ?? L("Signed in")
+    }
+
+    private var subtitle: String? {
+        if account.signedIn { return account.meterText }
+        return account.isConfigured ? L("Sign in to save your setup") : nil
+    }
+
+    var body: some View {
+        Button { WindowCoordinator.shared.showSettings() } label: {
+            HStack(spacing: PMLSpace.s3) {
+                Image(systemName: account.signedIn ? "person.crop.circle.fill" : "person.crop.circle")
+                    .font(.system(size: 24))
+                    .foregroundStyle(account.signedIn ? PMLColor.accentText : PMLColor.inkMuted)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(verbatim: title).font(PMLFont.select).fontWeight(.bold).foregroundStyle(PMLColor.ink)
+                        .lineLimit(1).truncationMode(.middle)
+                    if let subtitle {
+                        Text(verbatim: subtitle).font(PMLFont.hint)
+                            .foregroundStyle(account.signedIn ? PMLColor.inkMuted : PMLColor.accentText)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                Spacer(minLength: 0)
+                Image(systemName: "gearshape").font(.system(size: 14)).foregroundStyle(PMLColor.inkSoft)
+            }
+            .padding(PMLSpace.s3)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoundedRectangle(cornerRadius: PMLRadius.card, style: .continuous).fill(hovering ? PMLColor.surfaceSunken : .clear))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering = $0 }
+        .help("Settings")
+    }
+}

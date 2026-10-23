@@ -45,11 +45,8 @@ struct ModeRail: View {
 
     private var rail: some View {
         VStack(alignment: .leading, spacing: PMLSpace.s1) {
-            HStack(alignment: .top) {
-                Text("What are you trying to do?").pmlEyebrow()
-                Spacer(minLength: PMLSpace.s2)
-                settingsButton
-            }
+            Text("What are you trying to do?").pmlEyebrow()
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, PMLSpace.s2)
             .padding(.bottom, PMLSpace.s3)
             keyboard(VStack(alignment: .leading, spacing: PMLSpace.s1) {

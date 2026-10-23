@@ -23,6 +23,7 @@ struct MainView: View {
                         VStack(spacing: PMLSpace.s3) {
                             ModeRail(modes: model.modes, selection: $model.activeMode, wide: true) { WindowCoordinator.shared.showSettings() }
                             SetupProgressCard()
+                            AccountFooter()
                         }
                             .padding(PMLSpace.s4)
                             .frame(width: PMLLayout.railWidth)
