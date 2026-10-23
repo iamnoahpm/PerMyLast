@@ -18,8 +18,21 @@ struct PerMyLastApp: App {
     }
 }
 
+/// Handles the "Per My Last" entry in the Services menu (declared as NSServices in Info.plist). macOS hands over the
+/// selected text, so no Accessibility permission is needed, and the user can give it a shortcut in System Settings.
+final class ServicesProvider: NSObject {
+    @objc func openInPerMyLast(_ pasteboard: NSPasteboard, userData: String, error: AutoreleasingUnsafeMutablePointer<NSString>) {
+        guard let text = pasteboard.string(forType: .string) else { return }
+        Task { @MainActor in AppModel.shared.open(with: text) }
+    }
+}
+
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    private let servicesProvider = ServicesProvider()
+
     func applicationDidFinishLaunching(_ notification: Notification) {
+        NSApp.servicesProvider = servicesProvider
+        NSUpdateDynamicServices()
         PMLFontRegistration.register()
         Task { @MainActor in
             StatusItemController.shared.install()

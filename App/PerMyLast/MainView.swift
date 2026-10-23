@@ -131,7 +131,7 @@ struct MainView: View {
         let words = TextCleanup.wordCount(text.wrappedValue)
         return PMLField(
             text: text,
-            placeholder: "Select some text, then press \(model.shortcutDisplay) — or paste it here.",
+            placeholder: "Copy some text, then press \(model.shortcutDisplay) — or paste it here.",
             minHeight: 150, focus: $inputFocused,
             footer: words > 0 ? "\(words) words" : nil)
             // A paste lands as one big jump in length; run it through the same

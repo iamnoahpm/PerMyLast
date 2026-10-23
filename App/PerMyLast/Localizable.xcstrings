@@ -111,7 +111,7 @@
         }
       }
     },
-    "Select some text, then press %@ — or paste it here.": {
+    "Copy some text, then press %@ — or paste it here.": {
       "extractionState": "manual",
       "localizations": {
         "vi": {
@@ -925,7 +925,7 @@
         }
       }
     },
-    "Select some text, then press %@ anywhere to open it in Per My Last.": {
+    "Copy some text, then press %@ anywhere to open it in Per My Last.": {
       "extractionState": "manual",
       "localizations": {
         "vi": {
