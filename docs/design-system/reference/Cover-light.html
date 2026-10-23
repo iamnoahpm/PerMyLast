@@ -1,0 +1,32 @@
+<!doctype html><html data-theme="light"><head><meta charset="utf-8"><link rel="stylesheet" href="tokens.css"><link rel="stylesheet" href="bundle.css"></head><body style="margin:0;background:var(--surface)">
+<svg viewBox="0 0 960 320" width="960" height="320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Per My Last">
+<!--
+blocks: accent 216x168 and ink 204x96 and warning-line 204x168, at 12px steps (space-3), corners radius-card.
+arrangement: a staggered stack; the tall accent slab left, ink and warm slab stepped on the right.
+pattern: pills (radius-pill), because the product is soft, chip-based and conversational; two staggered rows of 96x24 pills, pitch space-2.
+scales: space-3 gaps, space-6 row pitch, radius-card on blocks, radius-pill on pills.
+-->
+<style>
+.ground{fill:var(--surface)}
+.accent{fill:var(--accent)}.ink{fill:var(--ink)}.warm{fill:var(--warning-line)}.accenttext{fill:var(--accent-text)}
+.blk{rx:var(--radius-card);ry:var(--radius-card)}
+.pill{rx:12px;ry:12px}
+.name{font-family:var(--font-sans);font-weight:700;font-size:104px;letter-spacing:-0.02em;fill:var(--ink)}
+.tag{font-family:var(--font-sans);font-weight:500;font-size:13.5px;fill:var(--ink-muted)}
+</style>
+<rect class="ground" width="960" height="320"/>
+<rect class="accent blk" x="504" y="24" width="216" height="168"/>
+<rect class="ink blk" x="732" y="24" width="204" height="96"/>
+<rect class="warm blk" x="732" y="132" width="204" height="168"/>
+<rect class="ink pill" x="504" y="204" width="96" height="24"/>
+<rect class="accenttext pill" x="612" y="204" width="96" height="24"/>
+<rect class="accenttext pill" x="504" y="236" width="96" height="24"/>
+<rect class="ink pill" x="612" y="236" width="96" height="24"/>
+<rect class="ink pill" x="504" y="268" width="96" height="24"/>
+<rect class="accenttext pill" x="612" y="268" width="96" height="24"/>
+<text class="name" x="24" y="152">Per My</text>
+<text class="name" x="24" y="251">Last</text>
+<text class="tag" x="28" y="288">Say what you mean, but professionally.</text>
+</svg>
+</body>
+</html>
