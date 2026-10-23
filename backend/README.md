@@ -85,7 +85,7 @@ URL (sandbox and production) to `https://<your-worker>/webhooks/appstore`. 4) Wh
 the Worker checks the Apple signature chain against the pinned root, the bundle id, the environment and the account before granting anything.
 Purchases made with Xcode's local StoreKit configuration are signed by a local test certificate, not Apple's, so the Worker rejects them: test with a sandbox account instead.
 
-**Before launch:** remove `APPSTORE_ENVIRONMENTS` sandbox and set `LS_ACCEPT_TEST_MODE` back to `"false"`, then set `AppConfig.paymentsLive = true` (this is what makes an own key require Lifetime).
+**Before launch:** remove `APPSTORE_ENVIRONMENTS` sandbox and set `LS_ACCEPT_TEST_MODE` back to `"false"`, then set `AppConfig.paymentsLiveInRelease = true` (this is what makes an own key require Lifetime).
 
 ## Behaviour notes
 

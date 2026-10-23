@@ -46,7 +46,7 @@ Status after Phase 5. Counts: backend 103 tests, Core package 153 tests, app bui
    Confirm the Lemon Squeezy field names in `backend/src/lemonsqueezy.ts` against the real deliveries.
 6. Sign the app with your Apple team (needed for StoreKit and Sign in with Apple); set `AppConfig.appleSignInEnabled` and `googleClientID` if you offer those.
 7. Remove the test settings: `APPSTORE_ENVIRONMENTS` back to `Production`, `LS_ACCEPT_TEST_MODE` to `false`.
-8. Set `AppConfig.paymentsLive = true`. From then on a saved own key requires a Lifetime licence, so existing key users will be asked to buy it.
+8. Set `AppConfig.paymentsLiveInRelease = true`. From then on a saved own key requires a Lifetime licence, so existing key users will be asked to buy it.
 9. Set `AppConfig.releaseDate` for the build, and `lastEligibleDownloadURL`.
 10. Push the repo to GitHub so CI runs, then walk the unchecked cells above on a clean install with a test account.
 

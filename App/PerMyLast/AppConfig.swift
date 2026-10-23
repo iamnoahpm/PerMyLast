@@ -17,7 +17,13 @@ enum AppConfig {
     /// Flip to `true` at launch, once the App Store products and Lemon Squeezy checkout links below exist and a test
     /// purchase has worked end to end. Until then nothing can be bought, so people who already use their own key
     /// keep using it, and the paywall says plans are not open yet.
-    static let paymentsLive = false
+    static let paymentsLiveInRelease = false
+
+    /// `PML_PAYMENTS_LIVE=1` switches payments on for a test run only (Lemon Squeezy test mode, App Store sandbox) without
+    /// changing what ships. Remember it also makes your own key require a Lifetime licence in that run.
+    static var paymentsLive: Bool {
+        paymentsLiveInRelease || ProcessInfo.processInfo.environment["PML_PAYMENTS_LIVE"] == "1"
+    }
 
     /// PRD behaviour: an own Anthropic key needs a Lifetime licence.
     static var ownKeyNeedsLicense: Bool { paymentsLive }
