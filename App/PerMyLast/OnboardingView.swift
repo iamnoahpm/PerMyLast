@@ -274,7 +274,7 @@ private struct ShortcutStep: View {
             PMLBanner {
                 VStack(alignment: .leading, spacing: PMLSpace.s2) {
                     stepHeader(1, "Allow access")
-                    Text("macOS needs your OK (Accessibility) before Per My Last can read what you select. Without it, the shortcut uses whatever is on your clipboard.")
+                    Text("To grab the text you’ve selected, Per My Last needs permission in System Settings → Privacy & Security → Accessibility. Without it, the shortcut uses whatever’s on your clipboard instead.")
                         .font(PMLFont.body).foregroundStyle(PMLColor.ink).fixedSize(horizontal: false, vertical: true)
                     AccessGuide()
                     Button("Allow access…") {

@@ -3257,13 +3257,24 @@
         }
       }
     },
-    "macOS needs your OK (Accessibility) before Per My Last can read what you select. Without it, the shortcut uses whatever is on your clipboard.": {
+    "To grab the text you’ve selected, Per My Last needs permission in System Settings → Privacy & Security → Accessibility. Without it, the shortcut uses whatever’s on your clipboard instead.": {
       "extractionState": "manual",
       "localizations": {
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS cần bạn đồng ý (Trợ năng) để Per My Last đọc được văn bản bạn bôi đen. Nếu không, phím tắt sẽ dùng nội dung đang có trong bộ nhớ tạm."
+            "value": "Để lấy văn bản bạn đã bôi đen, Per My Last cần được cấp quyền tại Cài đặt hệ thống → Quyền riêng tư & Bảo mật → Trợ năng. Nếu không, phím tắt sẽ dùng nội dung đang có trong bộ nhớ tạm."
+          }
+        }
+      }
+    },
+    "To copy your selection for you, Per My Last needs permission in System Settings → Privacy & Security → Accessibility. Until then, the shortcut uses whatever you last copied.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Để sao chép văn bản bạn đã bôi đen, Per My Last cần được cấp quyền tại Cài đặt hệ thống → Quyền riêng tư & Bảo mật → Trợ năng. Cho đến lúc đó, phím tắt sẽ dùng nội dung bạn sao chép gần nhất."
           }
         }
       }

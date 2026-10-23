@@ -105,7 +105,7 @@ struct ShortcutRecorderRow: View {
             if canCopySelection {
                 Text("Selection copying is allowed.").font(PMLFont.hint).foregroundStyle(PMLColor.success)
             } else {
-                Text("To copy your selection for you, macOS needs your OK. Until then the shortcut uses whatever you last copied.")
+                Text("To copy your selection for you, Per My Last needs permission in System Settings → Privacy & Security → Accessibility. Until then, the shortcut uses whatever you last copied.")
                     .font(PMLFont.hint).foregroundStyle(PMLColor.warning)
                 HStack {
                     Button("Allow in System Settings") {
