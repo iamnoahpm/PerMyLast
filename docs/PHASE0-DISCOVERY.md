@@ -18,7 +18,7 @@ Baseline: `swift test` in `Packages/PerMyLastCore` passes (107 tests, 18 suites)
 - **`Packages/PerMyLastCore`** (SwiftPM, tools 6.0; macOS 14 / iOS 17 / watchOS 10): no UI. `AnthropicClient`
   (request build + parse, `HTTPTransport` seam), `PromptBuilder`, `Preset` / `PresetLibrary`, `ModelCatalog`,
   `WriteMyWay`, `WartimePeacetime`, `TextCleanup`, `KeyCombo`, `ShortcutConflicts`, `Languages`. Tests: 6 files, 107 tests.
-- **`App/PerMyLast.xcodeproj`** (target `PerMyLast`): SwiftUI + AppKit menu bar app. Bundle ID `app.permylast`, version 2.0.0,
+- **`App/PerMyLast.xcodeproj`** (target `PerMyLast`): SwiftUI + AppKit menu bar app. Bundle ID `app.permylast`, version 1.0.0,
   macOS 14.0, Swift 5 language mode, sandbox on with only `network.client`, ad-hoc signed (`CODE_SIGN_IDENTITY = -`, no team).
   The app target has **no tests**.
 - Key app files: `AppModel.swift` (482 lines, single `@Observable` model: settings, presets, send), `MainView.swift`,

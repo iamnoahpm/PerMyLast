@@ -5,6 +5,9 @@
 #   TEAM_ID=ABCDE12345 NOTARY_PROFILE=permylast-notary scripts/release.sh
 #
 # Optional: SIGN_IDENTITY="Developer ID Application: Your Name (ABCDE12345)" if you have several.
+#
+# RESUME=1 continues from the existing dist/ archive, which was already signed and notarized: it skips the build and the
+# upload and goes straight to stapling and the DMG. Use it when only a later step failed (for example stapling).
 set -euo pipefail
 : "${TEAM_ID:?Set TEAM_ID to your Apple Developer team id (10 characters)}"
 : "${NOTARY_PROFILE:?Set NOTARY_PROFILE to the notarytool keychain profile name}"
@@ -13,39 +16,54 @@ IDENTITY="${SIGN_IDENTITY:-Developer ID Application}"
 root="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$root"
 out="$root/dist"
-rm -rf "$out"; mkdir -p "$out"
-
-echo "== Checks before building"
-scripts/check-secrets.sh
-(cd Packages/PerMyLastCore && swift test 2>&1 | tail -1)
-(cd backend && npm test --silent 2>&1 | grep -E "Tests " || true)
-grep -n "releaseDate\|paymentsLiveInRelease\|backendURLString =" App/PerMyLast/AppConfig.swift | sed 's/^/   config: /'
-echo "   (check the release date, payments flag and backend URL above are what you intend)"
-
-echo "== Archive and sign with: $IDENTITY"
-xcodebuild -project App/PerMyLast.xcodeproj -scheme PerMyLast -configuration Release \
-  -archivePath "$out/PerMyLast.xcarchive" archive \
-  CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="$IDENTITY" DEVELOPMENT_TEAM="$TEAM_ID" \
-  ENABLE_HARDENED_RUNTIME=YES OTHER_CODE_SIGN_FLAGS="--timestamp" \
-  ARCHS="arm64 x86_64" ONLY_ACTIVE_ARCH=NO | tail -3
 app="$out/PerMyLast.xcarchive/Products/Applications/Per My Last.app"
 
-echo "== Verify the signature"
-codesign --verify --deep --strict --verbose=2 "$app"
-details="$(codesign -dv --verbose=2 "$app" 2>&1)"   # captured first: "grep -q" closing the pipe early trips pipefail
-echo "$details" | grep -E "Authority=Developer ID Application|TeamIdentifier|flags="
-[[ "$details" == *"(runtime)"* ]] || { echo "Hardened runtime is not enabled; notarization would fail"; exit 1; }
-scripts/check-secrets.sh "$app"
+# Stapling and the Gatekeeper check ask Apple's servers over TLS. A VPN or filter that re-signs that traffic makes them fail.
+if ! echo | openssl s_client -connect api.apple-cloudkit.com:443 -servername api.apple-cloudkit.com 2>/dev/null | openssl x509 -noout -issuer 2>/dev/null | grep -qi "apple"; then
+  echo "WARNING: the certificate for api.apple-cloudkit.com is not issued by Apple (a VPN or web filter is inspecting traffic)."
+  echo "         Stapling will fail until it is disconnected or you are on another network."
+fi
 
-echo "== Notarize the app"
-ditto -c -k --keepParent "$app" "$out/PerMyLast.zip"
-xcrun notarytool submit "$out/PerMyLast.zip" --keychain-profile "$NOTARY_PROFILE" --wait
+if [[ -n "${RESUME:-}" ]]; then
+  [[ -d "$app" ]] || { echo "RESUME=1 needs the archive in dist/ from an earlier run"; exit 1; }
+  echo "== Resuming with the existing, already notarized archive"
+else
+  rm -rf "$out"; mkdir -p "$out"
+
+  echo "== Checks before building"
+  scripts/check-secrets.sh
+  (cd Packages/PerMyLastCore && swift test 2>&1 | tail -1)
+  (cd backend && npm test --silent 2>&1 | grep -E "Tests " || true)
+  grep -n "releaseDate\|paymentsLiveInRelease\|backendURLString =" App/PerMyLast/AppConfig.swift | sed 's/^/   config: /'
+  echo "   (check the release date, payments flag and backend URL above are what you intend)"
+
+  echo "== Archive and sign with: $IDENTITY"
+  xcodebuild -project App/PerMyLast.xcodeproj -scheme PerMyLast -configuration Release \
+    -archivePath "$out/PerMyLast.xcarchive" archive \
+    CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="$IDENTITY" DEVELOPMENT_TEAM="$TEAM_ID" \
+    ENABLE_HARDENED_RUNTIME=YES OTHER_CODE_SIGN_FLAGS="--timestamp" \
+    ARCHS="arm64 x86_64" ONLY_ACTIVE_ARCH=NO | tail -3
+
+  echo "== Verify the signature"
+  codesign --verify --deep --strict --verbose=2 "$app"
+  details="$(codesign -dv --verbose=2 "$app" 2>&1)"   # captured first: "grep -q" closing the pipe early trips pipefail
+  echo "$details" | grep -E "Authority=Developer ID Application|TeamIdentifier|flags="
+  [[ "$details" == *"(runtime)"* ]] || { echo "Hardened runtime is not enabled; notarization would fail"; exit 1; }
+  scripts/check-secrets.sh "$app"
+
+  echo "== Notarize the app"
+  ditto -c -k --keepParent "$app" "$out/PerMyLast.zip"
+  xcrun notarytool submit "$out/PerMyLast.zip" --keychain-profile "$NOTARY_PROFILE" --wait
+  rm "$out/PerMyLast.zip"
+fi
+
+echo "== Staple the app"
 xcrun stapler staple "$app"
-rm "$out/PerMyLast.zip"
 
 echo "== Build, sign and notarize the DMG"
 version="$(defaults read "$app/Contents/Info" CFBundleShortVersionString)"
 dmg="$out/PerMyLast-$version.dmg"
+rm -f "$dmg"
 stage="$(mktemp -d)"
 cp -R "$app" "$stage/"
 ln -s /Applications "$stage/Applications"
