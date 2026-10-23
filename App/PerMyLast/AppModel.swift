@@ -443,6 +443,17 @@ final class AppModel {
     /// Whether macOS lets the app send keystrokes to other apps (needed to copy the selection).
     static var canCopySelection: Bool { CGPreflightPostEventAccess() }
 
+    /// macOS shows its permission prompt only once per app; after that `CGRequestPostEventAccess` is a silent no-op,
+    /// so later calls send the user to the Accessibility pane instead.
+    static func requestCopyAccess() {
+        let key = "didRequestPostEventAccess"
+        if !UserDefaults.standard.bool(forKey: key) {
+            UserDefaults.standard.set(true, forKey: key)
+            if CGRequestPostEventAccess() { return }
+        } else if CGPreflightPostEventAccess() { return }
+        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") { NSWorkspace.shared.open(url) }
+    }
+
     /// Sends ⌘C to the frontmost app and returns the text it copied, then puts the user's previous clipboard back.
     /// Nil if permission is missing or nothing was selected.
     private static func copySelection() async -> String? {

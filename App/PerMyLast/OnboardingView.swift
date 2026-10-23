@@ -1,9 +1,9 @@
 import PerMyLastCore
-import ServiceManagement
 import SwiftUI
 
 /// The first-run flow, shown in the popup window in place of the main view until it is finished or skipped.
-/// Welcome, then a canned first win (no account, no key, no network), then the shortcut, then access (trial or own key).
+/// Welcome, then a canned first win (no account, no key, no network), then the shortcut. Access (trial or own key) is
+/// not a step of the flow; it opens when someone asks for it, so the first minutes are not spent on setup.
 struct OnboardingView: View {
     @Environment(AppModel.self) private var model
     @Environment(AccountModel.self) private var account
@@ -40,15 +40,17 @@ struct OnboardingView: View {
 
     private var header: some View {
         HStack(spacing: PMLSpace.s3) {
-            HStack(spacing: 6) {
-                ForEach(OnboardingModel.Step.allCases, id: \.self) { step in
-                    Capsule()
-                        .fill(step.index <= flow.step.index ? PMLColor.accent : PMLColor.lineStrong)
-                        .frame(width: 28, height: 4)
+            if let current = flow.step.index {
+                HStack(spacing: 6) {
+                    ForEach(Array(OnboardingModel.Step.sequence.enumerated()), id: \.offset) { i, _ in
+                        Capsule()
+                            .fill(i <= current ? PMLColor.accent : PMLColor.lineStrong)
+                            .frame(width: 28, height: 4)
+                    }
                 }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text("Step \(current + 1) of \(OnboardingModel.Step.sequence.count)"))
             }
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(Text("Step \(flow.step.index + 1) of \(OnboardingModel.Step.allCases.count)"))
             Spacer()
             Button("Skip setup") { flow.skip() }.buttonStyle(PMLGhostButtonStyle(tint: PMLColor.inkMuted))
         }
@@ -60,14 +62,16 @@ struct OnboardingView: View {
 
     private var footer: some View {
         HStack(spacing: PMLSpace.s2) {
-            if flow.step != .welcome {
+            if flow.step != .welcome, flow.step != .access {
                 Button("Back") { flow.back() }.buttonStyle(PMLGhostButtonStyle(tint: PMLColor.inkSoft))
             }
             Spacer()
             switch flow.step {
             case .welcome:
                 Button("Show me") { flow.advance() }.buttonStyle(PMLPrimaryButtonStyle())
-            case .firstWin, .shortcut:
+            case .shortcut:
+                Button("Start using Per My Last") { flow.finish() }.buttonStyle(PMLPrimaryButtonStyle())
+            case .firstWin:
                 Button("Next") { flow.advance() }.buttonStyle(PMLPrimaryButtonStyle())
             case .access:
                 if !hasAccess { Button("Skip for now") { flow.skip() }.buttonStyle(PMLGhostButtonStyle(tint: PMLColor.inkSoft)) }
@@ -146,8 +150,6 @@ private struct FirstWinStep: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var tone: Tone?
     @State private var shown = ""
-    @State private var finished = false
-    @State private var copied = false
     @State private var typing: Task<Void, Never>?
 
     enum Tone: String, CaseIterable {
@@ -194,22 +196,11 @@ private struct FirstWinStep: View {
         if tone != nil {
             PMLPanel {
                 VStack(alignment: .leading, spacing: PMLSpace.s3) {
-                    HStack {
-                        Text("Example result").pmlEyebrow()
-                        Spacer()
-                        if finished {
-                            Button(LocalizedStringKey(copied ? "✅ Copied!" : "📋 Copy")) { copy() }
-                                .buttonStyle(PMLInkButtonStyle())
-                        }
-                    }
+                    Text("Example result").pmlEyebrow()
                     Text(verbatim: shown)
                         .font(PMLFont.input).foregroundStyle(PMLColor.ink)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .textSelection(.enabled)
-                    if copied {
-                        Text("That is the whole loop: select, shortcut, pick a tone, copy. Paste it anywhere.")
-                            .font(PMLFont.hint).foregroundStyle(PMLColor.success)
-                    }
                 }
             }
         }
@@ -218,27 +209,17 @@ private struct FirstWinStep: View {
     private func run(_ option: Tone) {
         typing?.cancel()
         tone = option
-        finished = false
-        copied = false
         shown = ""
         FunnelLog.shared.log(.sampleRun, ["tone": option.rawValue])
         let text = option.sample
-        if reduceMotion { shown = text; finished = true; return }
+        if reduceMotion { shown = text; return }
         typing = Task { @MainActor in
             for character in text {
                 if Task.isCancelled { return }
                 shown.append(character)
                 try? await Task.sleep(for: .milliseconds(14))
             }
-            finished = true
         }
-    }
-
-    private func copy() {
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(shown, forType: .string)
-        copied = true
-        FunnelLog.shared.log(.copyClicked)
     }
 }
 
@@ -248,7 +229,6 @@ private struct ShortcutStep: View {
     @Environment(AppModel.self) private var model
     private let flow = OnboardingModel.shared
     @State private var accessGranted = AppModel.canCopySelection
-    @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
 
     var body: some View {
         heading("Use it anywhere", "Press one shortcut, in any app.",
@@ -256,11 +236,14 @@ private struct ShortcutStep: View {
         HStack(spacing: PMLSpace.s3) {
             KeyCaps(shortcut: shortcutKeys)
             Spacer()
-            Button("Change…") { WindowCoordinator.shared.showSettings() }.buttonStyle(PMLGhostButtonStyle())
         }
+        Label("Not your style? You can change this anytime in Settings.", systemImage: "gearshape")
+            .font(PMLFont.select).foregroundStyle(PMLColor.inkMuted)
         accessPanel
+            .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+                accessGranted = AppModel.canCopySelection
+            }
         tryItPanel
-        keepHandy
     }
 
     /// The shortcut as bare key symbols, e.g. "⇧⌘W".
@@ -281,14 +264,12 @@ private struct ShortcutStep: View {
                     HStack(spacing: PMLSpace.s2) {
                         Button("Allow access…") {
                             FunnelLog.shared.log(.accessibilityRequested)
-                            _ = CGRequestPostEventAccess()
+                            AppModel.requestCopyAccess()
                         }.buttonStyle(PMLInkButtonStyle())
                         Button("Open System Settings") {
                             if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") { NSWorkspace.shared.open(url) }
                         }.buttonStyle(PMLGhostButtonStyle())
                     }
-                    Text("Prefer not to? Select text, then right-click and choose Services, Open in Per My Last. That needs no permission.")
-                        .font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted)
                 }
             }
             .task { await poll() }
@@ -325,21 +306,6 @@ private struct ShortcutStep: View {
             }
         }
     }
-
-    private var keepHandy: some View {
-        PMLPanel {
-            VStack(alignment: .leading, spacing: PMLSpace.s2) {
-                Label("Closing this window does not quit the app. Look for the umbrella in your menu bar.", systemImage: "menubar.arrow.up.rectangle")
-                    .font(PMLFont.body).foregroundStyle(PMLColor.inkSoft)
-                Toggle("Open Per My Last when I log in", isOn: $launchAtLogin)
-                    .font(PMLFont.body)
-                    .onChange(of: launchAtLogin) { _, on in
-                        do { if on { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() } }
-                        catch { launchAtLogin = SMAppService.mainApp.status == .enabled }
-                    }
-            }
-        }
-    }
 }
 
 // MARK: - 4. Access
@@ -353,7 +319,7 @@ private struct AccessStep: View {
     @FocusState private var codeFocused: Bool
 
     var body: some View {
-        heading("Last step", "Get your first real drafts.",
+        heading("Connect Claude", "Get your first real drafts.",
                 "Choose how Per My Last reaches Claude. You can change this any time in Settings.")
         if account.isConfigured { trialCard }
         keyCard
@@ -478,32 +444,47 @@ private struct AccessStep: View {
     }
 }
 
-// MARK: - Checklist (popup, after the flow)
+// MARK: - Setup progress (popup, after the flow)
 
-/// Replaces the empty output panel while setup items are still open.
-struct GettingStartedChecklist: View {
+/// A compact reminder in the rail (or above the content when narrow) while setup items are still open.
+/// Tapping it reopens the flow at the first open step; it disappears once everything is done.
+struct SetupProgressCard: View {
     private let flow = OnboardingModel.shared
+    @State private var hovering = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: PMLSpace.s2) {
-            Text("Getting started").font(PMLFont.cardTitle).foregroundStyle(PMLColor.ink)
-            ForEach(flow.checklist) { item in
-                HStack(spacing: PMLSpace.s2) {
-                    Image(systemName: item.done ? "checkmark.circle.fill" : "circle")
-                        .foregroundStyle(item.done ? PMLColor.success : PMLColor.inkHint)
-                    Text(item.title).font(PMLFont.body)
-                        .foregroundStyle(item.done ? PMLColor.inkMuted : PMLColor.ink)
-                        .strikethrough(item.done)
-                    Spacer()
-                    if !item.done, item.id != .firstWin {
-                        Button("Set up") { flow.reopen(at: item.id) }.buttonStyle(PMLGhostButtonStyle())
+        let items = flow.checklist
+        let done = items.filter(\.done).count
+        if done < items.count {
+            let next = items.first { !$0.done && $0.id != .firstWin }
+            let current = items.first { !$0.done }
+            Button { if let next { flow.reopen(at: next.id) } } label: {
+                VStack(alignment: .leading, spacing: PMLSpace.s2) {
+                    HStack {
+                        Text("Finish setup").font(PMLFont.select).fontWeight(.bold).foregroundStyle(PMLColor.ink)
+                        Spacer(minLength: PMLSpace.s2)
+                        Text(verbatim: "\(done)/\(items.count)").font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted)
+                    }
+                    GeometryReader { geo in
+                        Capsule().fill(PMLColor.line)
+                            .overlay(alignment: .leading) {
+                                Capsule().fill(PMLColor.accent).frame(width: geo.size.width * CGFloat(done) / CGFloat(items.count))
+                            }
+                    }
+                    .frame(height: 4)
+                    if let current {
+                        Text(current.title).font(PMLFont.hint).foregroundStyle(PMLColor.inkSoft)
+                            .multilineTextAlignment(.leading)
                     }
                 }
+                .padding(PMLSpace.s3)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(RoundedRectangle(cornerRadius: PMLRadius.card, style: .continuous).fill(hovering && next != nil ? PMLColor.surfaceSunken : PMLColor.surface))
+                .overlay(RoundedRectangle(cornerRadius: PMLRadius.card, style: .continuous).strokeBorder(PMLColor.line, lineWidth: 1))
+                .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
+            .onHover { hovering = $0 }
         }
-        .padding(PMLSpace.s4)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: PMLRadius.card, style: .continuous).fill(PMLColor.surfaceInset))
-        .overlay(RoundedRectangle(cornerRadius: PMLRadius.card, style: .continuous).strokeBorder(PMLColor.line, lineWidth: 1))
     }
 }

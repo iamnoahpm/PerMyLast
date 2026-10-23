@@ -353,24 +353,13 @@
         }
       }
     },
-    "✅ Copied!": {
+    "Copied!": {
       "extractionState": "manual",
       "localizations": {
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "✅ Đã sao chép!"
-          }
-        }
-      }
-    },
-    "📋 Copy": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "📋 Sao chép"
+            "value": "Đã sao chép!"
           }
         }
       }
@@ -3202,17 +3191,6 @@
         }
       }
     },
-    "That is the whole loop: select, shortcut, pick a tone, copy. Paste it anywhere.": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vậy là xong: bôi đen, nhấn phím tắt, chọn giọng điệu, sao chép. Rồi dán ở bất kỳ đâu."
-          }
-        }
-      }
-    },
     "This is an example, so nothing is sent anywhere. Your real drafts come from Claude.": {
       "extractionState": "manual",
       "localizations": {
@@ -3253,6 +3231,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bôi đen văn bản trong Mail, Slack, trình duyệt hay bất kỳ đâu, rồi nhấn phím tắt. Per My Last sẽ mở ra với văn bản đã sẵn sàng."
+          }
+        }
+      }
+    },
+    "Not your style? You can change this anytime in Settings.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chưa hợp ý? Bạn có thể đổi phím tắt bất cứ lúc nào trong Cài đặt."
           }
         }
       }
@@ -3312,17 +3301,6 @@
         }
       }
     },
-    "Prefer not to? Select text, then right-click and choose Services, Open in Per My Last. That needs no permission.": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Không muốn cấp quyền? Bôi đen văn bản, nhấp chuột phải, chọn Dịch vụ, rồi Open in Per My Last. Cách này không cần quyền."
-          }
-        }
-      }
-    },
     "Try it now": {
       "extractionState": "manual",
       "localizations": {
@@ -3378,35 +3356,13 @@
         }
       }
     },
-    "Closing this window does not quit the app. Look for the umbrella in your menu bar.": {
+    "Connect Claude": {
       "extractionState": "manual",
       "localizations": {
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Đóng cửa sổ này không thoát ứng dụng. Hãy tìm biểu tượng chiếc ô trên thanh menu."
-          }
-        }
-      }
-    },
-    "Open Per My Last when I log in": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mở Per My Last khi tôi đăng nhập"
-          }
-        }
-      }
-    },
-    "Last step": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bước cuối"
+            "value": "Kết nối Claude"
           }
         }
       }
@@ -3528,6 +3484,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Khóa được lưu trong Chuỗi khóa của Mac và chỉ gửi tới Anthropic. Bạn trả tiền trực tiếp cho Anthropic."
+          }
+        }
+      }
+    },
+    "Finish setup": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoàn tất thiết lập"
           }
         }
       }

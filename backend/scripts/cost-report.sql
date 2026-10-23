@@ -32,3 +32,7 @@ SELECT COUNT(*) AS trials_started,
        SUM(EXISTS (SELECT 1 FROM entitlements p WHERE p.user_id = t.user_id AND p.plan <> 'trial' AND p.status <> 'refunded')) AS converted,
        ROUND(100.0 * SUM(EXISTS (SELECT 1 FROM entitlements p WHERE p.user_id = t.user_id AND p.plan <> 'trial' AND p.status <> 'refunded')) / COUNT(*), 1) AS conversion_percent
 FROM entitlements t WHERE t.plan = 'trial';
+
+-- Why runs failed, newest first.
+SELECT datetime(created_at / 1000, 'unixepoch') AS at, status, model, error_detail
+FROM usage_events WHERE status != 'ok' ORDER BY created_at DESC LIMIT 20;

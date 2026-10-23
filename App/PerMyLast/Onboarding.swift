@@ -8,7 +8,7 @@ enum CaptureSource: String {
     case selection, clipboard, service
 }
 
-/// First-run flow state: Welcome, First win (a canned sample, no account), Shortcut, Access (trial or own key).
+/// First-run flow state: Welcome, First win (a canned sample, no account), Shortcut. Access (trial or own key) is opened on demand.
 /// Persisted so quitting midway resumes; existing users (a key or an account already set up) never see it.
 @MainActor
 @Observable
@@ -17,7 +17,11 @@ final class OnboardingModel {
 
     enum Step: String, CaseIterable {
         case welcome, firstWin = "first_win", shortcut, access
-        var index: Int { Self.allCases.firstIndex(of: self)! }
+        /// The linear first-run flow. Access is not in it: it opens on demand ("Set up access", the checklist, a missing key),
+        /// so nobody has to connect anything before they have seen the app work.
+        static let sequence: [Step] = [.welcome, .firstWin, .shortcut]
+        /// Position in the linear flow; nil for Access.
+        var index: Int? { Self.sequence.firstIndex(of: self) }
     }
 
     private(set) var isActive: Bool
@@ -60,12 +64,13 @@ final class OnboardingModel {
     }
 
     func advance() {
-        let all = Step.allCases
-        if step.index + 1 < all.count { go(to: all[step.index + 1]) }
+        guard let i = step.index, i + 1 < Step.sequence.count else { return }
+        go(to: Step.sequence[i + 1])
     }
 
     func back() {
-        if step.index > 0 { go(to: Step.allCases[step.index - 1]) }
+        guard let i = step.index, i > 0 else { return }
+        go(to: Step.sequence[i - 1])
     }
 
     /// "Skip setup": leave the flow; the Getting started checklist in the popup covers what is left.

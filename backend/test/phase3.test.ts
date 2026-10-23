@@ -176,12 +176,14 @@ describe("POST /v1/run (AC-2, AC-3, AC-4)", () => {
 
   it("an upstream error returns 502 and the run is not used (AC-3)", async () => {
     const u = await withTrial();
-    upstream = async () => new Response('{"error":{"message":"overloaded"}}', { status: 529 });
+    upstream = async () => new Response('{"error":{"type":"overloaded_error","message":"overloaded"}}', { status: 529 });
     const res = await run(u);
     expect(res.status).toBe(502);
     expect((await res.json<{ error: { code: string } }>()).error.code).toBe("upstream_error");
     expect((await usage(u))?.used).toBe(0);
     expect((await testEnv.DB.prepare("SELECT status FROM usage_events WHERE user_id = ?").bind(u).first<{ status: string }>())?.status).toBe("upstream_error");
+    expect((await testEnv.DB.prepare("SELECT error_detail FROM usage_events WHERE user_id = ?").bind(u).first<{ error_detail: string }>())?.error_detail)
+      .toBe("http 529 overloaded_error: overloaded");
   });
 
   it("a network failure or timeout is refunded too", async () => {

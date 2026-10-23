@@ -20,7 +20,10 @@ struct MainView: View {
             VStack(spacing: 0) {
                 HStack(alignment: .top, spacing: 0) {
                     if wide {
-                        ModeRail(modes: model.modes, selection: $model.activeMode, wide: true) { WindowCoordinator.shared.showSettings() }
+                        VStack(spacing: PMLSpace.s3) {
+                            ModeRail(modes: model.modes, selection: $model.activeMode, wide: true) { WindowCoordinator.shared.showSettings() }
+                            SetupProgressCard()
+                        }
                             .padding(PMLSpace.s4)
                             .frame(width: PMLLayout.railWidth)
                             .frame(maxHeight: .infinity, alignment: .top)
@@ -31,6 +34,7 @@ struct MainView: View {
                         VStack(alignment: .leading, spacing: PMLSpace.s4) {
                             ShortcutWarningBanner()
                             AccountWarningBanner()
+                            if !wide { SetupProgressCard() }
                             if wide {
                                 description
                             } else {
@@ -302,9 +306,7 @@ struct OutputPanel: View {
         }
     }
 
-    @ViewBuilder private var emptyState: some View {
-        if OnboardingModel.shared.checklistComplete { plainEmptyState } else { GettingStartedChecklist() }
-    }
+    private var emptyState: some View { plainEmptyState }
 
     private var plainEmptyState: some View {
         VStack(spacing: PMLSpace.s1) {
@@ -373,10 +375,15 @@ struct OutputPanel: View {
                     Button("Regenerate") { Task { await model.send() } }
                         .buttonStyle(PMLSecondaryButtonStyle())
                         .disabled(!model.canSend)
-                    Button(LocalizedStringKey(copied ? "✅ Copied!" : "📋 Copy")) {
+                    Button {
                         model.copyOutput()
                         copied = true
                         Task { try? await Task.sleep(for: .seconds(1.5)); copied = false }
+                    } label: {
+                        Label(LocalizedStringKey(copied ? "Copied!" : "Copy"),
+                              systemImage: copied ? "checkmark" : "doc.on.doc")
+                            .labelStyle(.titleAndIcon)
+                            .contentTransition(.symbolEffect(.replace))
                     }
                     .buttonStyle(PMLInkButtonStyle())
                 }

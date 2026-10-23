@@ -9,6 +9,8 @@ struct ModeRail: View {
     var onSettings: () -> Void
 
     @FocusState private var focused: Bool
+    /// The ring is for keyboard navigation only; a mouse click must not leave an outline behind.
+    @State private var keyboardNav = false
 
     private var all: [String] { modes + [AppModel.askTab] }
 
@@ -22,15 +24,15 @@ struct ModeRail: View {
             .focusable()
             .focused($focused)
             .focusEffectDisabled()
-            .onKeyPress(wide ? .upArrow : .leftArrow) { move(-1); return .handled }
-            .onKeyPress(wide ? .downArrow : .rightArrow) { move(1); return .handled }
+            .onKeyPress(wide ? .upArrow : .leftArrow) { keyboardNav = true; move(-1); return .handled }
+            .onKeyPress(wide ? .downArrow : .rightArrow) { keyboardNav = true; move(1); return .handled }
     }
 
     private func ring(_ selected: Bool) -> some View {
         RoundedRectangle(cornerRadius: PMLRadius.card + 2, style: .continuous)
             .strokeBorder(PMLColor.focusRing, lineWidth: 2)
             .padding(-2)
-            .opacity(selected && focused ? 1 : 0)
+            .opacity(selected && focused && keyboardNav ? 1 : 0)
             .allowsHitTesting(false)
     }
 
@@ -44,25 +46,28 @@ struct ModeRail: View {
     private var rail: some View {
         VStack(alignment: .leading, spacing: PMLSpace.s1) {
             HStack(alignment: .top) {
-                Text("What are you trying to do?").pmlEyebrow()
+                Text("What are you trying to do?").pmlEyebrow(PMLColor.inkMuted)
                 Spacer(minLength: PMLSpace.s2)
                 settingsButton
             }
-            .padding(.bottom, PMLSpace.s2)
+            .padding(.horizontal, PMLSpace.s2)
+            .padding(.bottom, PMLSpace.s3)
             keyboard(VStack(alignment: .leading, spacing: PMLSpace.s1) {
             ForEach(all, id: \.self) { mode in
                 let selected = mode == selection
-                Button { selection = mode } label: {
-                    HStack(spacing: PMLSpace.s2) {
-                        Capsule().fill(selected ? PMLColor.accentText : .clear).frame(width: 3, height: 16)
+                Button { keyboardNav = false; selection = mode } label: {
+                    HStack(spacing: PMLSpace.s3) {
                         if let icon = Self.icon(for: mode) {
-                            Image(systemName: icon).font(.system(size: 14, weight: selected ? .bold : .regular)).frame(width: 18)
+                            Image(systemName: icon)
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(selected ? PMLColor.accentText : PMLColor.inkMuted)
+                                .frame(width: 18)
                         }
                         label(mode).font(PMLFont.tab).fontWeight(selected ? .bold : .semibold)
                         Spacer(minLength: 0)
                     }
                     .foregroundStyle(selected ? PMLColor.accentText : PMLColor.ink)
-                    .padding(.vertical, PMLSpace.s2).padding(.trailing, PMLSpace.s2)
+                    .padding(.vertical, PMLSpace.s2 + 2).padding(.horizontal, PMLSpace.s3)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(RoundedRectangle(cornerRadius: PMLRadius.card, style: .continuous).fill(selected ? PMLColor.accentSoft : .clear))
                     .contentShape(Rectangle())
@@ -84,7 +89,7 @@ struct ModeRail: View {
                 keyboard(HStack(spacing: PMLSpace.s4) {
                     ForEach(all, id: \.self) { mode in
                         let selected = mode == selection
-                        Button { selection = mode } label: {
+                        Button { keyboardNav = false; selection = mode } label: {
                             label(mode)
                                 .font(PMLFont.tab).fontWeight(selected ? .bold : .semibold)
                                 .foregroundStyle(selected ? PMLColor.accentText : PMLColor.inkSoft)

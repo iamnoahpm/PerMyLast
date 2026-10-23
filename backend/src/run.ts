@@ -95,15 +95,16 @@ export async function handleRun(req: Request, env: Env, deps: Deps, ctx: Executi
   }
 
   const model = template.model ?? config.DEFAULT_MODEL;
-  const record = (status: string, usage?: UpstreamUsage) =>
+  // `detail` says why a run failed (an HTTP status and Anthropic's error type, or the exception text). Never prompt or output text.
+  const record = (status: string, usage?: UpstreamUsage, detail?: string) =>
     env.DB.prepare(
-      `INSERT INTO usage_events (id, user_id, template_id, model, input_tokens, output_tokens, cache_read_tokens, cache_write_tokens, latency_ms, status, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO usage_events (id, user_id, template_id, model, input_tokens, output_tokens, cache_read_tokens, cache_write_tokens, latency_ms, status, created_at, error_detail)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     ).bind(crypto.randomUUID(), userId, template.id, model, usage?.input ?? null, usage?.output ?? null, usage?.cacheRead ?? null,
-      usage?.cacheWrite ?? null, deps.now() - started, status, deps.now()).run();
-  const giveBack = async (status: string, usage?: UpstreamUsage) => {
+      usage?.cacheWrite ?? null, deps.now() - started, status, deps.now(), detail?.slice(0, 300) ?? null).run();
+  const giveBack = async (status: string, usage?: UpstreamUsage, detail?: string) => {
     await refundRun(env.DB, reservation); // FR-B7
-    await record(status, usage);
+    await record(status, usage, detail);
     await releaseStreamSlot(env.DB, slot);
   };
 
@@ -127,14 +128,16 @@ export async function handleRun(req: Request, env: Env, deps: Deps, ctx: Executi
     });
   } catch (error) {
     clearTimeout(timer);
-    await giveBack(abort.signal.aborted ? "timeout" : "upstream_error");
-    console.error("upstream failed", error instanceof Error ? error.message : error);
+    const reason = error instanceof Error ? error.message : String(error);
+    await giveBack(abort.signal.aborted ? "timeout" : "upstream_error", undefined, `fetch failed: ${reason}`);
+    console.error("upstream failed", reason);
     return fail(502, "upstream_error", "The AI service is unavailable. Your run was not used.");
   }
   if (!upstream.ok || !upstream.body) {
     clearTimeout(timer);
-    await giveBack("upstream_error");
-    console.error("upstream status", upstream.status);
+    const detail = `http ${upstream.status} ${await upstreamErrorType(upstream)}`.trim();
+    await giveBack("upstream_error", undefined, detail);
+    console.error("upstream status", detail);
     return fail(502, "upstream_error", "The AI service is unavailable. Your run was not used.");
   }
 
@@ -150,6 +153,7 @@ export async function handleRun(req: Request, env: Env, deps: Deps, ctx: Executi
     let delivered = false;
     let clientGone = false;
     let status = "ok";
+    let detail: string | undefined;
     // A write fails once the app has gone away; remember that so the run is not blamed on the AI service.
     const send = async (chunk: Uint8Array) => {
       try { await writer.write(chunk); } catch (error) { clientGone = true; throw error; }
@@ -179,7 +183,7 @@ export async function handleRun(req: Request, env: Env, deps: Deps, ctx: Executi
             await send(sse("delta", { text: event.delta.text }));
             if (!delivered) { delivered = true; await commitRun(env.DB, reservation); }
           } else if (event.type === "error") {
-            throw new Error("upstream error event");
+            throw new Error(`upstream error event: ${event.error?.type ?? "unknown"}`);
           }
         }
       }
@@ -188,6 +192,7 @@ export async function handleRun(req: Request, env: Env, deps: Deps, ctx: Executi
       const remaining = me.runs_allowance != null && me.runs_used != null ? Math.max(0, me.runs_allowance - me.runs_used) : null;
       await send(sse("done", { runs_remaining: remaining }));
     } catch (error) {
+      detail = error instanceof Error ? error.message : String(error);
       status = clientGone ? "cancelled" : abort.signal.aborted ? "timeout" : "upstream_error";
       if (!delivered) await refundRun(env.DB, reservation); // FR-B7: nothing reached the user
       if (!clientGone) {
@@ -197,9 +202,19 @@ export async function handleRun(req: Request, env: Env, deps: Deps, ctx: Executi
     } finally {
       clearTimeout(timer);
       abort.abort();
-      await record(status, usage).catch(() => {});
+      await record(status, usage, status === "ok" ? undefined : detail).catch(() => {});
       await releaseStreamSlot(env.DB, slot).catch(() => {});
       await writer.close().catch(() => {});
     }
+  }
+}
+
+/** Anthropic's error `type` (e.g. authentication_error, invalid_request_error) and message; no user content is in it. */
+async function upstreamErrorType(res: Response): Promise<string> {
+  try {
+    const body = await res.json<{ error?: { type?: string; message?: string } }>();
+    return [body.error?.type, body.error?.message].filter(Boolean).join(": ");
+  } catch {
+    return "";
   }
 }

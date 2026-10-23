@@ -109,15 +109,10 @@ struct ShortcutRecorderRow: View {
                     .font(PMLFont.hint).foregroundStyle(PMLColor.warning)
                 HStack {
                     Button("Allow in System Settings") {
-                        _ = CGRequestPostEventAccess()
-                        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-                            NSWorkspace.shared.open(url)
-                        }
+                        AppModel.requestCopyAccess()
                     }
                     .buttonStyle(PMLSecondaryButtonStyle())
                 }
-                Text("No permission? Use Services → Open in Per My Last and give it a shortcut in System Settings → Keyboard → Keyboard Shortcuts → Services.")
-                    .font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted)
             }
             if let error = model.hotKeyError {
                 Text(error).font(PMLFont.hint).foregroundStyle(PMLColor.danger)
