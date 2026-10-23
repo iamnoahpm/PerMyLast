@@ -24,6 +24,7 @@ struct PresetsSettingsView: View {
                 detail.frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
+        .font(PMLFont.body)
         .onAppear { if mode.isEmpty { mode = model.modes.first ?? "" }; ensureSelection() }
         .onChange(of: mode) { ensureSelection() }
         .onChange(of: model.modes) {
@@ -55,7 +56,7 @@ struct PresetsSettingsView: View {
             if actions.isEmpty {
                 Spacer()
                 Text("No actions here yet — add one below.")
-                    .font(.callout)
+                    .font(PMLFont.body)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .padding()
@@ -107,14 +108,14 @@ private struct ActionRow: View {
             Text(preset.icon.isEmpty ? "•" : preset.icon)
                 .frame(width: 22)
             VStack(alignment: .leading, spacing: 1) {
-                Text(preset.label).fontWeight(.medium).lineLimit(1)
+                Text(preset.label).font(PMLFont.select).lineLimit(1)
                 if !preset.blurb.isEmpty {
-                    Text(preset.blurb).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                    Text(preset.blurb).font(PMLFont.hint).foregroundStyle(.secondary).lineLimit(1)
                 }
             }
             Spacer(minLength: 4)
             if preset.isDefault {
-                Image(systemName: "star.fill").font(.caption).foregroundStyle(Color.accentColor).help("Default")
+                Image(systemName: "star.fill").font(PMLFont.hint).foregroundStyle(Color.accentColor).help("Default")
             }
         }
         .padding(.vertical, 2)
@@ -200,7 +201,7 @@ private struct ActionEditor: View {
                 }
             }
             if nameTaken {
-                Text("Name already used").font(.caption).foregroundStyle(.red)
+                Text("Name already used").font(PMLFont.hint).foregroundStyle(.red)
             }
             HStack(alignment: .bottom, spacing: 10) {
                 field("Tone") {
@@ -219,10 +220,10 @@ private struct ActionEditor: View {
     private func promptSection(_ preset: Preset) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
-                Text("Prompt").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                Text("Prompt").font(PMLFont.hint.weight(.semibold)).foregroundStyle(.secondary)
                 if isEdited {
                     Text("Edited")
-                        .font(.caption2.weight(.bold))
+                        .font(PMLFont.badge)
                         .padding(.horizontal, 6).padding(.vertical, 2)
                         .background(Color.orange.opacity(0.2), in: Capsule())
                 }
@@ -230,11 +231,11 @@ private struct ActionEditor: View {
                 if isEdited {
                     Button("Reset to original") { draft.prompt = preset.originalPrompt }
                         .buttonStyle(.link)
-                        .font(.caption)
+                        .font(PMLFont.hint)
                 }
             }
             TextEditor(text: $draft.prompt)
-                .font(.callout)
+                .font(PMLFont.body)
                 .scrollContentBackground(.hidden)
                 .padding(8)
                 .frame(minHeight: 150)
@@ -242,18 +243,18 @@ private struct ActionEditor: View {
                 .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color.primary.opacity(0.15)))
             if promptBlank {
                 Text("A prompt is needed. The previous one stays until you write a new one.")
-                    .font(.caption).foregroundStyle(.red)
+                    .font(PMLFont.hint).foregroundStyle(.red)
             }
         }
     }
 
     private var writeMyWaySection: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("Write My Way").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+            Text("Write My Way").font(PMLFont.hint.weight(.semibold)).foregroundStyle(.secondary)
             VStack(alignment: .leading, spacing: 8) {
                 Toggle("Use my Write My Way settings", isOn: $draft.usesWriteMyWay)
                 Text("Adds your tone, length and format from Advanced → Write My Way.")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(PMLFont.hint).foregroundStyle(.secondary)
                 if draft.usesWriteMyWay {
                     Toggle("Match my English level", isOn: $draft.matchesEnglishLevel)
                         .padding(.leading, 20)
@@ -285,13 +286,13 @@ private struct ActionEditor: View {
                     .disabled(preset.isDefault || onlyOne)
                     .help("The default action, or the last one in a tab, can't be deleted")
             }
-            Text("used \(preset.uses) times").font(.caption).foregroundStyle(.tertiary)
+            Text("used \(preset.uses) times").font(PMLFont.hint).foregroundStyle(.tertiary)
         }
     }
 
     private func field<Content: View>(_ title: LocalizedStringKey, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(title).font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+            Text(title).font(PMLFont.hint.weight(.semibold)).foregroundStyle(.secondary)
             content()
         }
     }
@@ -340,7 +341,7 @@ private struct TabManager: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Tone Preset Tabs").font(.headline)
+            Text("Tone Preset Tabs").font(PMLFont.cardTitle)
             List {
                 ForEach(model.modes, id: \.self) { mode in
                     TabNameRow(mode: mode, canDelete: model.modes.count > 1,
@@ -355,10 +356,11 @@ private struct TabManager: View {
                 Spacer()
             }
             Text("Drag to reorder tabs. Click a tab's name to rename it.")
-                .font(.caption).foregroundStyle(.secondary)
+                .font(PMLFont.hint).foregroundStyle(.secondary)
         }
         .padding(16)
         .frame(width: 320)
+        .font(PMLFont.body)
         .confirmationDialog(
             "Delete the \"\(pendingDelete ?? "")\" tab and all its actions? This can't be undone.",
             isPresented: Binding(get: { pendingDelete != nil }, set: { if !$0 { pendingDelete = nil } }),
