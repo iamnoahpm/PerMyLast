@@ -32,8 +32,9 @@ app="$out/PerMyLast.xcarchive/Products/Applications/Per My Last.app"
 
 echo "== Verify the signature"
 codesign --verify --deep --strict --verbose=2 "$app"
-codesign -dv --verbose=2 "$app" 2>&1 | grep -E "Authority=Developer ID Application|TeamIdentifier|flags=" 
-codesign -dv "$app" 2>&1 | grep -q "runtime" || { echo "Hardened runtime is not enabled; notarization would fail"; exit 1; }
+details="$(codesign -dv --verbose=2 "$app" 2>&1)"   # captured first: "grep -q" closing the pipe early trips pipefail
+echo "$details" | grep -E "Authority=Developer ID Application|TeamIdentifier|flags="
+[[ "$details" == *"(runtime)"* ]] || { echo "Hardened runtime is not enabled; notarization would fail"; exit 1; }
 scripts/check-secrets.sh "$app"
 
 echo "== Notarize the app"
