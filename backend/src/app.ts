@@ -11,7 +11,7 @@ import { handleLemonSqueezy, verifySignature } from "./lemonsqueezy.ts";
 import { activateLicense } from "./license.ts";
 import { handleRun } from "./run.ts";
 import { getTemplates } from "./templates.ts";
-import { startTrial } from "./trial.ts";
+import { startFree } from "./free.ts";
 
 const defaultDeps: Deps = { fetch: (...args) => fetch(...args), now: () => Date.now(), sendEmail };
 const noContext = { waitUntil() {}, passThroughOnException() {}, props: {} } as unknown as ExecutionContext;
@@ -92,10 +92,10 @@ export async function handleRequest(req: Request, env: Env, deps: Deps = default
       case "POST /v1/trial/start": {
         const userId = await authenticate(req, env, deps.now());
         if (!userId) return fail(401, "unauthenticated", "Sign in to continue.");
-        const result = await startTrial(env.DB, userId, (await readJson(req))?.install_id_hash, deps.now());
-        if (result.ok) return json({ plan: result.plan, trial_ends_at: result.trial_ends_at, runs_allowance: result.runs_allowance });
-        return result.reason === "trial_already_used"
-          ? fail(409, "trial_already_used", "A free trial has already been used on this Mac.")
+        const result = await startFree(env.DB, userId, (await readJson(req))?.install_id_hash, deps.now());
+        if (result.ok) return json({ plan: result.plan, period_end: result.period_end, runs_allowance: result.runs_allowance });
+        return result.reason === "install_already_used"
+          ? fail(409, "install_already_used", "Free credits have already been claimed on this Mac by another account.")
           : fail(400, "bad_request", "install_id_hash must be a SHA-256 hex string.");
       }
       case "POST /v1/events": {

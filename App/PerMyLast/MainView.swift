@@ -353,7 +353,7 @@ struct OutputPanel: View {
                             .font(PMLFont.select).foregroundStyle(PMLColor.accentText)
                     }
                 }
-                if model.lastErrorKind == .noEntitlement || model.lastErrorKind == .trialExpired || model.lastErrorKind == .trialCreditsExhausted {
+                if model.lastErrorKind == .noEntitlement || model.lastErrorKind == .freeCreditsExhausted {
                     Button("See plans →") { WindowCoordinator.shared.showPaywall() }
                 }
                 if message == AnthropicError.missingAPIKey.errorDescription || model.lastErrorKind == .unauthenticated {

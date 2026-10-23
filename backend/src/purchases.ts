@@ -1,16 +1,11 @@
 // What a purchase does to an account. Both payment channels end up here, and every function is safe to call twice.
 import { config } from "../config.ts";
-import { addMonths } from "./plans.ts";
+import { addMonths, nextUpgradeTier } from "./plans.ts";
 
 export type Source = "lemonsqueezy" | "storekit";
 export type ProductKind = "lifetime" | "lifetime_renewal" | "pro_monthly" | "pro_yearly";
 
-/** Buying anything ends the trial at once; unused credits are dropped (PRD section 2). */
-function endTrial(db: D1Database, userId: string, now: number): D1PreparedStatement {
-  return db.prepare("UPDATE entitlements SET status = 'expired', updated_at = ? WHERE user_id = ? AND plan = 'trial' AND status = 'active'").bind(now, userId);
-}
-
-/** Lifetime licence: never expires, updates for 12 months from purchase. */
+/** Power user (lifetime) licence: never expires, updates for 12 months from purchase. */
 export async function grantLifetime(db: D1Database, userId: string, source: Source, externalId: string, purchasedAt: number, now: number): Promise<void> {
   const updatesUntil = addMonths(purchasedAt, config.UPDATE_WINDOW_MONTHS);
   await db.batch([
@@ -21,22 +16,25 @@ export async function grantLifetime(db: D1Database, userId: string, source: Sour
          status = 'active', updates_until = MAX(COALESCE(entitlements.updates_until, 0), excluded.updates_until), updated_at = excluded.updated_at
        WHERE entitlements.status <> 'refunded'`, // a refunded order stays refunded if its delivery is replayed
     ).bind(crypto.randomUUID(), userId, purchasedAt, updatesUntil, source, externalId, now, purchasedAt),
-    endTrial(db, userId, now),
   ]);
 }
 
-/** Update renewal: extends the Lifetime update window by 12 months from today or from its end, whichever is later. Once per order. */
-export async function applyRenewal(db: D1Database, userId: string, source: Source, orderId: string, now: number): Promise<boolean> {
+/**
+ * Discounted upgrade: extends the Power user update window by 12 months from today or from its end, whichever is
+ * later. Once per order. Each upgrade is priced at half the one before, so the product bought (`tier`) must be the
+ * one the account is due: a stale, cheaper tier is refused instead of buying a discount twice.
+ */
+export async function applyRenewal(db: D1Database, userId: string, source: Source, orderId: string, tier: number, now: number): Promise<boolean> {
   const mark = await db.prepare("INSERT OR IGNORE INTO applied_purchases (source, external_id, applied_at) VALUES (?, ?, ?)").bind(source, orderId, now).run();
   if (mark.meta.changes !== 1) return false; // already applied
   const current = await db
-    .prepare("SELECT id, updates_until FROM entitlements WHERE user_id = ? AND plan = 'lifetime' AND status = 'active' ORDER BY starts_at DESC LIMIT 1")
-    .bind(userId).first<{ id: string; updates_until: number | null }>();
-  if (!current) {
+    .prepare("SELECT id, updates_until, upgrade_count FROM entitlements WHERE user_id = ? AND plan = 'lifetime' AND status = 'active' ORDER BY starts_at DESC LIMIT 1")
+    .bind(userId).first<{ id: string; updates_until: number | null; upgrade_count: number }>();
+  if (!current || tier < nextUpgradeTier(current.upgrade_count, config.UPGRADE_TIERS)) {
     await db.prepare("DELETE FROM applied_purchases WHERE source = ? AND external_id = ?").bind(source, orderId).run();
-    return false; // a renewal without a licence: nothing to extend
+    return false; // an upgrade without a licence, or at a price the account is no longer due: nothing to extend
   }
-  await db.prepare("UPDATE entitlements SET updates_until = ?, updated_at = ? WHERE id = ?")
+  await db.prepare("UPDATE entitlements SET updates_until = ?, upgrade_count = upgrade_count + 1, updated_at = ? WHERE id = ?")
     .bind(addMonths(Math.max(now, current.updates_until ?? 0), config.UPDATE_WINDOW_MONTHS), now, current.id).run();
   return true;
 }
@@ -63,7 +61,6 @@ export async function upsertSubscription(db: D1Database, userId: string, source:
        WHERE excluded.source_updated_at >= COALESCE(entitlements.source_updated_at, 0)`,
     ).bind(crypto.randomUUID(), userId, s.plan, s.status, s.startsAt, s.expiresAt, source, externalId, now, s.sourceUpdatedAt),
   ];
-  if (s.status === "active") statements.push(endTrial(db, userId, now));
   await db.batch(statements);
 }
 

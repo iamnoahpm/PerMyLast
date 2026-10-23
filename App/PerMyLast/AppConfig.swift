@@ -44,7 +44,8 @@ enum AppConfig {
     /// Lemon Squeezy checkout links (direct build). Create the products in Lemon Squeezy, then paste each product's
     /// "Share" checkout link here. Empty means that product cannot be bought yet.
     static let checkoutLinks: [PaywallProduct: String] = [
-        .proYearly: "", .proMonthly: "", .lifetime: "", .lifetimeRenewal: "",
+        .proYearly: "", .proMonthly: "", .lifetime: "",
+        .lifetimeUpgrade1: "", .lifetimeUpgrade2: "", .lifetimeUpgrade3: "",
     ]
 
     /// Sign in with Apple needs the app signed with a real team and the capability enabled (see backend/README).
@@ -64,11 +65,10 @@ enum AppConfig {
     /// Where Lifetime users can download the last build their licence covers. Empty hides the link.
     static let lastEligibleDownloadURL = ""
 
-    /// What the free trial includes, as the onboarding says it. Keep in step with TRIAL_CREDITS and TRIAL_DAYS in backend/config.ts.
-    static let trialRuns = 50
-    static let trialDays = 21
+    /// Credits the Free plan renews with every month, as the plans card and paywall say it. Keep in step with
+    /// FREE_MONTHLY_CREDITS in backend/config.ts.
+    static let freeCredits = 21
 
-    /// FR-A14: warn at this share of the allowance, and this many days before the trial ends.
+    /// FR-A14: warn at this share of the allowance.
     static let warnAtFraction = 0.8
-    static let warnDaysBeforeTrialEnds = 3
 }

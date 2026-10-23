@@ -1,21 +1,21 @@
 # Per My Last backend (Cloudflare Workers + D1)
 
 Phases 2 to 4 of `docs/PRD AI Plans, Trial & BYOK.md`, built on Cloudflare Workers and D1 (SQLite) instead of the PRD's
-Supabase default. It has the schema, atomic run metering, sign-in (Apple, Google, emailed code), session tokens, the trial,
+Supabase default. It has the schema, atomic run metering, sign-in (Apple, Google, emailed code), session tokens, the Free plan,
 the Claude proxy (`POST /v1/run`), rate limits, `GET /v1/me` and `GET /v1/templates`, and payments (Lemon Squeezy and the Mac App Store).
 
 ## Layout
 
 | Path | What |
 |---|---|
-| `config.ts` | All config values (PRD section 11): trial days and credits (50), Pro allowance, caps, token lifetimes |
+| `config.ts` | All config values (PRD section 11): Free monthly credits (21), upgrade tiers, Pro allowance, caps, token lifetimes |
 | `migrations/` | D1 schema (the PRD's six tables plus `users` and `refresh_tokens`) and the seeded templates |
 | `src/plans.ts` | Plan resolution and monthly-period maths (pure functions) |
 | `src/metering.ts` | `consumeRun`, `refundRun`, `commitRun`: the limit check is part of the write, one D1 batch per operation |
 | `src/auth.ts`, `src/jwt.ts` | Apple/Google ID-token verification (RS256 against their published keys), accounts, session and refresh tokens |
 | `src/app.ts` | Routes. Paths are exactly the PRD's (`/v1/...`) |
 | `src/run.ts` | The proxy: limits, atomic reserve, Anthropic stream, refunds, usage events |
-| `src/trial.ts`, `src/emailAuth.ts`, `src/limits.ts` | Trial start, emailed-code sign-in, per-user rate and stream limits |
+| `src/free.ts`, `src/emailAuth.ts`, `src/limits.ts` | Claiming Free credits for a Mac, emailed-code sign-in, per-user rate and stream limits |
 | `src/purchases.ts`, `src/lemonsqueezy.ts`, `src/license.ts` | What a purchase does to an account; Lemon Squeezy webhook; licence-key activation |
 | `src/appstore.ts`, `src/x509.ts` | App Store transactions and notifications: Apple-signed JWS checked against Apple Root CA - G3 |
 | `scripts/` | `measure-cost.mjs` (cost per run), `cost-report.sql` (from real usage) and `funnel-report.sql` (onboarding funnel: `npx wrangler d1 execute permylast --remote --file scripts/funnel-report.sql`) |
@@ -29,7 +29,7 @@ the Claude proxy (`POST /v1/run`), rate limits, `GET /v1/me` and `GET /v1/templa
 | `POST /v1/auth/google` | `{id_token}` | same |
 | `POST /v1/auth/email/request` | `{email}` | `{ok: true}` whether or not the address has an account; a 6-digit code is emailed (3 per address per 15 min) |
 | `POST /v1/auth/email/verify` | `{email, code}` | session; the code works once, for 10 minutes, and locks after 5 wrong guesses |
-| `POST /v1/trial/start` | `{install_id_hash}` (Bearer) | `{plan, trial_ends_at, runs_allowance}`; idempotent; `409 trial_already_used` for a second account on the same Mac |
+| `POST /v1/trial/start` | `{install_id_hash}` (Bearer) | `{plan, period_end, runs_allowance}`; idempotent; `409 install_already_used` for a second account on the same Mac (route name kept for installed apps) |
 | `POST /v1/events` | `{install_id_hash, app_version?, events: [{name, at?, props?}]}` | Anonymous onboarding funnel events (no sign-in). Only allowlisted names (`src/events.ts`), at most 20 per request and 500 per install. `400` for anything else, `429` past the cap |
 | `POST /v1/run` | `{template_id, variables}` (Bearer) | SSE: `delta` events `{text}`, then `done` `{runs_remaining}`; or `error` `{code, message}` |
 | `POST /v1/purchases/storekit` | `{signed_transaction}` (Bearer) | Verifies the Apple-signed transaction and grants the plan; returns the `/v1/me` body. Used after a purchase and for Restore |
@@ -37,18 +37,18 @@ the Claude proxy (`POST /v1/run`), rate limits, `GET /v1/me` and `GET /v1/templa
 | `POST /webhooks/lemonsqueezy` | Lemon Squeezy event, `X-Signature` header | Verifies the HMAC signature, then applies the event; always `200` for valid deliveries |
 | `POST /webhooks/appstore` | `{signedPayload}` (App Store Server Notification V2) | Verifies the JWS chain, then applies renewals, refunds, grace periods |
 | `POST /v1/auth/refresh` | `{refresh_token}` | same; the old refresh token is revoked, and reusing it revokes all of that user's sessions |
-| `GET /v1/me` | (Bearer access token) | `{plan, trial_ends_at, runs_used, runs_allowance, period_end, owns_lifetime, updates_until}` |
+| `GET /v1/me` | (Bearer access token) | `{plan, runs_used, runs_allowance, period_end, owns_lifetime, updates_until, next_upgrade_tier}` |
 | `GET /v1/templates?since_version=N` | (Bearer) | `{version, templates}`; `templates` is empty when the caller already has the newest version |
 
 Errors are `{error: {code, message}}` (plus `limit` or `retry_after` where relevant): 401 `unauthenticated` / `invalid_token` / `invalid_code`,
-402 `no_entitlement` / `trial_expired` / `trial_credits_exhausted` / `quota_exhausted` / `byok_required`, 409 `trial_already_used`,
+402 `no_entitlement` / `free_credits_exhausted` / `quota_exhausted` / `byok_required`, 409 `install_already_used`,
 413 `input_too_large`, 429 `rate_limited`, 502 `upstream_error` (the run is refunded), 503 `email_unavailable`, 400 / 404 / 405 / 500.
 
 ## Run the tests
 
 ```bash
 cd backend && npm install
-npm test            # 97 tests: plans, metering, AC-11 (100 parallel runs), auth, trial, proxy, payments
+npm test            # 108 tests: plans, metering, AC-11 (100 parallel runs), auth, free credits, proxy, payments
 npm run typecheck
 ../scripts/check-secrets.sh   # AC-12; pass a built .app path to scan it too
 ```
@@ -73,14 +73,14 @@ Needs a free Cloudflare account.
 
 Nothing here is done by Claude: no real purchases, no store settings changed.
 
-**Lemon Squeezy (direct build).** 1) Create a store and, in **test mode**, four products: Lifetime (one-time, with licence keys on), Lifetime renewal
-(one-time), Pro Monthly and Pro Yearly (subscriptions). 2) Put each variant id into `wrangler.jsonc` (`LS_VARIANT_*`) and each product's checkout link into
+**Lemon Squeezy (direct build).** 1) Create a store and, in **test mode**, five or more products: Power user / Lifetime (one-time, with licence keys on), one one-time upgrade product per tier
+(`LS_VARIANT_LIFETIME_UPGRADE_1..3`, priced at 50%, 25%, 12.5% of the Lifetime price), Pro Monthly and Pro Yearly (subscriptions). 2) Put each variant id into `wrangler.jsonc` (`LS_VARIANT_*`) and each product's checkout link into
 `App/PerMyLast/AppConfig.swift` (`checkoutLinks`). 3) Add a webhook pointing at `https://<your-worker>/webhooks/lemonsqueezy`, subscribed to
 `order_created`, `order_refunded`, `subscription_*`, `subscription_payment_refunded` and `license_key_created`, and `npx wrangler secret put LS_WEBHOOK_SECRET` with its signing secret.
 4) While testing set `LS_ACCEPT_TEST_MODE` to `"true"`. Field names in `src/lemonsqueezy.ts` follow Lemon Squeezy's docs but were not checked against live deliveries:
 make one test purchase of each product and watch the Worker log (`npx wrangler tail`) before trusting them.
 
-**Mac App Store build.** 1) In App Store Connect create `lifetime_byok` (non-consumable), `lifetime_renewal` (consumable), and `pro_monthly` / `pro_yearly`
+**Mac App Store build.** 1) In App Store Connect create `lifetime_byok` (non-consumable), `lifetime_upgrade_1` ... `lifetime_upgrade_3` (consumable; 50%, 25%, 12.5% of the Lifetime price), and `pro_monthly` / `pro_yearly`
 (auto-renewing, one subscription group). 2) Add the In-App Purchase capability to the app (needs the Apple Developer Program and real signing). 3) Set the App Store Server Notifications V2
 URL (sandbox and production) to `https://<your-worker>/webhooks/appstore`. 4) While testing set `APPSTORE_ENVIRONMENTS` to `"Production,Sandbox"`. The app sets `appAccountToken` to the user id on every purchase;
 the Worker checks the Apple signature chain against the pinned root, the bundle id, the environment and the account before granting anything.
@@ -90,16 +90,17 @@ Purchases made with Xcode's local StoreKit configuration are signed by a local t
 
 ## Behaviour notes
 
-- **Purchases.** Buying anything ends the trial at once and drops unused credits. A Lifetime entitlement never expires and carries `updates_until` (12 months from purchase);
-  a renewal adds 12 months from today or from the current end, once per order. Pro: `expires_at` is the paid-through date; cancelling keeps access to it; a payment retry keeps
+- **Purchases.** Free credits are not an entitlement: Pro or Power user simply outranks them. A Lifetime (Power user) entitlement never expires and carries `updates_until` (12 months from purchase);
+  each upgrade adds 12 months from today or from the current end, once per order, and costs half the previous purchase. Stores sell fixed prices, so the ladder is one product per tier;
+  the account's `upgrade_count` decides which tier is due (`next_upgrade_tier` in `/v1/me`), a cheaper stale tier is refused, and past the last tier the last product repeats. Pro: `expires_at` is the paid-through date; cancelling keeps access to it; a payment retry keeps
   access for `GRACE_DAYS`; a refund revokes. A provider's older event cannot undo a newer one (`source_updated_at`).
 - **Webhooks are idempotent.** Deliveries are recorded after they are applied, by body hash (Lemon Squeezy) or notification id (App Store).
 - **Test payments cannot unlock production.** Lemon Squeezy test-mode events and App Store sandbox transactions are ignored unless the deployment opts in.
 - **Licence keys.** A purchase made while signed out waits as a pending licence until its key is entered in the app; only a hash of each key is stored.
 
 - **No row-level security.** Clients never reach D1; the Worker does, and scopes every query to the user id in a verified token.
-- **Metering.** Resolution order: active Pro, then Lifetime, then active trial with credits left, else none.
-  `consumeRun` errors: `byok_required`, `quota_exhausted`, `trial_credits_exhausted`, `trial_expired`, `no_entitlement`;
+- **Metering.** Resolution order: active Pro, then Lifetime, then Free (once this Mac is claimed; 21 credits per calendar-style month from sign-up), else none.
+  `consumeRun` errors: `byok_required`, `quota_exhausted`, `free_credits_exhausted`, `no_entitlement`;
   `/v1/run` (Phase 3) maps them to the PRD's HTTP codes. `commitRun` is an addition: it stops a late refund taking back a delivered run.
 - **Pro periods** count monthly from the entitlement's `starts_at`, yearly plans too. Webhooks (Phase 4) must upsert by
   `(source, external_id)`, keep `starts_at` stable across renewals, and set `expires_at` to the paid-through date.

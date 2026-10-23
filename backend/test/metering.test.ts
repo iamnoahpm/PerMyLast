@@ -7,34 +7,36 @@ import { DAY, grant, newUser, testEnv, usage } from "./helpers.ts";
 const db = testEnv.DB;
 const code = async (p: Promise<unknown>) => p.then(() => "ok", (e) => (e instanceof RunError ? e.code : String(e)));
 
-describe("trial", () => {
+describe("free", () => {
   it("meters runs and refunds them", async () => {
     const u = await newUser();
-    await grant(u, "trial", { starts: Date.now(), expires: Date.now() + 21 * DAY });
     const res = await consumeRun(db, u);
     const me = await getMe(db, u);
-    expect([me.plan, me.runs_used, me.runs_allowance]).toEqual(["trial", 1, config.TRIAL_CREDITS]);
+    expect([me.plan, me.runs_used, me.runs_allowance]).toEqual(["free", 1, config.FREE_MONTHLY_CREDITS]);
+    expect(me.period_end).not.toBeNull();
     await refundRun(db, res);
     expect((await getMe(db, u)).runs_used).toBe(0);
   });
 
-  it("stops at the credit limit, still reports usage, and resolves to none", async () => {
+  it("stops at the credit limit, still reports usage, and stays on the free plan", async () => {
     const u = await newUser();
-    await grant(u, "trial", { starts: Date.now(), expires: Date.now() + 21 * DAY });
-    for (let i = 0; i < config.TRIAL_CREDITS; i++) await consumeRun(db, u);
-    expect(await code(consumeRun(db, u))).toBe("trial_credits_exhausted");
+    for (let i = 0; i < config.FREE_MONTHLY_CREDITS; i++) await consumeRun(db, u);
+    expect(await code(consumeRun(db, u))).toBe("free_credits_exhausted");
     const me = await getMe(db, u);
-    expect([me.plan, me.runs_used]).toEqual(["none", config.TRIAL_CREDITS]);
+    expect([me.plan, me.runs_used]).toEqual(["free", config.FREE_MONTHLY_CREDITS]);
   });
 
-  it("an expired trial is trial_expired", async () => {
+  it("renews the credits every month", async () => {
     const u = await newUser();
-    await grant(u, "trial", { starts: Date.now() - 22 * DAY, expires: Date.now() - DAY });
-    expect(await code(consumeRun(db, u))).toBe("trial_expired");
+    for (let i = 0; i < config.FREE_MONTHLY_CREDITS; i++) await consumeRun(db, u);
+    expect(await code(consumeRun(db, u))).toBe("free_credits_exhausted");
+    const nextMonth = Date.now() + 32 * DAY;
+    expect(await code(consumeRun(db, u, nextMonth))).toBe("ok");
+    expect((await getMe(db, u, nextMonth)).runs_used).toBe(1);
   });
 
-  it("nobody with nothing gets no_entitlement", async () => {
-    expect(await code(consumeRun(db, await newUser()))).toBe("no_entitlement");
+  it("an account that has not claimed its Mac gets no_entitlement", async () => {
+    expect(await code(consumeRun(db, await newUser(false)))).toBe("no_entitlement");
   });
 });
 
@@ -80,7 +82,6 @@ describe("Pro and Lifetime", () => {
 describe("reservations", () => {
   it("refunding twice, or after commit, changes nothing", async () => {
     const u = await newUser();
-    await grant(u, "trial", { starts: Date.now(), expires: Date.now() + 21 * DAY });
     const a = await consumeRun(db, u);
     const b = await consumeRun(db, u);
     await refundRun(db, a);
@@ -112,7 +113,6 @@ describe("AC-11: concurrency", () => {
 
   it("parallel refunds of one reservation give back one run", async () => {
     const u = await newUser();
-    await grant(u, "trial", { starts: Date.now(), expires: Date.now() + 21 * DAY });
     const a = await consumeRun(db, u);
     await consumeRun(db, u);
     await Promise.all(Array.from({ length: 20 }, () => refundRun(db, a)));

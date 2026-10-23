@@ -9,10 +9,14 @@ import { verifyAppleJws } from "./x509.ts";
 /** StoreKit product ids (PRD section 7). */
 const PRODUCTS: Record<string, ProductKind> = {
   lifetime_byok: "lifetime",
-  lifetime_renewal: "lifetime_renewal",
   pro_monthly: "pro_monthly",
   pro_yearly: "pro_yearly",
 };
+
+/** Upgrade ladder: `lifetime_upgrade_1` ... `_N`, each priced at half the one before (config.UPGRADE_TIERS). */
+const UPGRADES: Record<string, number> = Object.fromEntries(
+  Array.from({ length: config.UPGRADE_TIERS }, (_, i) => [`lifetime_upgrade_${i + 1}`, i + 1]),
+);
 
 export class AppStoreError extends Error {
   constructor(readonly code: "invalid_receipt" | "wrong_account" | "unknown_product", message: string) { super(message); }
@@ -36,7 +40,8 @@ interface Applied { applied: boolean; plan: ProductKind }
 async function applyTransaction(env: Env, tx: Record<string, any>, expectedUser: string | null, now: number): Promise<Applied> {
   if (tx.bundleId !== config.BUNDLE_ID) throw new AppStoreError("invalid_receipt", "Transaction is for a different app.");
   if (!environments(env).includes(String(tx.environment))) throw new AppStoreError("invalid_receipt", "Transaction environment is not accepted here.");
-  const product = PRODUCTS[String(tx.productId)];
+  const tier = UPGRADES[String(tx.productId)];
+  const product = tier ? "lifetime_renewal" : PRODUCTS[String(tx.productId)];
   if (!product) throw new AppStoreError("unknown_product", "Unknown product.");
 
   const token = typeof tx.appAccountToken === "string" ? tx.appAccountToken.toLowerCase() : null;
@@ -55,7 +60,7 @@ async function applyTransaction(env: Env, tx: Record<string, any>, expectedUser:
       await grantLifetime(env.DB, userId, "storekit", originalId, purchasedAt, now);
       return { applied: true, plan: product };
     case "lifetime_renewal":
-      return { applied: !revoked && (await applyRenewal(env.DB, userId, "storekit", String(tx.transactionId), now)), plan: product };
+      return { applied: !revoked && (await applyRenewal(env.DB, userId, "storekit", String(tx.transactionId), tier, now)), plan: product };
     default: {
       const expiresAt = tx.expiresDate != null ? Number(tx.expiresDate) : null;
       await upsertSubscription(env.DB, userId, "storekit", originalId, {

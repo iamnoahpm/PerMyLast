@@ -421,17 +421,17 @@ private struct AccessStep: View {
         PMLPanel {
             VStack(alignment: .leading, spacing: PMLSpace.s3) {
                 HStack {
-                    Text("Start your free trial").font(PMLFont.cardTitle).foregroundStyle(PMLColor.ink)
+                    Text("Start with free credits").font(PMLFont.cardTitle).foregroundStyle(PMLColor.ink)
                     Spacer()
                     Text("Recommended").font(PMLFont.badge).textCase(.uppercase).tracking(0.42)
                         .foregroundStyle(PMLColor.accentText)
                         .padding(.horizontal, 8).padding(.vertical, 3)
                         .background(Capsule().fill(PMLColor.accentSoft))
                 }
-                Text("\(AppConfig.trialRuns) runs over \(AppConfig.trialDays) days. No card, no key to find.")
+                Text("\(AppConfig.freeCredits) free credits every month. No card, no key to find.")
                     .font(PMLFont.body).foregroundStyle(PMLColor.inkSoft)
                 if account.signedIn {
-                    Label(account.meterText ?? L("Trial started"), systemImage: "checkmark.circle.fill")
+                    Label(account.meterText ?? L("Free credits ready"), systemImage: "checkmark.circle.fill")
                         .font(PMLFont.select).foregroundStyle(PMLColor.success)
                 } else {
                     emailForm
@@ -461,7 +461,7 @@ private struct AccessStep: View {
                 TextField("6-digit code", text: $account.code)
                     .pmlInput(focus: $codeFocused)
                     .onSubmit { verify() }
-                Button("Start trial") { verify() }
+                Button("Get free credits") { verify() }
                     .buttonStyle(PMLPrimaryButtonStyle(size: .compact))
                     .disabled(self.account.isBusy || self.account.code.trimmingCharacters(in: .whitespaces).count != 6)
             }

@@ -19,7 +19,7 @@ struct AccountSection: View {
     }
 
     @ViewBuilder private func signedOut(account: Bindable<AccountModel>) -> some View {
-        Text("Sign in to start your free trial.").foregroundStyle(PMLColor.inkMuted)
+        Text("Sign in to use your free credits.").foregroundStyle(PMLColor.inkMuted)
         switch self.account.emailStep {
         case .enterEmail:
             HStack {

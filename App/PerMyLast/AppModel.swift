@@ -533,7 +533,7 @@ final class AppModel {
         case .verifyOnline:
             throw BackendError(code: "unreachable", message: L("Connect to the internet to verify your license."))
         case .signIn:
-            throw BackendError(code: "unauthenticated", message: L("Sign in in Settings to start your free trial, or add your own API key."))
+            throw BackendError(code: "unauthenticated", message: L("Sign in in Settings to use your free credits, or add your own API key."))
         }
     }
 
@@ -565,9 +565,12 @@ final class AppModel {
         lastErrorKind = (error as? BackendError)?.kind
         guard let e = error as? BackendError else { return error.localizedDescription }
         switch e.kind {
-        case .noEntitlement, .trialExpired, .trialCreditsExhausted:
+        case .noEntitlement, .freeCreditsExhausted:
             WindowCoordinator.shared.showPaywall()   // FR-A15
-            return L("Your free trial has ended. Choose a plan, or use your own Anthropic API key (Settings → General).")
+            if let end = AccountModel.shared.entitlement?.periodEnd, e.kind == .freeCreditsExhausted {
+                return L("You've used this month's free credits. They renew on \(end.formatted(date: .abbreviated, time: .omitted)). Choose a plan, or use your own Anthropic API key (Settings → General).")
+            }
+            return L("You've used this month's free credits. Choose a plan, or use your own Anthropic API key (Settings → General).")
         case .quotaExhausted:
             if let end = AccountModel.shared.entitlement?.periodEnd {
                 return L("You've used this month's runs. They reset on \(end.formatted(date: .abbreviated, time: .omitted)).")

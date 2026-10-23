@@ -4,7 +4,7 @@ import Foundation
 // MARK: Plans
 
 public enum PlanKind: String, Codable, Sendable {
-    case none, trial, lifetime
+    case none, free, lifetime
     case proMonthly = "pro_monthly"
     case proYearly = "pro_yearly"
 
@@ -14,21 +14,23 @@ public enum PlanKind: String, Codable, Sendable {
 /// Response of `GET /v1/me`: the plan the server resolved for this user.
 public struct EntitlementInfo: Codable, Equatable, Sendable {
     public var plan: PlanKind
-    public var trialEndsAt: Date?
     public var runsUsed: Int?
     public var runsAllowance: Int?
     public var periodEnd: Date?
     public var ownsLifetime: Bool
     public var updatesUntil: Date?
+    /// Power user only: which upgrade product is due next (1 = 50% of the purchase, 2 = 25%, ...).
+    public var nextUpgradeTier: Int?
 
-    public init(plan: PlanKind, trialEndsAt: Date? = nil, runsUsed: Int? = nil, runsAllowance: Int? = nil,
-                periodEnd: Date? = nil, ownsLifetime: Bool = false, updatesUntil: Date? = nil) {
-        self.plan = plan; self.trialEndsAt = trialEndsAt; self.runsUsed = runsUsed; self.runsAllowance = runsAllowance
+    public init(plan: PlanKind, runsUsed: Int? = nil, runsAllowance: Int? = nil,
+                periodEnd: Date? = nil, ownsLifetime: Bool = false, updatesUntil: Date? = nil, nextUpgradeTier: Int? = nil) {
+        self.nextUpgradeTier = nextUpgradeTier
+        self.plan = plan; self.runsUsed = runsUsed; self.runsAllowance = runsAllowance
         self.periodEnd = periodEnd; self.ownsLifetime = ownsLifetime; self.updatesUntil = updatesUntil
     }
 
     private enum CodingKeys: String, CodingKey {
-        case plan, trialEndsAt = "trial_ends_at", runsUsed = "runs_used", runsAllowance = "runs_allowance"
+        case plan, nextUpgradeTier = "next_upgrade_tier", runsUsed = "runs_used", runsAllowance = "runs_allowance"
         case periodEnd = "period_end", ownsLifetime = "owns_lifetime", updatesUntil = "updates_until"
     }
 
@@ -43,8 +45,9 @@ public struct EntitlementInfo: Codable, Equatable, Sendable {
         return min(1, Double(used) / Double(allowance))
     }
 
-    public func trialDaysLeft(now: Date = Date()) -> Int? {
-        guard let end = trialEndsAt else { return nil }
+    /// Whole days until the monthly credits renew (Free and Pro).
+    public func daysUntilRenewal(now: Date = Date()) -> Int? {
+        guard let end = periodEnd else { return nil }
         return max(0, Int((end.timeIntervalSince(now) / 86_400).rounded(.up)))
     }
 }
@@ -68,7 +71,7 @@ public enum BackendCoding {
 // MARK: Which client serves a request (FR-A4)
 
 public enum AIRoute: Equatable, Sendable {
-    /// Shared key through the backend (trial, Pro).
+    /// Shared key through the backend (Free, Pro).
     case proxy
     /// The user's own Anthropic key, straight to Anthropic.
     case direct
@@ -98,7 +101,7 @@ public enum AIClientFactory {
             // Pro + Lifetime owners can switch to their own key ("Use my own API key instead").
             let mayUseKey = (entitlement?.ownsLifetime ?? false) || !ownKeyNeedsLicense
             return preferOwnKey && hasOwnKey && mayUseKey ? .direct : .proxy
-        case .trial:
+        case .free:
             return keyIsFree ? .direct : .proxy
         case .lifetime:
             if entitlementIsStale && ownKeyNeedsLicense { return .verifyOnline }   // NFR-11: trusted offline for the grace period only
@@ -115,8 +118,8 @@ public enum AIClientFactory {
 public struct BackendError: Error, LocalizedError, Equatable, Sendable {
     public enum Kind: Equatable, Sendable {
         case unauthenticated, invalidToken, invalidCode
-        case noEntitlement, trialExpired, trialCreditsExhausted, quotaExhausted, byokRequired
-        case trialAlreadyUsed, inputTooLarge, rateLimited, upstream, emailUnavailable, unreachable
+        case noEntitlement, freeCreditsExhausted, quotaExhausted, byokRequired
+        case installAlreadyUsed, inputTooLarge, rateLimited, upstream, emailUnavailable, unreachable
         case unknownLicense, licenseAlreadyUsed, invalidReceipt, wrongAccount, updatesExpired, other
     }
 
@@ -138,11 +141,10 @@ public struct BackendError: Error, LocalizedError, Equatable, Sendable {
         case "invalid_token": return .invalidToken
         case "invalid_code": return .invalidCode
         case "no_entitlement": return .noEntitlement
-        case "trial_expired": return .trialExpired
-        case "trial_credits_exhausted": return .trialCreditsExhausted
+        case "free_credits_exhausted": return .freeCreditsExhausted
         case "quota_exhausted": return .quotaExhausted
         case "byok_required": return .byokRequired
-        case "trial_already_used": return .trialAlreadyUsed
+        case "install_already_used": return .installAlreadyUsed
         case "input_too_large": return .inputTooLarge
         case "rate_limited": return .rateLimited
         case "upstream_error": return .upstream
@@ -158,7 +160,7 @@ public struct BackendError: Error, LocalizedError, Equatable, Sendable {
     }
 
     /// Errors that should open the paywall (FR-A15).
-    public var showsPaywall: Bool { [.noEntitlement, .trialExpired, .trialCreditsExhausted].contains(kind) }
+    public var showsPaywall: Bool { [.noEntitlement, .freeCreditsExhausted].contains(kind) }
 
     static func parse(data: Data, status: Int, retryAfterHeader: String? = nil) -> BackendError {
         let error = ((try? JSONSerialization.jsonObject(with: data)) as? [String: Any])?["error"] as? [String: Any]
@@ -288,9 +290,9 @@ public struct FunnelEvent: Equatable, Sendable {
     }
 }
 
-public struct TrialInfo: Equatable, Sendable {
+public struct FreeInfo: Equatable, Sendable {
     public var plan: PlanKind
-    public var trialEndsAt: Date?
+    public var periodEnd: Date?
     public var runsAllowance: Int
 }
 
@@ -326,11 +328,12 @@ public struct BackendClient: Sendable {
         return try BackendCoding.decoder.decode(EntitlementInfo.self, from: data)
     }
 
-    public func startTrial(accessToken: String, installIDHash: String) async throws -> TrialInfo {
+    /// Claims the Free plan's monthly credits for this Mac (the route keeps its old name for installed apps).
+    public func claimFreeCredits(accessToken: String, installIDHash: String) async throws -> FreeInfo {
         let data = try await send("v1/trial/start", body: ["install_id_hash": installIDHash], token: accessToken)
-        struct Wire: Decodable { var plan: PlanKind; var trial_ends_at: Date?; var runs_allowance: Int }
+        struct Wire: Decodable { var plan: PlanKind; var period_end: Date?; var runs_allowance: Int }
         let w = try BackendCoding.decoder.decode(Wire.self, from: data)
-        return TrialInfo(plan: w.plan, trialEndsAt: w.trial_ends_at, runsAllowance: w.runs_allowance)
+        return FreeInfo(plan: w.plan, periodEnd: w.period_end, runsAllowance: w.runs_allowance)
     }
 
     /// Links a Lemon Squeezy licence key to this account (for people who bought before signing in).
@@ -399,7 +402,23 @@ func sha256Hex(_ data: Data) -> String {
 
 /// What the paywall sells (PRD section 7).
 public enum PaywallProduct: String, CaseIterable, Sendable {
-    case proYearly, proMonthly, lifetime, lifetimeRenewal
+    case proYearly, proMonthly, lifetime
+    /// Upgrade ladder for Power users: each costs half the one before (tier 1 = 50%, 2 = 25%, 3 = 12.5%).
+    /// Must match `UPGRADE_TIERS` in backend/config.ts.
+    case lifetimeUpgrade1, lifetimeUpgrade2, lifetimeUpgrade3
+
+    public static let upgradeTiers = 3
+
+    /// The upgrade product for a tier from `/v1/me`; past the last tier the last one is offered again.
+    public static func upgrade(tier: Int) -> PaywallProduct {
+        switch min(max(tier, 1), upgradeTiers) {
+        case 1: return .lifetimeUpgrade1
+        case 2: return .lifetimeUpgrade2
+        default: return .lifetimeUpgrade3
+        }
+    }
+
+    public var isUpgrade: Bool { [.lifetimeUpgrade1, .lifetimeUpgrade2, .lifetimeUpgrade3].contains(self) }
 
     /// StoreKit product id, the same ids as in App Store Connect.
     public var storeKitID: String {
@@ -407,7 +426,9 @@ public enum PaywallProduct: String, CaseIterable, Sendable {
         case .proYearly: return "pro_yearly"
         case .proMonthly: return "pro_monthly"
         case .lifetime: return "lifetime_byok"
-        case .lifetimeRenewal: return "lifetime_renewal"
+        case .lifetimeUpgrade1: return "lifetime_upgrade_1"
+        case .lifetimeUpgrade2: return "lifetime_upgrade_2"
+        case .lifetimeUpgrade3: return "lifetime_upgrade_3"
         }
     }
 

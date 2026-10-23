@@ -1,14 +1,15 @@
 // Plan resolution and period maths. Pure functions: no database, no clock (PRD section 2).
 
-export type Plan = "none" | "trial" | "lifetime" | "pro_monthly" | "pro_yearly";
+export type Plan = "none" | "free" | "lifetime" | "pro_monthly" | "pro_yearly";
 
 export interface EntitlementRow {
   id: string;
-  plan: Exclude<Plan, "none">;
+  plan: "lifetime" | "pro_monthly" | "pro_yearly";
   status: "active" | "expired" | "refunded";
   starts_at: number;
   expires_at: number | null;
   updates_until: number | null;
+  upgrade_count?: number;
 }
 
 export interface UsageCounts {
@@ -24,10 +25,10 @@ export interface Resolved {
 const isPro = (p: string) => p === "pro_monthly" || p === "pro_yearly";
 
 /**
- * First match wins: active Pro, then Lifetime, then an active trial that still has credits, else none.
- * `trialUsage` is the trial's usage row, if one exists yet.
+ * First match wins: active Pro, then Power user (lifetime), then Free if this Mac has claimed it, else none.
+ * Free never expires; running out of credits is decided by the metering write, not here.
  */
-export function resolvePlan(rows: EntitlementRow[], trialUsage: UsageCounts | null, now: number): Resolved {
+export function resolvePlan(rows: EntitlementRow[], freeEligible: boolean, now: number): Resolved {
   const pro = rows
     .filter((r) => isPro(r.plan) && r.status === "active" && r.starts_at <= now && (r.expires_at === null || r.expires_at > now))
     .sort((a, b) => (b.expires_at ?? Infinity) - (a.expires_at ?? Infinity))[0];
@@ -36,23 +37,17 @@ export function resolvePlan(rows: EntitlementRow[], trialUsage: UsageCounts | nu
   const lifetime = rows.filter((r) => r.plan === "lifetime" && r.status === "active").sort((a, b) => b.starts_at - a.starts_at)[0];
   if (lifetime) return { plan: "lifetime", entitlement: lifetime };
 
-  const trial = rows.find(
-    (r) => r.plan === "trial" && r.status === "active" && r.starts_at <= now && r.expires_at !== null && r.expires_at > now,
-  );
-  if (trial && (!trialUsage || trialUsage.used < trialUsage.allowance)) return { plan: "trial", entitlement: trial };
-
-  return { plan: "none", entitlement: null };
+  return freeEligible ? { plan: "free", entitlement: null } : { plan: "none", entitlement: null };
 }
 
-export type BlockReason = "trial_credits_exhausted" | "trial_expired" | "no_entitlement";
+export type BlockReason = "no_entitlement";
 
-/** Why a user with no usable plan is blocked. */
-export function blockReason(rows: EntitlementRow[], trialUsage: UsageCounts | null, now: number): BlockReason {
-  const trial = rows.find((r) => r.plan === "trial");
-  if (!trial) return "no_entitlement";
-  const live = trial.status === "active" && trial.expires_at !== null && trial.expires_at > now;
-  if (live && trialUsage && trialUsage.used >= trialUsage.allowance) return "trial_credits_exhausted";
-  return "trial_expired";
+/**
+ * The tier of the upgrade a Power user buys next. Upgrade n costs 50% of the previous price, so the ladder is
+ * `lifetime_upgrade_1` ... `_UPGRADE_TIERS`; past the last tier the last one is offered again.
+ */
+export function nextUpgradeTier(upgradeCount: number, tiers: number): number {
+  return Math.min(upgradeCount + 1, tiers);
 }
 
 /** `start` plus `n` calendar months in UTC; a day that does not exist in the target month clamps to its last day. */

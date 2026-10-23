@@ -20,7 +20,9 @@
     "MAIL_FROM": "Per My Last <login@permylast.app>",
     // Lemon Squeezy variant ids: fill in after creating the products in Lemon Squeezy.
     "LS_VARIANT_LIFETIME": "",
-    "LS_VARIANT_LIFETIME_RENEWAL": "",
+    "LS_VARIANT_LIFETIME_UPGRADE_1": "",
+    "LS_VARIANT_LIFETIME_UPGRADE_2": "",
+    "LS_VARIANT_LIFETIME_UPGRADE_3": "",
     "LS_VARIANT_PRO_MONTHLY": "",
     "LS_VARIANT_PRO_YEARLY": "",
     // Set to "Production,Sandbox" and "true" while testing payments; remove both before launch.

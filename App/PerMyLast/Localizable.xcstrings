@@ -2036,17 +2036,6 @@
         }
       }
     },
-    "Sign in to start your free trial.": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Đăng nhập để bắt đầu dùng thử miễn phí."
-          }
-        }
-      }
-    },
     "Email": {
       "extractionState": "manual",
       "localizations": {
@@ -2223,28 +2212,6 @@
         }
       }
     },
-    "A free trial has already been used on this Mac.": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Máy Mac này đã dùng thử miễn phí rồi."
-          }
-        }
-      }
-    },
-    "Trial: %lld runs · %lld days left": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dùng thử: còn %lld lượt · còn %lld ngày"
-          }
-        }
-      }
-    },
     "Pro: %lld / %lld runs · resets %@": {
       "extractionState": "manual",
       "localizations": {
@@ -2278,28 +2245,6 @@
         }
       }
     },
-    "Free trial ended": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Đã hết thời gian dùng thử"
-          }
-        }
-      }
-    },
-    "You have %lld free trial runs left.": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bạn còn %lld lượt dùng thử miễn phí."
-          }
-        }
-      }
-    },
     "You've used 80% of this month's runs (%lld left).": {
       "extractionState": "manual",
       "localizations": {
@@ -2307,17 +2252,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bạn đã dùng 80% số lượt của tháng này (còn %lld)."
-          }
-        }
-      }
-    },
-    "Your free trial ends in %lld days.": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Thời gian dùng thử miễn phí còn %lld ngày."
           }
         }
       }
@@ -2362,17 +2296,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Quá nhiều yêu cầu. Hãy thử lại sau %lld giây."
-          }
-        }
-      }
-    },
-    "Sign in in Settings to start your free trial, or add your own API key.": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hãy đăng nhập trong Cài đặt để bắt đầu dùng thử miễn phí, hoặc thêm khóa API của riêng bạn."
           }
         }
       }
@@ -2531,50 +2454,6 @@
         }
       }
     },
-    "Prefer to use your own Anthropic API key?": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Muốn dùng khóa API Anthropic của riêng bạn?"
-          }
-        }
-      }
-    },
-    "Lifetime: a one-time purchase, updates for 12 months, and you pay Anthropic directly.": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Trọn đời: mua một lần, cập nhật trong 12 tháng, và bạn trả tiền trực tiếp cho Anthropic."
-          }
-        }
-      }
-    },
-    "Get Lifetime": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mua gói Trọn đời"
-          }
-        }
-      }
-    },
-    "Get Lifetime · %@": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mua gói Trọn đời · %@"
-          }
-        }
-      }
-    },
     "Renew updates": {
       "extractionState": "manual",
       "localizations": {
@@ -2637,17 +2516,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Đóng"
-          }
-        }
-      }
-    },
-    "Your free trial has ended.": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Thời gian dùng thử miễn phí đã hết."
           }
         }
       }
@@ -2868,17 +2736,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Giao dịch này thuộc về tài khoản khác."
-          }
-        }
-      }
-    },
-    "Your free trial has ended. Choose a plan, or use your own Anthropic API key (Settings → General).": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Thời gian dùng thử miễn phí đã hết. Hãy chọn một gói, hoặc dùng khóa API Anthropic của riêng bạn (Cài đặt → Chung)."
           }
         }
       }
@@ -3422,39 +3279,6 @@
         }
       }
     },
-    "Start your free trial": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bắt đầu dùng thử miễn phí"
-          }
-        }
-      }
-    },
-    "%lld runs over %lld days. No card, no key to find.": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld lượt trong %lld ngày. Không cần thẻ, không cần tìm khóa."
-          }
-        }
-      }
-    },
-    "Trial started": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Đã bắt đầu dùng thử"
-          }
-        }
-      }
-    },
     "you@example.com": {
       "extractionState": "manual",
       "localizations": {
@@ -3473,17 +3297,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Gửi mã qua email"
-          }
-        }
-      }
-    },
-    "Start trial": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bắt đầu dùng thử"
           }
         }
       }
@@ -3642,17 +3455,6 @@
         }
       }
     },
-    "Connect a trial or your Claude key": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kết nối bản dùng thử hoặc khóa Claude của bạn"
-          }
-        }
-      }
-    },
     "Try the shortcut in another app": {
       "extractionState": "manual",
       "localizations": {
@@ -3737,6 +3539,270 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bước %lld/%lld"
+          }
+        }
+      }
+    },
+    "Free: %lld of %lld credits left · resets %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Miễn phí: còn %lld/%lld lượt · đặt lại %@"
+          }
+        }
+      }
+    },
+    "Free: %lld of %lld credits left": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Miễn phí: còn %lld/%lld lượt"
+          }
+        }
+      }
+    },
+    "You have %lld free credits left this month.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bạn còn %lld lượt miễn phí trong tháng này."
+          }
+        }
+      }
+    },
+    "Free credits have already been claimed on this Mac by another account.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Máy Mac này đã được một tài khoản khác nhận lượt miễn phí."
+          }
+        }
+      }
+    },
+    "Sign in to use your free credits.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đăng nhập để dùng lượt miễn phí của bạn."
+          }
+        }
+      }
+    },
+    "Sign in in Settings to use your free credits, or add your own API key.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hãy đăng nhập trong Cài đặt để dùng lượt miễn phí, hoặc thêm khóa API của riêng bạn."
+          }
+        }
+      }
+    },
+    "Start with free credits": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bắt đầu với lượt miễn phí"
+          }
+        }
+      }
+    },
+    "Get free credits": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhận lượt miễn phí"
+          }
+        }
+      }
+    },
+    "Free credits ready": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lượt miễn phí đã sẵn sàng"
+          }
+        }
+      }
+    },
+    "Connect free credits or your Claude key": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kết nối lượt miễn phí hoặc khóa Claude của bạn"
+          }
+        }
+      }
+    },
+    "%lld free credits every month. No card, no key to find.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld lượt miễn phí mỗi tháng. Không cần thẻ, không phải tìm khóa."
+          }
+        }
+      }
+    },
+    "You've used this month's free credits.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bạn đã dùng hết lượt miễn phí của tháng này."
+          }
+        }
+      }
+    },
+    "You've used this month's free credits. They renew on %@. Choose a plan, or use your own Anthropic API key (Settings → General).": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bạn đã dùng hết lượt miễn phí của tháng này. Lượt sẽ được làm mới vào %@. Hãy chọn một gói, hoặc dùng khóa API Anthropic của riêng bạn (Cài đặt → Chung)."
+          }
+        }
+      }
+    },
+    "You've used this month's free credits. Choose a plan, or use your own Anthropic API key (Settings → General).": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bạn đã dùng hết lượt miễn phí của tháng này. Hãy chọn một gói, hoặc dùng khóa API Anthropic của riêng bạn (Cài đặt → Chung)."
+          }
+        }
+      }
+    },
+    "Free": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Miễn phí"
+          }
+        }
+      }
+    },
+    "%lld credits every month. One credit is one prompt run.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld lượt mỗi tháng. Một lượt là một lần chạy lời nhắc."
+          }
+        }
+      }
+    },
+    "Subscription": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gói đăng ký"
+          }
+        }
+      }
+    },
+    "Monthly or yearly. Runs included, no key needed.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Theo tháng hoặc theo năm. Đã gồm lượt chạy, không cần khóa."
+          }
+        }
+      }
+    },
+    "Power user": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Người dùng nâng cao"
+          }
+        }
+      }
+    },
+    "Bring your own Claude key and pay Anthropic directly. One purchase includes updates for 12 months. After that, each upgrade costs half of your last payment, and halves again each time.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dùng khóa Claude của riêng bạn và trả tiền trực tiếp cho Anthropic. Một lần mua gồm cập nhật trong 12 tháng. Sau đó, mỗi lần nâng cấp có giá bằng một nửa lần thanh toán gần nhất và giảm một nửa nữa mỗi lần."
+          }
+        }
+      }
+    },
+    "Get Power user · %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mua gói Người dùng nâng cao · %@"
+          }
+        }
+      }
+    },
+    "Get Power user": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mua gói Người dùng nâng cao"
+          }
+        }
+      }
+    },
+    "Upgrade updates · %@ (half price)": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nâng cấp cập nhật · %@ (nửa giá)"
+          }
+        }
+      }
+    },
+    "Upgrade updates (half price)": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nâng cấp cập nhật (nửa giá)"
           }
         }
       }

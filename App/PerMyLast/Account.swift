@@ -223,18 +223,19 @@ final class AccountModel {
         store(s)
         message = nil
         email = ""; code = ""; emailStep = .enterEmail
-        await startTrialIfNeeded()
+        await claimFreeCreditsIfNeeded()
         await refreshEntitlement()
     }
 
-    /// FR-A9: the trial starts by itself on first sign-in. Safe to repeat; the server keeps one trial per account and Mac.
-    func startTrialIfNeeded() async {
+    /// FR-A9: the Free plan's monthly credits start by themselves on first sign-in. Safe to repeat; the server gives one
+    /// account per Mac its free credits.
+    func claimFreeCreditsIfNeeded() async {
         guard let backend, session != nil else { return }
         do {
             let token = try await validAccessToken()
-            _ = try await backend.startTrial(accessToken: token, installIDHash: installIDHash(installID()))
-        } catch let error as BackendError where error.kind == .trialAlreadyUsed {
-            show(L("A free trial has already been used on this Mac."), error: true)
+            _ = try await backend.claimFreeCredits(accessToken: token, installIDHash: installIDHash(installID()))
+        } catch let error as BackendError where error.kind == .installAlreadyUsed {
+            show(L("Free credits have already been claimed on this Mac by another account."), error: true)
         } catch {
             // Not fatal: the next refresh or launch tries again.
         }
@@ -316,9 +317,12 @@ final class AccountModel {
         guard signedIn else { return nil }
         guard let me = entitlement else { return nil }
         switch me.plan {
-        case .trial:
-            guard let left = me.runsLeft, let days = me.trialDaysLeft() else { return nil }
-            return L("Trial: \(left) runs · \(days) days left")
+        case .free:
+            guard let left = me.runsLeft, let allowance = me.runsAllowance else { return nil }
+            if let end = me.periodEnd {
+                return L("Free: \(left) of \(allowance) credits left · resets \(end.formatted(date: .abbreviated, time: .omitted))")
+            }
+            return L("Free: \(left) of \(allowance) credits left")
         case .proMonthly, .proYearly:
             guard let used = me.runsUsed, let allowance = me.runsAllowance else { return nil }
             if let end = me.periodEnd {
@@ -328,29 +332,22 @@ final class AccountModel {
         case .lifetime:
             return L("Using your Anthropic key")
         case .none:
-            return me.trialEndsAt != nil ? L("Free trial ended") : nil
+            return nil
         }
     }
 
-    /// Shows each warning once per period: at 80% of the allowance, and three days before the trial ends.
+    /// Shows each warning once per period, at 80% of the allowance.
     private func updateWarning() {
-        guard let me = entitlement, me.plan == .trial || me.plan.isPro else { return }
+        guard let me = entitlement, me.plan == .free || me.plan.isPro else { return }
         let defaults = UserDefaults.standard
         if let fraction = me.usedFraction, fraction >= AppConfig.warnAtFraction, let left = me.runsLeft {
             let key = "warned80-\(me.plan.rawValue)-\(Int(me.periodEnd?.timeIntervalSince1970 ?? 0))"
             if !defaults.bool(forKey: key) {
                 defaults.set(true, forKey: key)
-                warning = me.plan == .trial
-                    ? L("You have \(left) free trial runs left.")
+                warning = me.plan == .free
+                    ? L("You have \(left) free credits left this month.")
                     : L("You've used 80% of this month's runs (\(left) left).")
                 return
-            }
-        }
-        if me.plan == .trial, let days = me.trialDaysLeft(), days <= AppConfig.warnDaysBeforeTrialEnds, days > 0 {
-            let key = "warnedDays-\(Int(me.trialEndsAt?.timeIntervalSince1970 ?? 0))"
-            if !defaults.bool(forKey: key) {
-                defaults.set(true, forKey: key)
-                warning = L("Your free trial ends in \(days) days.")
             }
         }
     }
@@ -365,7 +362,7 @@ final class AccountModel {
         case .invalidCode: return L("That code is wrong or has expired.")
         case .invalidToken: return L("That sign-in couldn't be verified.")
         case .emailUnavailable: return L("We couldn't send the email. Try again later.")
-        case .trialAlreadyUsed: return L("A free trial has already been used on this Mac.")
+        case .installAlreadyUsed: return L("Free credits have already been claimed on this Mac by another account.")
         case .rateLimited: return L("Too many requests. Try again in \(error.retryAfter ?? 10) seconds.")
         case .unreachable: return L("You're offline. Connect to the internet to use your plan.")
         default: return error.message

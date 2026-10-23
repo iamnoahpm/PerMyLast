@@ -5,11 +5,14 @@ export const testEnv = env as unknown as Env;
 export const HOUR = 3_600_000;
 export const DAY = 24 * HOUR;
 
-export async function newUser(): Promise<string> {
+/** A signed-up account. `claimed` (default) means it has claimed its Mac, so the Free plan's monthly credits apply. */
+export async function newUser(claimed = true): Promise<string> {
   const id = crypto.randomUUID();
+  const created = Date.now() - HOUR;
   await testEnv.DB.batch([
-    testEnv.DB.prepare("INSERT INTO users (id, email, created_at) VALUES (?, ?, ?)").bind(id, `${id}@test`, Date.now()),
-    testEnv.DB.prepare("INSERT INTO profiles (user_id, created_at) VALUES (?, ?)").bind(id, Date.now()),
+    testEnv.DB.prepare("INSERT INTO users (id, email, created_at) VALUES (?, ?, ?)").bind(id, `${id}@test`, created),
+    testEnv.DB.prepare("INSERT INTO profiles (user_id, install_id_hash, created_at) VALUES (?, ?, ?)")
+      .bind(id, claimed ? (id.replaceAll("-", "") + id.replaceAll("-", "")).slice(0, 64) : null, created),
   ]);
   return id;
 }
