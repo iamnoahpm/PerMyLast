@@ -52,7 +52,6 @@ struct OnboardingView: View {
                 .accessibilityLabel(Text("Step \(current + 1) of \(OnboardingModel.Step.sequence.count)"))
             }
             Spacer()
-            Button("Skip setup") { flow.skip() }.buttonStyle(PMLGhostButtonStyle(tint: PMLColor.inkMuted))
         }
         .padding(.horizontal, PMLSpace.s5)
         .padding(.vertical, PMLSpace.s3)
@@ -70,7 +69,14 @@ struct OnboardingView: View {
             case .welcome:
                 Button("Show me") { flow.advance() }.buttonStyle(PMLPrimaryButtonStyle())
             case .shortcut:
-                Button("Start using Per My Last") { flow.finish() }.buttonStyle(PMLPrimaryButtonStyle())
+                // The shortcut is the product, so the way out is "it worked". Someone who can't or won't grant access can
+                // still go on: the shortcut then uses the clipboard (select, ⌘C, press the shortcut).
+                if !flow.shortcutWorked {
+                    Button("Continue without auto-copy") { flow.finish() }.buttonStyle(PMLGhostButtonStyle(tint: PMLColor.inkSoft))
+                }
+                Button("Start using Per My Last") { flow.finish() }
+                    .buttonStyle(PMLPrimaryButtonStyle())
+                    .disabled(!flow.shortcutWorked)
             case .firstWin:
                 Button("Next") { flow.advance(); flow.showPlansAfterFirstWin() }.buttonStyle(PMLPrimaryButtonStyle())
             case .access:
@@ -229,6 +235,7 @@ private struct ShortcutStep: View {
     @Environment(AppModel.self) private var model
     private let flow = OnboardingModel.shared
     @State private var accessGranted = AppModel.canCopySelection
+    @State private var askedForAccess = AppModel.didAskForCopyAccess
 
     var body: some View {
         heading("Use it anywhere", "Select text, press one shortcut.",
@@ -277,12 +284,24 @@ private struct ShortcutStep: View {
                     Text("To grab the text you’ve selected, Per My Last needs permission in System Settings → Privacy & Security → Accessibility. Without it, the shortcut uses whatever’s on your clipboard instead.")
                         .font(PMLFont.body).foregroundStyle(PMLColor.ink).fixedSize(horizontal: false, vertical: true)
                     AccessGuide()
-                    HStack(spacing: PMLSpace.s3) {
-                        Button("Allow access…") {
-                            FunnelLog.shared.log(.accessibilityRequested)
-                            AppModel.requestCopyAccess()
-                        }.buttonStyle(PMLInkButtonStyle())
+                    if askedForAccess {
+                        // Step 2 of granting: switch the app on in Settings, then restart so macOS applies it.
+                        Text("Switch Per My Last on in the list, then restart it so macOS applies the change. Your progress is saved.")
+                            .font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted).fixedSize(horizontal: false, vertical: true)
+                        HStack(spacing: PMLSpace.s3) {
+                            Button("Restart Per My Last") { AppModel.relaunch() }.buttonStyle(PMLPrimaryButtonStyle(size: .compact))
+                            Button("Open System Settings") { AppModel.requestCopyAccess() }.buttonStyle(PMLGhostButtonStyle(tint: PMLColor.accentText))
+                        }
                         AccessStatusLine(granted: $accessGranted)
+                    } else {
+                        HStack(spacing: PMLSpace.s3) {
+                            Button("Allow access…") {
+                                FunnelLog.shared.log(.accessibilityRequested)
+                                AppModel.requestCopyAccess()
+                                askedForAccess = true
+                            }.buttonStyle(PMLInkButtonStyle())
+                            AccessStatusLine(granted: $accessGranted)
+                        }
                     }
                 }
             }

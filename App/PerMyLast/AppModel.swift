@@ -1,4 +1,5 @@
 import AppKit
+import os
 import Observation
 import SwiftUI
 import PerMyLastCore
@@ -430,11 +431,14 @@ final class AppModel {
     /// macOS only allows that once the user grants Accessibility; without it, or with nothing selected, it uses
     /// whatever is already on the clipboard. The Services entry (see `ServicesProvider`) needs no permission.
     func handleHotKey() {
+        Self.captureLog.notice("hotkey fired, enabled=\(self.enabled, privacy: .public)")
         guard enabled else { return }
         Task { @MainActor in
             if let selection = await Self.copySelection() {
+                Self.captureLog.notice("captured selection, \(selection.count, privacy: .public) chars")
                 open(with: selection, source: .selection)
             } else if let text = NSPasteboard.general.string(forType: .string) {
+                Self.captureLog.notice("no selection captured, using clipboard, \(text.count, privacy: .public) chars")
                 open(with: text, source: .clipboard)
             }
         }
@@ -454,10 +458,28 @@ final class AppModel {
         if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") { NSWorkspace.shared.open(url) }
     }
 
+    /// Opens a fresh copy of this app and quits this one. macOS applies a newly granted Accessibility permission
+    /// only to processes started after the grant, so this is the step that makes "Allow access" take effect.
+    static func relaunch() {
+        let config = NSWorkspace.OpenConfiguration()
+        config.createsNewApplicationInstance = true
+        NSWorkspace.shared.openApplication(at: Bundle.main.bundleURL, configuration: config) { _, _ in
+            DispatchQueue.main.async { NSApp.terminate(nil) }
+        }
+    }
+
+    /// Whether the permission prompt has been shown already (so the next step is Settings, then a restart).
+    static var didAskForCopyAccess: Bool { UserDefaults.standard.bool(forKey: "didRequestPostEventAccess") }
+
     /// Sends ⌘C to the frontmost app and returns the text it copied, then puts the user's previous clipboard back.
     /// Nil if permission is missing or nothing was selected.
+    private static let captureLog = Logger(subsystem: "app.permylast", category: "capture")
+
     private static func copySelection() async -> String? {
-        guard CGPreflightPostEventAccess() || CGRequestPostEventAccess() else { return nil }
+        let allowed = CGPreflightPostEventAccess()
+        let front = NSWorkspace.shared.frontmostApplication?.bundleIdentifier ?? "?"
+        captureLog.notice("copySelection: postEventAccess=\(allowed, privacy: .public) frontmost=\(front, privacy: .public) sandboxed=\(ProcessInfo.processInfo.environment["APP_SANDBOX_CONTAINER_ID"] != nil, privacy: .public)")
+        guard allowed || CGRequestPostEventAccess() else { return nil }
         let pasteboard = NSPasteboard.general
         // Let go of the hotkey's own modifiers first, or the target app sees ⇧⌘⌥-C instead of ⌘C.
         for _ in 0..<20 where !NSEvent.modifierFlags.intersection([.shift, .option, .control, .command]).isEmpty {
@@ -479,7 +501,10 @@ final class AppModel {
         for _ in 0..<24 where pasteboard.changeCount == before {
             try? await Task.sleep(for: .milliseconds(25))
         }
-        guard pasteboard.changeCount != before else { return nil }
+        guard pasteboard.changeCount != before else {
+            captureLog.notice("copySelection: sent ⌘C but the clipboard did not change (nothing selected, or the event was ignored)")
+            return nil
+        }
         let text = pasteboard.string(forType: .string)
         pasteboard.clearContents()
         if !saved.isEmpty { pasteboard.writeObjects(saved) }
