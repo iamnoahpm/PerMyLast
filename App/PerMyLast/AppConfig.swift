@@ -44,13 +44,18 @@ enum AppConfig {
     /// Lemon Squeezy checkout links (direct build). Create the products in Lemon Squeezy, then paste each product's
     /// "Share" checkout link here. Empty means that product cannot be bought yet.
     static let checkoutLinks: [PaywallProduct: String] = [
-        .proYearly: "", .proMonthly: "", .lifetime: "", .lifetimeRenewal: "",
+        .proYearly: "", .proMonthly: "", .lifetime: "",
+        .lifetimeUpgrade1: "", .lifetimeUpgrade2: "", .lifetimeUpgrade3: "",
     ]
 
     /// Sign in with Apple needs the app signed with a real team and the capability enabled (see backend/README).
-    static let appleSignInEnabled = false
+    /// The Mac App Store build signs in with Apple only (one tap, no email codes). Enable the Sign in with Apple
+    /// capability in Xcode for the release target. The direct build keeps email and Google.
+    static var appleSignInEnabled: Bool { channel == .appStore }
+    static var emailSignInEnabled: Bool { channel != .appStore }
     /// Google OAuth client id (iOS/desktop type). Empty hides Google sign-in.
     static let googleClientID = ""
+    static var googleSignInEnabled: Bool { !googleClientID.isEmpty && channel != .appStore }
 
     /// FR-P7: the date this build was released. Update it for every release. A Lifetime licence whose 12 months of updates
     /// ended before this date cannot use the build (it shows "Renew updates to use this version").
@@ -64,11 +69,10 @@ enum AppConfig {
     /// Where Lifetime users can download the last build their licence covers. Empty hides the link.
     static let lastEligibleDownloadURL = ""
 
-    /// What the free trial includes, as the onboarding says it. Keep in step with TRIAL_CREDITS and TRIAL_DAYS in backend/config.ts.
-    static let trialRuns = 50
-    static let trialDays = 21
+    /// Credits the Free plan renews with every month, as the plans card and paywall say it. Keep in step with
+    /// FREE_MONTHLY_CREDITS in backend/config.ts.
+    static let freeCredits = 21
 
-    /// FR-A14: warn at this share of the allowance, and this many days before the trial ends.
+    /// FR-A14: warn at this share of the allowance.
     static let warnAtFraction = 0.8
-    static let warnDaysBeforeTrialEnds = 3
 }

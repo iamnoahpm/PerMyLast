@@ -1,3 +1,4 @@
+import { monthlyPeriod } from "../src/plans.ts";
 import { beforeEach, describe, expect, it } from "vitest";
 import { config } from "../config.ts";
 import { handleRequest } from "../src/app.ts";
@@ -40,46 +41,45 @@ function parseSse(text: string): { event: string; data: any }[] {
   });
 }
 
-async function withTrial(): Promise<string> {
-  const u = await newUser();
-  await grant(u, "trial", { starts: clock, expires: clock + config.TRIAL_DAYS * DAY });
-  return u;
+async function withFree(): Promise<string> {
+  return newUser();
 }
 
 beforeEach(() => { clock = Date.now(); sent.length = 0; });
 
-describe("POST /v1/trial/start (AC-1, AC-5)", () => {
+describe("POST /v1/trial/start (claims the Free plan's monthly credits, AC-5)", () => {
   const hash = (c: string) => c.repeat(64);
 
-  it("starts a 21-day, 50-run trial, and is idempotent", async () => {
-    const u = await newUser();
+  it("gives 21 credits a month, and is idempotent", async () => {
+    const u = await newUser(false);
+    expect((await (await call("/v1/me", { user: u, method: "GET" })).json<{ plan: string }>()).plan).toBe("none");
     const first = await call("/v1/trial/start", { user: u, body: { install_id_hash: hash("a") } });
     expect(first.status).toBe(200);
-    const body = await first.json<{ plan: string; trial_ends_at: string; runs_allowance: number }>();
-    expect(body).toMatchObject({ plan: "trial", runs_allowance: 50 });
-    expect(Date.parse(body.trial_ends_at) - clock).toBe(21 * DAY);
+    const body = await first.json<{ plan: string; period_end: string; runs_allowance: number }>();
+    expect(body).toMatchObject({ plan: "free", runs_allowance: 21 });
+    expect(Date.parse(body.period_end)).toBeGreaterThan(clock);
     const again = await (await call("/v1/trial/start", { user: u, body: { install_id_hash: hash("a") } })).json<typeof body>();
-    expect(again.trial_ends_at).toBe(body.trial_ends_at);
+    expect(again.period_end).toBe(body.period_end);
   });
 
-  it("a second account on the same install gets no trial", async () => {
-    const a = await newUser(), b = await newUser();
+  it("a second account on the same install gets no free credits", async () => {
+    const a = await newUser(false), b = await newUser(false);
     expect((await call("/v1/trial/start", { user: a, body: { install_id_hash: hash("b") } })).status).toBe(200);
     const res = await call("/v1/trial/start", { user: b, body: { install_id_hash: hash("b") } });
     expect(res.status).toBe(409);
-    expect((await res.json<{ error: { code: string } }>()).error.code).toBe("trial_already_used");
+    expect((await res.json<{ error: { code: string } }>()).error.code).toBe("install_already_used");
     expect((await (await call("/v1/me", { user: b, method: "GET" })).json<{ plan: string }>()).plan).toBe("none");
   });
 
-  it("the same account does not get a second trial on another install", async () => {
-    const u = await newUser();
-    const first = await (await call("/v1/trial/start", { user: u, body: { install_id_hash: hash("c") } })).json<{ trial_ends_at: string }>();
-    const other = await (await call("/v1/trial/start", { user: u, body: { install_id_hash: hash("d") } })).json<{ trial_ends_at: string }>();
-    expect(other.trial_ends_at).toBe(first.trial_ends_at);
+  it("the same account does not get extra credits on another install", async () => {
+    const u = await newUser(false);
+    const first = await (await call("/v1/trial/start", { user: u, body: { install_id_hash: hash("c") } })).json<{ period_end: string }>();
+    const other = await (await call("/v1/trial/start", { user: u, body: { install_id_hash: hash("d") } })).json<{ period_end: string }>();
+    expect(other.period_end).toBe(first.period_end);
   });
 
   it("validates the hash and needs sign-in", async () => {
-    expect((await call("/v1/trial/start", { user: await newUser(), body: { install_id_hash: "short" } })).status).toBe(400);
+    expect((await call("/v1/trial/start", { user: await newUser(false), body: { install_id_hash: "short" } })).status).toBe(400);
     expect((await call("/v1/trial/start", { body: { install_id_hash: hash("e") } })).status).toBe(401);
   });
 });
@@ -147,7 +147,7 @@ describe("POST /v1/run (AC-2, AC-3, AC-4)", () => {
   const run = (user: string, body: unknown = { template_id: "text.process", variables: { content: "Fix.\n\nText: hi" } }) => call("/v1/run", { user, body });
 
   it("streams the answer and uses one run (AC-2)", async () => {
-    const u = await withTrial();
+    const u = await withFree();
     let seen: any;
     upstream = async (req) => { seen = { headers: Object.fromEntries(req.headers), body: await req.json() }; return okStream()(); };
     const res = await run(u);
@@ -157,7 +157,7 @@ describe("POST /v1/run (AC-2, AC-3, AC-4)", () => {
     await settle();
     expect(events.map((e) => e.event)).toEqual(["delta", "delta", "done"]);
     expect(events.filter((e) => e.event === "delta").map((e) => e.data.text).join("")).toBe("Hello");
-    expect(events.at(-1)!.data.runs_remaining).toBe(config.TRIAL_CREDITS - 1);
+    expect(events.at(-1)!.data.runs_remaining).toBe(config.FREE_MONTHLY_CREDITS - 1);
     expect((await usage(u))?.used).toBe(1);
 
     // The server, not the app, decides the system prompt, model and limits (FR-B4/B5/B6).
@@ -175,7 +175,7 @@ describe("POST /v1/run (AC-2, AC-3, AC-4)", () => {
   });
 
   it("an upstream error returns 502 and the run is not used (AC-3)", async () => {
-    const u = await withTrial();
+    const u = await withFree();
     upstream = async () => new Response('{"error":{"type":"overloaded_error","message":"overloaded"}}', { status: 529 });
     const res = await run(u);
     expect(res.status).toBe(502);
@@ -187,14 +187,14 @@ describe("POST /v1/run (AC-2, AC-3, AC-4)", () => {
   });
 
   it("a network failure or timeout is refunded too", async () => {
-    const u = await withTrial();
+    const u = await withFree();
     upstream = async () => { throw new Error("connection reset"); };
     expect((await run(u)).status).toBe(502);
     expect((await usage(u))?.used).toBe(0);
   });
 
   it("a stream that dies before any text is refunded; one that dies after keeps the run", async () => {
-    const u = await withTrial();
+    const u = await withFree();
     upstream = async () => new Response(SSE(["error", { type: "error", error: { message: "boom" } }]));
     let events = parseSse(await (await run(u)).text());
     await settle();
@@ -209,7 +209,7 @@ describe("POST /v1/run (AC-2, AC-3, AC-4)", () => {
   });
 
   it("a client that disconnects before the first token is refunded", async () => {
-    const u = await withTrial();
+    const u = await withFree();
     let release!: () => void;
     const gate = new Promise<void>((r) => { release = r; });
     upstream = async () => new Response(new ReadableStream({
@@ -223,24 +223,18 @@ describe("POST /v1/run (AC-2, AC-3, AC-4)", () => {
     expect((await testEnv.DB.prepare("SELECT status FROM usage_events WHERE user_id = ?").bind(u).first<{ status: string }>())?.status).toBe("cancelled");
   });
 
-  it("blocks with a paywall code once the trial is over, and never calls Anthropic (AC-4)", async () => {
+  it("blocks with a paywall code once free credits are used up, and never calls Anthropic (AC-4)", async () => {
     let called = 0;
     upstream = async () => { called++; return okStream()(); };
-    const expired = await newUser();
-    await grant(expired, "trial", { starts: clock - 22 * DAY, expires: clock - DAY });
-    const e = await run(expired);
-    expect(e.status).toBe(402);
-    expect((await e.json<{ error: { code: string } }>()).error.code).toBe("trial_expired");
-
-    const out = await withTrial();
-    for (let i = 0; i < config.TRIAL_CREDITS; i++) { await (await run(out)).text(); await settle(); clock += 4000; }
+    const out = await withFree();
+    for (let i = 0; i < config.FREE_MONTHLY_CREDITS; i++) { await (await run(out)).text(); await settle(); clock += 4000; }
     const x = await run(out);
     expect(x.status).toBe(402);
-    expect((await x.json<{ error: { code: string } }>()).error.code).toBe("trial_credits_exhausted");
+    expect((await x.json<{ error: { code: string } }>()).error.code).toBe("free_credits_exhausted");
 
-    const none = await run(await newUser());
+    const none = await run(await newUser(false));
     expect((await none.json<{ error: { code: string } }>()).error.code).toBe("no_entitlement");
-    expect(called).toBe(config.TRIAL_CREDITS);
+    expect(called).toBe(config.FREE_MONTHLY_CREDITS);
   });
 
   it("Lifetime-only users get byok_required, and Pro hits quota_exhausted", async () => {
@@ -255,7 +249,7 @@ describe("POST /v1/run (AC-2, AC-3, AC-4)", () => {
   });
 
   it("enforces input limits and validates the request (FR-B4, FR-B5)", async () => {
-    const u = await withTrial();
+    const u = await withFree();
     upstream = okStream();
     const big = await run(u, { template_id: "text.process", variables: { content: "x".repeat(config.MAX_INPUT_CHARS + 1) } });
     expect(big.status).toBe(413);
@@ -274,7 +268,7 @@ describe("POST /v1/run (AC-2, AC-3, AC-4)", () => {
   });
 
   it("limits requests per minute and streams in flight (FR-B9)", async () => {
-    const u = await withTrial();
+    const u = await withFree();
     upstream = async () => new Response("", { status: 529 });
     const codes: number[] = [];
     for (let i = 0; i < config.RATE_LIMIT_PER_MIN + 1; i++) codes.push((await run(u)).status);
@@ -286,7 +280,7 @@ describe("POST /v1/run (AC-2, AC-3, AC-4)", () => {
     expect((await run(u)).status).toBe(502);
 
     // Two streams may be open; a third is refused until one finishes.
-    const v = await withTrial();
+    const v = await withFree();
     const gates: (() => void)[] = [];
     upstream = async () => new Response(new ReadableStream({
       start(c) { gates.push(() => { c.enqueue(new TextEncoder().encode(SSE(["content_block_delta", { type: "content_block_delta", delta: { type: "text_delta", text: "x" } }]))); c.close(); }); },
@@ -302,8 +296,10 @@ describe("POST /v1/run (AC-2, AC-3, AC-4)", () => {
   });
 
   it("100 parallel runs with one credit left: exactly one reaches Anthropic (AC-11 through the proxy)", async () => {
-    const u = await withTrial();
-    await testEnv.DB.prepare("INSERT INTO usage_periods (id, user_id, kind, period_start, period_end, allowance, used) SELECT ?, user_id, 'trial', starts_at, expires_at, 100, 99 FROM entitlements WHERE user_id = ? AND plan = 'trial'").bind(crypto.randomUUID(), u).run();
+    const u = await withFree();
+    const created = (await testEnv.DB.prepare("SELECT created_at FROM users WHERE id = ?").bind(u).first<{ created_at: number }>())!.created_at;
+    const period = monthlyPeriod(created, clock);
+    await testEnv.DB.prepare("INSERT INTO usage_periods (id, user_id, kind, period_start, period_end, allowance, used) VALUES (?, ?, 'free', ?, ?, 100, 99)").bind(crypto.randomUUID(), u, period.start, period.end).run();
     let called = 0;
     upstream = async () => { called++; return okStream()(); };
     const results = await Promise.all(Array.from({ length: 100 }, () => run(u)));
@@ -317,7 +313,7 @@ describe("POST /v1/run (AC-2, AC-3, AC-4)", () => {
 
 describe("secrets", () => {
   it("never puts the shared key in a response", async () => {
-    const u = await withTrial();
+    const u = await withFree();
     upstream = okStream();
     const text = await (await call("/v1/run", { user: u, body: { template_id: "text.process", variables: { content: "hi" } } })).text();
     await settle();

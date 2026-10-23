@@ -7,12 +7,13 @@ import { getMe } from "../src/me.ts";
 import { consumeRun, RunError } from "../src/metering.ts";
 import { verifyAppleJws } from "../src/x509.ts";
 import chain from "./fixtures/apple-test-chain.json";
-import { DAY, grant, newUser, testEnv } from "./helpers.ts";
+import { DAY, grant, newUser as claimedUser, testEnv } from "./helpers.ts";
+const newUser = () => claimedUser(false);
 
 const enc = new TextEncoder();
 const env = {
   ...testEnv, ANTHROPIC_API_KEY: "k", LS_WEBHOOK_SECRET: "ls-test-secret",
-  LS_VARIANT_LIFETIME: "111", LS_VARIANT_LIFETIME_RENEWAL: "222", LS_VARIANT_PRO_MONTHLY: "333", LS_VARIANT_PRO_YEARLY: "444",
+  LS_VARIANT_LIFETIME: "111", LS_VARIANT_LIFETIME_UPGRADE_1: "222", LS_VARIANT_LIFETIME_UPGRADE_2: "223", LS_VARIANT_LIFETIME_UPGRADE_3: "224", LS_VARIANT_PRO_MONTHLY: "333", LS_VARIANT_PRO_YEARLY: "444",
   APPSTORE_ENVIRONMENTS: "Production,Sandbox", LS_ACCEPT_TEST_MODE: "false",
 };
 let clock = Date.now();
@@ -41,10 +42,9 @@ const order = (id: string, variant: number, o: { status?: string; email?: string
 const sub = (id: string, variant: number, a: Record<string, unknown>) =>
   ({ type: "subscriptions", id, attributes: { variant_id: variant, status: "active", created_at: iso(clock - DAY), renews_at: iso(clock + 29 * DAY), ends_at: null, updated_at: iso(clock), ...a } });
 
-async function trialUser() {
-  const u = await newUser();
-  await grant(u, "trial", { starts: clock, expires: clock + 21 * DAY });
-  return u;
+/** Accounts here start without the Free plan unless a test asks for it, so "none" still means "nothing bought". */
+async function freeUser() {
+  return claimedUser(true);
 }
 
 describe("Lemon Squeezy webhook", () => {
@@ -56,15 +56,13 @@ describe("Lemon Squeezy webhook", () => {
     expect((await call("/webhooks/lemonsqueezy", { raw: "{}", e: { ...env, LS_WEBHOOK_SECRET: undefined as any } })).status).toBe(503);
   });
 
-  it("AC-6: a Lifetime purchase ends the trial and means bring-your-own-key", async () => {
-    const u = await trialUser();
+  it("AC-6: a Lifetime purchase replaces Free and means bring-your-own-key", async () => {
+    const u = await freeUser();
     expect((await ls("order_created", order("lt-1", 111), { user: u })).outcome).toBe("applied");
     const m = await me(u);
     expect(m).toMatchObject({ plan: "lifetime", owns_lifetime: true, runs_used: null });
     expect(Date.parse(m.updates_until)).toBeGreaterThan(clock + 360 * DAY);
     await expect(consumeRun(testEnv.DB, u, clock)).rejects.toMatchObject({ code: "byok_required" });
-    const t = await testEnv.DB.prepare("SELECT status FROM entitlements WHERE user_id = ? AND plan = 'trial'").bind(u).first<{ status: string }>();
-    expect(t?.status).toBe("expired");   // unused credits dropped
   });
 
   it("an identical delivery twice, or an unpaid order, changes nothing", async () => {
@@ -77,8 +75,8 @@ describe("Lemon Squeezy webhook", () => {
     expect(n?.n).toBe(1);
   });
 
-  it("AC-8: subscribing to Pro Yearly ends the trial and gives the monthly allowance", async () => {
-    const u = await trialUser();
+  it("AC-8: subscribing to Pro Yearly replaces Free and gives the monthly allowance", async () => {
+    const u = await freeUser();
     expect((await ls("subscription_created", sub("sub-1", 444, {}), { user: u })).outcome).toBe("applied");
     const m = await me(u);
     expect(m).toMatchObject({ plan: "pro_yearly", runs_allowance: config.PRO_MONTHLY_RUNS, runs_used: 0 });
@@ -147,6 +145,20 @@ describe("Lemon Squeezy webhook", () => {
     expect((await testEnv.DB.prepare("SELECT status FROM entitlements WHERE external_id = 'sub-7'").first<{ status: string }>())?.status).toBe("refunded");
     await ls("order_created", { ...order("lt-5", 111), attributes: { ...order("lt-5", 111).attributes, user_email: "again@example.com" } }, { user: u });
     expect((await testEnv.DB.prepare("SELECT status FROM entitlements WHERE external_id = 'lt-5'").first<{ status: string }>())?.status).toBe("refunded");
+  });
+
+  it("upgrades step down the price ladder: the product bought must be the one the account is due", async () => {
+    const u = await newUser();
+    await ls("order_created", order("lt-7", 111), { user: u });
+    expect((await me(u)).next_upgrade_tier).toBe(1);
+    expect((await ls("order_created", order("up-a", 223), { user: u })).outcome).toBe("applied"); // dearer than due is accepted
+    expect((await me(u)).next_upgrade_tier).toBe(2);
+    expect((await ls("order_created", order("up-b", 222), { user: u })).outcome).toBe("ignored");  // stale cheaper... tier 1 < due 2
+    expect((await ls("order_created", order("up-c", 223), { user: u })).outcome).toBe("applied");
+    expect((await ls("order_created", order("up-d", 224), { user: u })).outcome).toBe("applied");
+    expect((await me(u)).next_upgrade_tier).toBe(3);                                               // stays on the last tier
+    expect((await ls("order_created", order("up-e", 224), { user: u })).outcome).toBe("applied");
+    expect((await ls("order_created", order("up-f", 222), { user: u })).outcome).toBe("ignored");
   });
 
   it("an update renewal adds 12 months once, even if the order is delivered twice in different words", async () => {
@@ -260,15 +272,25 @@ describe("App Store signature checks", () => {
 });
 
 describe("POST /v1/purchases/storekit", () => {
-  it("AC-8: a Pro Yearly purchase unlocks the plan and ends the trial", async () => {
-    const u = await trialUser();
+  it("AC-8: a Pro Yearly purchase unlocks the plan and replaces Free", async () => {
+    const u = await freeUser();
     const res = await submit(u, txn(u));
     expect(res.status).toBe(200);
     expect(await res.json()).toMatchObject({ plan: "pro_yearly", runs_allowance: config.PRO_MONTHLY_RUNS });
   });
 
+  it("a free-trial transaction grants Pro until the trial ends, with no extra cap", async () => {
+    const u = await freeUser();
+    const res = await submit(u, txn(u, { originalTransactionId: "trial-sk-1", offerType: 1, offerDiscountType: "FREE_TRIAL", expiresDate: clock + 14 * DAY }));
+    expect(res.status).toBe(200);
+    const m = await me(u);
+    expect(m).toMatchObject({ plan: "pro_yearly", runs_allowance: config.PRO_MONTHLY_RUNS });
+    clock += 15 * DAY;                                                    // trial over, never converted: back to Free
+    expect((await me(u)).plan).toBe("free");
+  });
+
   it("AC-6: a Lifetime purchase gives the licence", async () => {
-    const u = await trialUser();
+    const u = await freeUser();
     await submit(u, txn(u, { productId: "lifetime_byok", originalTransactionId: "lt-sk-1", expiresDate: undefined }));
     expect(await me(u)).toMatchObject({ plan: "lifetime", owns_lifetime: true });
   });
@@ -298,9 +320,9 @@ describe("POST /v1/purchases/storekit", () => {
   it("a revoked transaction is a refund; an update renewal applies once per transaction", async () => {
     const u = await newUser();
     await submit(u, txn(u, { productId: "lifetime_byok", originalTransactionId: "lt-sk-3", expiresDate: undefined }));
-    await submit(u, txn(u, { productId: "lifetime_renewal", transactionId: "rn-sk-1", expiresDate: undefined }));
+    await submit(u, txn(u, { productId: "lifetime_upgrade_1", transactionId: "rn-sk-1", expiresDate: undefined }));
     const once = Date.parse((await me(u)).updates_until);
-    await submit(u, txn(u, { productId: "lifetime_renewal", transactionId: "rn-sk-1", expiresDate: undefined }));
+    await submit(u, txn(u, { productId: "lifetime_upgrade_1", transactionId: "rn-sk-1", expiresDate: undefined }));
     expect(Date.parse((await me(u)).updates_until)).toBe(once);
     await submit(u, txn(u, { productId: "lifetime_byok", originalTransactionId: "lt-sk-3", expiresDate: undefined, revocationDate: clock }));
     expect((await me(u)).plan).toBe("none");

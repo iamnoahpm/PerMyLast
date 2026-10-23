@@ -18,15 +18,14 @@ async function call(path: string, o: { method?: string; user?: string | null; to
 describe("GET /v1/me", () => {
   it("returns the plan for a signed-in user", async () => {
     const u = await newUser();
-    await grant(u, "trial", { starts: NOW, expires: NOW + 21 * DAY });
-    const res = await call("/v1/me", { user: u });
+        const res = await call("/v1/me", { user: u });
     expect(res.status).toBe(200);
     expect(res.headers.get("cache-control")).toBe("no-store");
-    expect(await res.json()).toMatchObject({ plan: "trial", runs_used: 0, runs_allowance: 50, owns_lifetime: false });
+    expect(await res.json()).toMatchObject({ plan: "free", runs_used: 0, runs_allowance: 21, owns_lifetime: false, next_upgrade_tier: null });
   });
 
-  it("a new account has no plan yet", async () => {
-    expect(await (await call("/v1/me", { user: await newUser() })).json()).toMatchObject({ plan: "none", runs_used: null, trial_ends_at: null });
+  it("an account that has not claimed its Mac has no plan yet", async () => {
+    expect(await (await call("/v1/me", { user: await newUser(false) })).json()).toMatchObject({ plan: "none", runs_used: null, period_end: null });
   });
 
   it("is 401 without a valid token", async () => {

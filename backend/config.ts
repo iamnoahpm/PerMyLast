@@ -1,10 +1,8 @@
 // Config for the backend (PRD section 11): one place, no hard-coded values elsewhere.
 // Values marked "placeholder" are the PRD's suggestions; set them from measured cost in Phase 3.
 export const config = {
-  /** Days a trial lasts. */
-  TRIAL_DAYS: 21,
-  /** Runs in the trial. Decided: 50. */
-  TRIAL_CREDITS: 50,
+  /** Credits (one credit = one prompt run) the Free plan renews with every month. */
+  FREE_MONTHLY_CREDITS: 21,
   /** Runs per month for Pro (monthly and yearly). */
   PRO_MONTHLY_RUNS: 1000,
 
@@ -34,8 +32,13 @@ export const config = {
 
   /** Bundle id the App Store transactions must belong to. */
   BUNDLE_ID: "app.permylast",
-  /** Months of updates a Lifetime purchase or renewal buys (PRD section 7). */
+  /** Months of updates a Power user (lifetime) purchase or upgrade buys. */
   UPDATE_WINDOW_MONTHS: 12,
+  /**
+   * Each upgrade costs half the previous purchase: base price, then 50%, 25%, ... Stores sell fixed prices, so every
+   * step is its own product (`lifetime_upgrade_1` ... `_N`). Past step N the last product is offered again.
+   */
+  UPGRADE_TIERS: 3,
   /** Days of access kept while a subscription payment is being retried (FR-P5). */
   GRACE_DAYS: 7,
   /** SHA-256 of Apple Root CA - G3 (DER). App Store signatures must chain to it. Source: apple.com/certificateauthority. */

@@ -18,7 +18,6 @@ describe("NFR-6: larger models cost more runs", () => {
 
   it("a heavy run uses its weight, a refund gives back exactly that much", async () => {
     const u = await newUser();
-    await grant(u, "trial", { starts: Date.now(), expires: Date.now() + 21 * DAY });
     const light = await consumeRun(db, u, Date.now(), 1);
     const heavy = await consumeRun(db, u, Date.now(), 4);
     expect((await usage(u))?.used).toBe(5);
@@ -55,7 +54,6 @@ describe("NFR-6: larger models cost more runs", () => {
     await db.prepare("INSERT INTO templates (id, version, json, active) VALUES ('ask', 2, ?, 1)")
       .bind(JSON.stringify({ id: "ask", version: 2, system: "s", user_template: "{{content}}", variables: ["content"], model: "claude-sonnet-5", max_tokens: 99999 })).run();
     const u = await newUser();
-    await grant(u, "trial", { starts: Date.now(), expires: Date.now() + 21 * DAY });
 
     let seen: any;
     const ok: Deps = { now: () => Date.now(), sendEmail: async () => {}, fetch: (async (_u: unknown, init: RequestInit) => {
@@ -87,7 +85,6 @@ describe("NFR-4: no prompt or output text is stored", () => {
   it("no column of any table holds the text of a run", async () => {
     const marker = "ZZ-UNIQUE-PROMPT-MARKER-ZZ";
     const u = await newUser();
-    await grant(u, "trial", { starts: Date.now(), expires: Date.now() + 21 * DAY });
     const deps: Deps = { now: () => Date.now(), sendEmail: async () => {}, fetch: (async () =>
       new Response(`event: content_block_delta\ndata: {"type":"content_block_delta","delta":{"type":"text_delta","text":"${marker}-OUT"}}\n\n`)) as unknown as typeof fetch };
     const pending: Promise<unknown>[] = [];

@@ -58,7 +58,7 @@ struct ProxyClientTests {
     }
 
     @Test func mapsServerErrorCodes() async {
-        for (status, code, kind) in [(402, "trial_expired", BackendError.Kind.trialExpired), (402, "trial_credits_exhausted", .trialCreditsExhausted),
+        for (status, code, kind) in [(402, "free_credits_exhausted", BackendError.Kind.freeCreditsExhausted),
                                      (402, "no_entitlement", .noEntitlement), (402, "quota_exhausted", .quotaExhausted),
                                      (402, "byok_required", .byokRequired), (401, "unauthenticated", .unauthenticated),
                                      (413, "input_too_large", .inputTooLarge), (502, "upstream_error", .upstream)] {
@@ -85,8 +85,7 @@ struct ProxyClientTests {
     }
 
     @Test func paywallCodesAreFlagged() {
-        #expect(BackendError(code: "trial_expired", message: "").showsPaywall)
-        #expect(BackendError(code: "trial_credits_exhausted", message: "").showsPaywall)
+        #expect(BackendError(code: "free_credits_exhausted", message: "").showsPaywall)
         #expect(BackendError(code: "no_entitlement", message: "").showsPaywall)
         #expect(!BackendError(code: "quota_exhausted", message: "").showsPaywall)
         #expect(!BackendError(code: "byok_required", message: "").showsPaywall)
@@ -132,7 +131,7 @@ struct AIClientFactoryTests {
     }
 
     @Test func followsTheRoutingTableOfThePRD() {
-        #expect(route(e(.trial)) == .proxy)
+        #expect(route(e(.free)) == .proxy)
         #expect(route(e(.proMonthly)) == .proxy)
         #expect(route(e(.proYearly), key: true) == .proxy)
         #expect(route(e(.lifetime), key: true) == .direct)
@@ -149,13 +148,13 @@ struct AIClientFactoryTests {
         #expect(route(e(.proYearly, lifetime: false), key: true, prefer: true) == .proxy)   // no licence, no switch
     }
 
-    @Test func untilPurchasesExistAKeyIsFreeAndNeverSpendsTrialCredits() {
-        #expect(route(e(.trial), key: true, license: false) == .direct)
+    @Test func untilPurchasesExistAKeyIsFreeAndNeverSpendsFreeCredits() {
+        #expect(route(e(.free), key: true, license: false) == .direct)
         #expect(route(e(.none), key: true, license: false) == .direct)
         #expect(route(nil, signedIn: false, key: true, license: false) == .direct)
         #expect(route(e(.proMonthly), key: true, prefer: true, license: false) == .direct)
         #expect(route(e(.proMonthly), key: true, prefer: false, license: false) == .proxy)
-        #expect(route(e(.trial), key: false, license: false) == .proxy)
+        #expect(route(e(.free), key: false, license: false) == .proxy)
         #expect(route(nil, signedIn: false, key: false, license: false) == .signIn)
     }
 }
@@ -166,19 +165,19 @@ struct BackendClientTests {
 
     @Test func decodesMeWithAndWithoutFractionalSeconds() async throws {
         let t = FakeHTTP()
-        t.body = Data(#"{"plan":"pro_yearly","trial_ends_at":"2026-11-12T00:00:00.000Z","runs_used":3,"runs_allowance":1000,"period_end":"2026-11-30T10:00:00Z","owns_lifetime":true,"updates_until":null}"#.utf8)
+        t.body = Data(#"{"plan":"pro_yearly","runs_used":3,"runs_allowance":1000,"period_end":"2026-11-30T10:00:00Z","owns_lifetime":true,"updates_until":null,"next_upgrade_tier":2}"#.utf8)
         let me = try await BackendClient(baseURL: base, transport: t).me(accessToken: "tok")
         #expect(me.plan == .proYearly && me.plan.isPro && me.runsLeft == 997 && me.ownsLifetime)
-        #expect(me.trialEndsAt != nil && me.periodEnd != nil && me.updatesUntil == nil)
+        #expect(me.periodEnd != nil && me.updatesUntil == nil && me.nextUpgradeTier == 2)
         #expect(t.requests[0].value(forHTTPHeaderField: "Authorization") == "Bearer tok")
         #expect(t.requests[0].httpMethod == "GET")
     }
 
-    @Test func trialMeterMaths() {
-        let me = EntitlementInfo(plan: .trial, trialEndsAt: now.addingTimeInterval(20.2 * 86_400), runsUsed: 40, runsAllowance: 50)
-        #expect(me.usedFraction == 0.8 && me.runsLeft == 10 && me.trialDaysLeft(now: now) == 21)
+    @Test func freeMeterMaths() {
+        let me = EntitlementInfo(plan: .free, runsUsed: 17, runsAllowance: 21, periodEnd: now.addingTimeInterval(20.2 * 86_400))
+        #expect(me.runsLeft == 4 && me.usedFraction == 17.0 / 21.0 && me.daysUntilRenewal(now: now) == 21)
         #expect(EntitlementInfo(plan: .lifetime).usedFraction == nil)
-        #expect(EntitlementInfo(plan: .trial, trialEndsAt: now.addingTimeInterval(-5), runsUsed: 0, runsAllowance: 50).trialDaysLeft(now: now) == 0)
+        #expect(EntitlementInfo(plan: .free, runsUsed: 0, runsAllowance: 21, periodEnd: now.addingTimeInterval(-5)).daysUntilRenewal(now: now) == 0)
     }
 
     @Test func verifyEmailCodeBuildsASession() async throws {
@@ -207,11 +206,11 @@ struct BackendClientTests {
         #expect((list[1]["props"] as? [String: String]) == ["step": "welcome"])
     }
 
-    @Test func startTrialSendsTheHashedInstallID() async throws {
+    @Test func claimingFreeCreditsSendsTheHashedInstallID() async throws {
         let t = FakeHTTP()
-        t.body = Data(#"{"plan":"trial","trial_ends_at":"2026-11-12T00:00:00.000Z","runs_allowance":50}"#.utf8)
-        let info = try await BackendClient(baseURL: base, transport: t).startTrial(accessToken: "tok", installIDHash: installIDHash("abc"))
-        #expect(info.runsAllowance == 50 && info.plan == .trial)
+        t.body = Data(#"{"plan":"free","period_end":"2026-11-12T00:00:00.000Z","runs_allowance":21}"#.utf8)
+        let info = try await BackendClient(baseURL: base, transport: t).claimFreeCredits(accessToken: "tok", installIDHash: installIDHash("abc"))
+        #expect(info.runsAllowance == 21 && info.plan == .free && info.periodEnd != nil)
         let raw = try #require(t.requests[0].httpBody)
         let body = try #require(JSONSerialization.jsonObject(with: raw) as? [String: String])
         #expect(body["install_id_hash"] == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad")   // SHA-256("abc")
@@ -220,11 +219,11 @@ struct BackendClientTests {
     @Test func surfacesServerErrorsAndRetryAfter() async {
         let t = FakeHTTP()
         t.status = 409
-        t.body = Data(#"{"error":{"code":"trial_already_used","message":"A free trial has already been used on this Mac."}}"#.utf8)
+        t.body = Data(#"{"error":{"code":"install_already_used","message":"Free credits have already been claimed on this Mac."}}"#.utf8)
         do {
-            _ = try await BackendClient(baseURL: base, transport: t).startTrial(accessToken: "t", installIDHash: "x")
+            _ = try await BackendClient(baseURL: base, transport: t).claimFreeCredits(accessToken: "t", installIDHash: "x")
             Issue.record("expected an error")
-        } catch let e as BackendError { #expect(e.kind == .trialAlreadyUsed && e.status == 409) } catch {}
+        } catch let e as BackendError { #expect(e.kind == .installAlreadyUsed && e.status == 409) } catch {}
 
         t.status = 429
         t.body = Data("<html>".utf8)
@@ -251,10 +250,17 @@ struct PurchaseTests {
         #expect(PaywallProduct.proYearly.storeKitID == "pro_yearly")
         #expect(PaywallProduct.proMonthly.storeKitID == "pro_monthly")
         #expect(PaywallProduct.lifetime.storeKitID == "lifetime_byok")
-        #expect(PaywallProduct.lifetimeRenewal.storeKitID == "lifetime_renewal")
+        #expect(PaywallProduct.lifetimeUpgrade1.storeKitID == "lifetime_upgrade_1")
+        #expect(PaywallProduct.lifetimeUpgrade3.storeKitID == "lifetime_upgrade_3")
         for p in PaywallProduct.allCases { #expect(PaywallProduct(storeKitID: p.storeKitID) == p) }
         #expect(PaywallProduct(storeKitID: "gems") == nil)
         #expect(PaywallProduct.proYearly.isSubscription && !PaywallProduct.lifetime.isSubscription)
+    }
+
+    @Test func upgradeLadderFollowsTheServersTierAndStopsAtTheLast() {
+        #expect([0, 1, 2, 3, 4, 9].map { PaywallProduct.upgrade(tier: $0) } ==
+                [.lifetimeUpgrade1, .lifetimeUpgrade1, .lifetimeUpgrade2, .lifetimeUpgrade3, .lifetimeUpgrade3, .lifetimeUpgrade3])
+        #expect(PaywallProduct.allCases.filter(\.isUpgrade).count == PaywallProduct.upgradeTiers)
     }
 
     @Test func checkoutURLCarriesOnlyTheAccountID() throws {
@@ -323,7 +329,7 @@ struct PolicyTests {
         #expect(status(build: days(10)) == .ok)                                         // released the day updates end
         #expect(status(build: days(11)) == .renewalNeeded(updatesUntil: until))
         #expect(status(.proYearly, build: days(11)) == .ok)                             // Pro is unaffected
-        #expect(status(.trial, build: days(11)) == .ok)
+        #expect(status(.free, build: days(11)) == .ok)
         #expect(status(until: nil, build: days(11)) == .ok)                             // unknown end: never lock anyone out
     }
 

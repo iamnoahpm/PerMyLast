@@ -19,7 +19,18 @@ struct AccountSection: View {
     }
 
     @ViewBuilder private func signedOut(account: Bindable<AccountModel>) -> some View {
-        Text("Sign in to start your free trial.").foregroundStyle(PMLColor.inkMuted)
+        Text("Sign in to use your free credits.").foregroundStyle(PMLColor.inkMuted)
+        if AppConfig.emailSignInEnabled { emailSignIn(account: account) }
+        if AppConfig.appleSignInEnabled || AppConfig.googleSignInEnabled {
+            HStack {
+                if AppConfig.appleSignInEnabled { Button("Sign in with Apple") { self.account.signInWithApple() } }
+                if AppConfig.googleSignInEnabled { Button("Sign in with Google") { Task { await self.account.signInWithGoogle() } } }
+            }
+            .disabled(self.account.isBusy)
+        }
+    }
+
+    @ViewBuilder private func emailSignIn(account: Bindable<AccountModel>) -> some View {
         switch self.account.emailStep {
         case .enterEmail:
             HStack {
@@ -39,13 +50,6 @@ struct AccountSection: View {
                     .disabled(self.account.isBusy || self.account.code.trimmingCharacters(in: .whitespaces).count != 6)
                 Button("Use a different email") { self.account.useDifferentEmail() }.buttonStyle(PMLGhostButtonStyle())
             }
-        }
-        if AppConfig.appleSignInEnabled || !AppConfig.googleClientID.isEmpty {
-            HStack {
-                if AppConfig.appleSignInEnabled { Button("Sign in with Apple") { self.account.signInWithApple() } }
-                if !AppConfig.googleClientID.isEmpty { Button("Sign in with Google") { Task { await self.account.signInWithGoogle() } } }
-            }
-            .disabled(self.account.isBusy)
         }
     }
 

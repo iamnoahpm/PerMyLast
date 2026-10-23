@@ -40,7 +40,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             AppModel.shared.applyShortcut()
             PurchaseService.shared.startListening()
             Task { @MainActor in
-                await AccountModel.shared.startTrialIfNeeded()
+                await AccountModel.shared.claimFreeCreditsIfNeeded()
                 await AccountModel.shared.refreshEntitlement()
             }
 

@@ -18,11 +18,19 @@ export async function verifySignature(rawBody: string, signature: string | null,
   return diff === 0;
 }
 
+/** Upgrade variants, tier 1 first: `LS_VARIANT_LIFETIME_UPGRADE_1` ... `_N` (config.UPGRADE_TIERS), each half the price before. */
+function upgradeTier(env: Env, v: string): number {
+  for (let tier = 1; tier <= config.UPGRADE_TIERS; tier++) {
+    if (v === (env as unknown as Record<string, string | undefined>)[`LS_VARIANT_LIFETIME_UPGRADE_${tier}`]) return tier;
+  }
+  return 0;
+}
+
 function productFor(env: Env, variantId: unknown): ProductKind | null {
   const v = String(variantId ?? "");
   if (!v) return null;
   if (v === env.LS_VARIANT_LIFETIME) return "lifetime";
-  if (v === env.LS_VARIANT_LIFETIME_RENEWAL) return "lifetime_renewal";
+  if (upgradeTier(env, v)) return "lifetime_renewal";
   if (v === env.LS_VARIANT_PRO_MONTHLY) return "pro_monthly";
   if (v === env.LS_VARIANT_PRO_YEARLY) return "pro_yearly";
   return null;
@@ -57,14 +65,15 @@ export async function handleLemonSqueezy(env: Env, deps: Deps, rawBody: string):
       const product = productFor(env, attrs.first_order_item?.variant_id);
       if (product !== "lifetime" && product !== "lifetime_renewal") break; // subscription orders are handled by the subscription events
       const orderId = String(data.id);
+      const tier = upgradeTier(env, String(attrs.first_order_item?.variant_id ?? ""));
       const purchasedAt = ms(attrs.created_at) ?? now;
       if (userId && (await userExists(env.DB, userId))) {
         if (product === "lifetime") { await grantLifetime(env.DB, userId, "lemonsqueezy", orderId, purchasedAt, now); outcome = "applied"; }
-        else if (await applyRenewal(env.DB, userId, "lemonsqueezy", orderId, now)) outcome = "applied";
+        else if (await applyRenewal(env.DB, userId, "lemonsqueezy", orderId, tier, now)) outcome = "applied";
       } else {
         // Bought without being signed in: kept until the buyer enters the licence key in the app (FR-P4).
-        await env.DB.prepare("INSERT OR IGNORE INTO pending_licenses (order_id, source, kind, email, purchased_at, created_at) VALUES (?, 'lemonsqueezy', ?, ?, ?, ?)")
-          .bind(orderId, product, typeof attrs.user_email === "string" ? attrs.user_email.toLowerCase() : null, purchasedAt, now).run();
+        await env.DB.prepare("INSERT OR IGNORE INTO pending_licenses (order_id, source, kind, tier, email, purchased_at, created_at) VALUES (?, 'lemonsqueezy', ?, ?, ?, ?, ?)")
+          .bind(orderId, product, tier || 1, typeof attrs.user_email === "string" ? attrs.user_email.toLowerCase() : null, purchasedAt, now).run();
         outcome = "applied";
       }
       break;

@@ -68,6 +68,14 @@ final class OnboardingModel {
         go(to: Step.sequence[i + 1])
     }
 
+    /// The paywall appears once, right after the first win: the person has seen the app work, and the plans (free
+    /// credits, a trial, a subscription) are the next question. Never before payments are open.
+    func showPlansAfterFirstWin() {
+        guard AppConfig.paymentsLive, !defaults.bool(forKey: "plansShownAfterFirstWin") else { return }
+        defaults.set(true, forKey: "plansShownAfterFirstWin")
+        WindowCoordinator.shared.showPaywall()
+    }
+
     func back() {
         guard let i = step.index, i > 0 else { return }
         go(to: Step.sequence[i - 1])
@@ -155,7 +163,7 @@ final class OnboardingModel {
     var hasAccess: Bool { !AppModel.shared.apiKey.isEmpty || AccountModel.shared.signedIn }
 
     var checklist: [Item] {
-        [Item(id: .access, title: "Connect a trial or your Claude key", done: hasAccess),
+        [Item(id: .access, title: "Connect free credits or your Claude key", done: hasAccess),
          Item(id: .shortcut, title: "Try the shortcut in another app", done: shortcutWorked),
          Item(id: .firstWin, title: "Write your first real draft", done: hadFirstRealRun)]
     }

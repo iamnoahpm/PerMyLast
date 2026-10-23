@@ -35,9 +35,8 @@ export function renderTemplate(t: Template, values: Record<string, string>): str
 const RUN_ERRORS: Record<RunErrorCode, { status: number; message: string }> = {
   byok_required: { status: 402, message: "Your plan uses your own Anthropic API key." },
   quota_exhausted: { status: 402, message: "You've used this month's runs." },
-  trial_credits_exhausted: { status: 402, message: "You've used all your free trial runs." },
-  trial_expired: { status: 402, message: "Your free trial has ended." },
-  no_entitlement: { status: 402, message: "Start your free trial or choose a plan to continue." },
+  free_credits_exhausted: { status: 402, message: "You've used this month's free credits." },
+  no_entitlement: { status: 402, message: "Sign in on this Mac to use your free credits, or choose a plan." },
 };
 
 interface UpstreamUsage { input: number; output: number; cacheRead: number; cacheWrite: number }

@@ -1,27 +1,29 @@
 import { config } from "../config.ts";
 import { loadPlanInputs } from "./metering.ts";
-import { monthlyPeriod, resolvePlan, type Plan } from "./plans.ts";
+import { monthlyPeriod, nextUpgradeTier, resolvePlan, type Plan } from "./plans.ts";
 
 export interface Me {
   plan: Plan;
-  trial_ends_at: string | null;
   runs_used: number | null;
   runs_allowance: number | null;
+  /** End of the current monthly period (Free and Pro): when credits renew. */
   period_end: string | null;
   owns_lifetime: boolean;
   updates_until: string | null;
+  /** Power user only: which `lifetime_upgrade_N` product the next upgrade is (price halves each step). */
+  next_upgrade_tier: number | null;
 }
 
 const iso = (ms: number | null | undefined) => (ms == null ? null : new Date(ms).toISOString());
 
 /** Body of GET /v1/me. */
 export async function getMe(db: D1Database, userId: string, now = Date.now()): Promise<Me> {
-  const { rows, trialUsage } = await loadPlanInputs(db, userId);
-  const trial = rows.find((r) => r.plan === "trial");
-  const { plan, entitlement } = resolvePlan(rows, trialUsage, now);
+  const { rows, freeEligible, freeAnchor, freeUsage } = await loadPlanInputs(db, userId, now);
+  const { plan, entitlement } = resolvePlan(rows, freeEligible, now);
 
   const lifetimes = rows.filter((r) => r.plan === "lifetime" && r.status === "active");
   const updates = lifetimes.map((r) => r.updates_until).filter((v): v is number => v !== null);
+  const upgrades = lifetimes.length ? Math.max(...lifetimes.map((r) => r.upgrade_count ?? 0)) : 0;
 
   let used: number | null = null;
   let allowance: number | null = null;
@@ -36,20 +38,19 @@ export async function getMe(db: D1Database, userId: string, now = Date.now()): P
     used = row?.used ?? 0;
     allowance = row?.allowance ?? config.PRO_MONTHLY_RUNS;
     periodEnd = period.end;
-  } else if (trial && (plan === "trial" || plan === "none")) {
-    // Trial numbers while it runs, and after it ends so the app can say why.
-    used = trialUsage?.used ?? 0;
-    allowance = trialUsage?.allowance ?? config.TRIAL_CREDITS;
-    periodEnd = trial.expires_at;
+  } else if (plan === "free") {
+    used = freeUsage?.used ?? 0;
+    allowance = freeUsage?.allowance ?? config.FREE_MONTHLY_CREDITS;
+    periodEnd = monthlyPeriod(freeAnchor, now).end;
   }
 
   return {
     plan,
-    trial_ends_at: iso(trial?.expires_at),
     runs_used: used,
     runs_allowance: allowance,
     period_end: iso(periodEnd),
     owns_lifetime: lifetimes.length > 0,
     updates_until: iso(updates.length ? Math.max(...updates) : null),
+    next_upgrade_tier: lifetimes.length ? nextUpgradeTier(upgrades, config.UPGRADE_TIERS) : null,
   };
 }

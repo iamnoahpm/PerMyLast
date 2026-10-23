@@ -18,7 +18,10 @@ export interface Env {
   LS_WEBHOOK_SECRET?: string;
   /** Lemon Squeezy variant ids (public) for each product. */
   LS_VARIANT_LIFETIME?: string;
-  LS_VARIANT_LIFETIME_RENEWAL?: string;
+  /** One variant per upgrade tier, each half the price of the one before (config.UPGRADE_TIERS). */
+  LS_VARIANT_LIFETIME_UPGRADE_1?: string;
+  LS_VARIANT_LIFETIME_UPGRADE_2?: string;
+  LS_VARIANT_LIFETIME_UPGRADE_3?: string;
   LS_VARIANT_PRO_MONTHLY?: string;
   LS_VARIANT_PRO_YEARLY?: string;
   /** "true" while testing: accept Lemon Squeezy test-mode events. Never in production. */

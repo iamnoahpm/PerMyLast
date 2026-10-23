@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addMonths, blockReason, monthlyPeriod, resolvePlan, type EntitlementRow } from "../src/plans.ts";
+import { addMonths, monthlyPeriod, nextUpgradeTier, resolvePlan, type EntitlementRow } from "../src/plans.ts";
 
 const NOW = Date.UTC(2026, 9, 22, 12);
 const DAY = 86_400_000;
@@ -8,39 +8,29 @@ const row = (plan: EntitlementRow["plan"], o: Partial<EntitlementRow> = {}): Ent
 });
 
 describe("resolvePlan", () => {
-  it("is none without entitlements", () => expect(resolvePlan([], null, NOW).plan).toBe("none"));
+  it("is none without entitlements or a claimed Mac", () => expect(resolvePlan([], false, NOW).plan).toBe("none"));
+  it("is free once the Mac is claimed", () => expect(resolvePlan([], true, NOW).plan).toBe("free"));
 
-  it("orders Pro > Lifetime > trial", () => {
-    const trial = row("trial", { expires_at: NOW + 20 * DAY });
-    expect(resolvePlan([trial], null, NOW).plan).toBe("trial");
-    expect(resolvePlan([trial, row("lifetime")], null, NOW).plan).toBe("lifetime");
-    expect(resolvePlan([trial, row("lifetime"), row("pro_yearly", { expires_at: NOW + 300 * DAY })], null, NOW).plan).toBe("pro_yearly");
+  it("orders Pro > Power user > Free", () => {
+    expect(resolvePlan([row("lifetime")], true, NOW).plan).toBe("lifetime");
+    expect(resolvePlan([row("lifetime"), row("pro_yearly", { expires_at: NOW + 300 * DAY })], true, NOW).plan).toBe("pro_yearly");
   });
 
-  it("a lapsed Pro falls back to Lifetime", () => {
+  it("a lapsed Pro falls back to Power user, then Free", () => {
     const pro = row("pro_monthly", { expires_at: NOW - 1 });
-    expect(resolvePlan([pro, row("lifetime")], null, NOW).plan).toBe("lifetime");
+    expect(resolvePlan([pro, row("lifetime")], true, NOW).plan).toBe("lifetime");
+    expect(resolvePlan([pro], true, NOW).plan).toBe("free");
   });
 
   it("ignores refunded and expired rows", () => {
-    expect(resolvePlan([row("pro_monthly", { status: "refunded", expires_at: NOW + DAY })], null, NOW).plan).toBe("none");
-    expect(resolvePlan([row("lifetime", { status: "expired" })], null, NOW).plan).toBe("none");
-  });
-
-  it("a trial ends at day 21 or when credits run out", () => {
-    const trial = row("trial", { expires_at: NOW + DAY });
-    expect(resolvePlan([trial], { used: 49, allowance: 50 }, NOW).plan).toBe("trial");
-    expect(resolvePlan([trial], { used: 50, allowance: 50 }, NOW).plan).toBe("none");
-    expect(resolvePlan([row("trial", { expires_at: NOW - 1 })], null, NOW).plan).toBe("none");
+    expect(resolvePlan([row("pro_monthly", { status: "refunded", expires_at: NOW + DAY })], false, NOW).plan).toBe("none");
+    expect(resolvePlan([row("lifetime", { status: "expired" })], true, NOW).plan).toBe("free");
   });
 });
 
-describe("blockReason", () => {
-  it("tells the cases apart", () => {
-    expect(blockReason([], null, NOW)).toBe("no_entitlement");
-    expect(blockReason([row("trial", { expires_at: NOW - 1 })], null, NOW)).toBe("trial_expired");
-    expect(blockReason([row("trial", { expires_at: NOW + DAY })], { used: 50, allowance: 50 }, NOW)).toBe("trial_credits_exhausted");
-    expect(blockReason([row("trial", { status: "expired", expires_at: NOW + DAY })], null, NOW)).toBe("trial_expired");
+describe("nextUpgradeTier", () => {
+  it("steps down the ladder one product per upgrade and stays on the last", () => {
+    expect([0, 1, 2, 3, 4, 9].map((n) => nextUpgradeTier(n, 3))).toEqual([1, 2, 3, 3, 3, 3]);
   });
 });
 
