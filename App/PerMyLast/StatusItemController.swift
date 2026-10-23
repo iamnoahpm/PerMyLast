@@ -77,6 +77,10 @@ final class StatusItemController: NSObject {
         updates.target = self
         menu.addItem(updates)
 
+        let feedback = NSMenuItem(title: L("Send feedback"), action: #selector(sendFeedback), keyEquivalent: "")
+        feedback.target = self
+        menu.addItem(feedback)
+
         #if DEBUG
         menu.addItem(.separator())
         let reset = NSMenuItem(title: "Reset Onboarding (debug)", action: #selector(resetOnboarding), keyEquivalent: "")
@@ -100,6 +104,7 @@ final class StatusItemController: NSObject {
     @objc private func resetOnboarding() { OnboardingModel.shared.resetForTesting() }
     #endif
     @objc private func openSettings() { WindowCoordinator.shared.showSettings() }
+    @objc private func sendFeedback() { AppModel.shared.sendFeedback() }
     @objc private func checkForUpdates() { AppModel.shared.checkForUpdates() }
     @objc private func quit() { NSApp.terminate(nil) }
 }

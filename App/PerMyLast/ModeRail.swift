@@ -7,8 +7,6 @@ struct ModeRail: View {
     @Binding var selection: String
     let wide: Bool
     var onSettings: () -> Void
-    /// Wide rail only: collapses the sidebar. Nil hides the button.
-    var onToggleSidebar: (() -> Void)? = nil
 
     @FocusState private var focused: Bool
     /// The ring is for keyboard navigation only; a mouse click must not leave an outline behind.
@@ -47,9 +45,6 @@ struct ModeRail: View {
 
     private var rail: some View {
         VStack(alignment: .leading, spacing: PMLSpace.s1) {
-            if let onToggleSidebar {
-                HStack { Spacer(); SidebarToggleButton(collapsed: false, action: onToggleSidebar) }
-            }
             Text("What are you trying to do?").pmlEyebrow()
                 .lineLimit(1).minimumScaleFactor(0.8)
                 .frame(maxWidth: .infinity, alignment: .leading)
