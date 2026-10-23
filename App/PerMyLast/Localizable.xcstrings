@@ -3279,6 +3279,50 @@
         }
       }
     },
+    "Allowed": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã cho phép"
+          }
+        }
+      }
+    },
+    "Not allowed yet": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chưa được cho phép"
+          }
+        }
+      }
+    },
+    "Check again": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kiểm tra lại"
+          }
+        }
+      }
+    },
+    "Still not detected. If Per My Last is already switched on in the list, quit and reopen the app, then check again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vẫn chưa nhận được quyền. Nếu Per My Last đã được bật trong danh sách, hãy thoát và mở lại app, rồi kiểm tra lại."
+          }
+        }
+      }
+    },
     "Allow access…": {
       "extractionState": "manual",
       "localizations": {

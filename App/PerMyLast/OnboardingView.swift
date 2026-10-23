@@ -277,10 +277,13 @@ private struct ShortcutStep: View {
                     Text("To grab the text you’ve selected, Per My Last needs permission in System Settings → Privacy & Security → Accessibility. Without it, the shortcut uses whatever’s on your clipboard instead.")
                         .font(PMLFont.body).foregroundStyle(PMLColor.ink).fixedSize(horizontal: false, vertical: true)
                     AccessGuide()
-                    Button("Allow access…") {
-                        FunnelLog.shared.log(.accessibilityRequested)
-                        AppModel.requestCopyAccess()
-                    }.buttonStyle(PMLInkButtonStyle())
+                    HStack(spacing: PMLSpace.s3) {
+                        Button("Allow access…") {
+                            FunnelLog.shared.log(.accessibilityRequested)
+                            AppModel.requestCopyAccess()
+                        }.buttonStyle(PMLInkButtonStyle())
+                        AccessStatusLine(granted: $accessGranted)
+                    }
                 }
             }
             .task { await poll() }
@@ -669,5 +672,38 @@ struct PlansCard: View {
             }
             Text(detail).font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted).fixedSize(horizontal: false, vertical: true)
         }
+    }
+}
+
+
+/// Shows whether Accessibility access is on, with a manual re-check for when macOS has not told us yet.
+/// Callers keep polling `granted`; this adds the visible state and the "Check again" button.
+struct AccessStatusLine: View {
+    @Binding var granted: Bool
+    /// Set once the user has pressed "Check again" and access still was not detected.
+    @State private var missed = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: PMLSpace.s1) {
+            if granted {
+                Label("Allowed", systemImage: "checkmark.circle.fill")
+                    .font(PMLFont.select).foregroundStyle(PMLColor.success)
+            } else {
+                HStack(spacing: PMLSpace.s2) {
+                    Label("Not allowed yet", systemImage: "exclamationmark.circle.fill")
+                        .font(PMLFont.select).foregroundStyle(PMLColor.warning)
+                    Button("Check again") {
+                        granted = AppModel.canCopySelection
+                        missed = !granted
+                    }
+                    .buttonStyle(PMLGhostButtonStyle(tint: PMLColor.accentText))
+                }
+                if missed {
+                    Text("Still not detected. If Per My Last is already switched on in the list, quit and reopen the app, then check again.")
+                        .font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted).fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+        .onChange(of: granted) { _, now in if now { missed = false } }
     }
 }

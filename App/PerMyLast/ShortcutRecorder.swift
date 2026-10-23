@@ -107,11 +107,12 @@ struct ShortcutRecorderRow: View {
             } else {
                 Text("To copy your selection for you, Per My Last needs permission in System Settings → Privacy & Security → Accessibility. Until then, the shortcut uses whatever you last copied.")
                     .font(PMLFont.hint).foregroundStyle(PMLColor.warning)
-                HStack {
+                HStack(spacing: PMLSpace.s3) {
                     Button("Allow in System Settings") {
                         AppModel.requestCopyAccess()
                     }
                     .buttonStyle(PMLSecondaryButtonStyle())
+                    AccessStatusLine(granted: $canCopySelection)
                 }
             }
             if let error = model.hotKeyError {
@@ -122,6 +123,12 @@ struct ShortcutRecorderRow: View {
         .onDisappear { if recorder.recording { recorder.stop() } }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             canCopySelection = AppModel.canCopySelection
+        }
+        .task {
+            while !Task.isCancelled {
+                canCopySelection = AppModel.canCopySelection
+                try? await Task.sleep(for: .seconds(1))
+            }
         }
     }
 
