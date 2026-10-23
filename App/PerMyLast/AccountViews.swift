@@ -105,18 +105,18 @@ struct AccountWarningBanner: View {
 }
 
 /// Bottom of the left rail: who is using the app and the way into Settings.
-/// A guest is nudged to sign in so their setup is saved; a signed-in user sees their address and plan meter.
+/// A guest is nudged to sign in so their setup is saved; a signed-in user sees their plan and usage meter.
 struct AccountFooter: View {
     @Environment(AccountModel.self) private var account
     @State private var hovering = false
 
     private var title: String {
         guard account.signedIn else { return L("Guest") }
-        return account.signedInEmail ?? L("Signed in")
+        return account.planTitle
     }
 
     private var subtitle: String? {
-        if account.signedIn { return account.meterText }
+        if account.signedIn { return account.usageText }
         return account.isConfigured ? L("Sign in to save your setup") : nil
     }
 

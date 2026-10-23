@@ -336,6 +336,38 @@ final class AccountModel {
         }
     }
 
+    /// The plan's name, for the account row's title.
+    var planTitle: String {
+        guard let plan = entitlement?.plan else { return L("Signed in") }
+        switch plan {
+        case .free: return L("Free plan")
+        case .proMonthly: return L("Pro · monthly")
+        case .proYearly: return L("Pro · yearly")
+        case .lifetime: return L("Lifetime")
+        case .none: return L("Signed in")
+        }
+    }
+
+    /// `meterText` without the plan's name, which the account row already shows as its title.
+    var usageText: String? {
+        guard isConfigured, signedIn, let me = entitlement else { return nil }
+        let reset = me.periodEnd.map { $0.formatted(date: .abbreviated, time: .omitted) }
+        switch me.plan {
+        case .free:
+            guard let left = me.runsLeft, let allowance = me.runsAllowance else { return nil }
+            if let reset { return L("\(left) of \(allowance) credits left · resets \(reset)") }
+            return L("\(left) of \(allowance) credits left")
+        case .proMonthly, .proYearly:
+            guard let used = me.runsUsed, let allowance = me.runsAllowance else { return nil }
+            if let reset { return L("\(used) / \(allowance) runs · resets \(reset)") }
+            return L("\(used) / \(allowance) runs")
+        case .lifetime:
+            return L("Using your Anthropic key")
+        case .none:
+            return nil
+        }
+    }
+
     /// Shows each warning once per period, at 80% of the allowance.
     private func updateWarning() {
         guard let me = entitlement, me.plan == .free || me.plan.isPro else { return }

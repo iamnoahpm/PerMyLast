@@ -4180,6 +4180,94 @@
           }
         }
       }
+    },
+    "Free plan": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gói Free"
+          }
+        }
+      }
+    },
+    "Pro · monthly": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro · theo tháng"
+          }
+        }
+      }
+    },
+    "Pro · yearly": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro · theo năm"
+          }
+        }
+      }
+    },
+    "Lifetime": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trọn đời"
+          }
+        }
+      }
+    },
+    "%lld of %lld credits left · resets %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Còn %lld/%lld lượt · đặt lại %@"
+          }
+        }
+      }
+    },
+    "%lld of %lld credits left": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Còn %lld/%lld lượt"
+          }
+        }
+      }
+    },
+    "%lld / %lld runs · resets %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld / %lld lượt · đặt lại %@"
+          }
+        }
+      }
+    },
+    "%lld / %lld runs": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld / %lld lượt"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
