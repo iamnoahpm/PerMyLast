@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Account — Per My Last</title>
+<meta name="description" content="Sign in to see your Per My Last credits, subscribe, or manage your subscription.">
+<link rel="canonical" href="https://permylast.app/account.html">
+<link rel="alternate" hreflang="en" href="https://permylast.app/account.html">
+<link rel="alternate" hreflang="vi" href="https://permylast.app/vi/account.html">
+<link rel="alternate" hreflang="x-default" href="https://permylast.app/account.html">
+<link rel="icon" href="favicon.ico" sizes="32x32">
+<link rel="icon" href="assets/icon.png" type="image/png">
+<link rel="stylesheet" href="styles.css">
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BV8SSTNE9S"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BV8SSTNE9S');
+</script>
+
+<!-- Microsoft Clarity -->
+<script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "yf4nnwe1ea");
+</script>
+</head>
+<body>
+
+<header class="nav">
+  <div class="container nav__inner">
+    <a class="nav__brand" href="index.html">
+      <img src="assets/icon.png" alt="">
+      <span>Per My Last</span>
+    </a>
+    <div class="nav__links">
+      <div class="nav__group">
+        <a class="nav__link" href="features.html" data-ga="view_features">Features</a>
+        <span class="nav__sep" aria-hidden="true">|</span>
+        <a class="nav__link" href="pricing.html" data-ga="view_pricing">Pricing</a>
+        <span class="nav__sep" aria-hidden="true">|</span>
+        <a class="nav__link is-current" href="account.html" data-ga="view_account">Account</a>
+      </div>
+    <div class="nav__right">
+      <details class="lang-menu">
+        <summary class="lang-menu__btn" aria-label="Language"><svg class="lang-menu__globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M2.5 12h19M12 2.5c2.8 2.6 4.2 5.8 4.2 9.5s-1.4 6.9-4.2 9.5c-2.8-2.6-4.2-5.8-4.2-9.5S9.2 5.1 12 2.5z"/></svg><span>en</span><svg class="lang-menu__caret" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 5l4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+        <div class="lang-menu__panel">
+          <div class="lang-menu__label">Language</div>
+          <span class="lang-menu__item is-current" aria-current="true"><span>English</span><span class="lang-menu__code">EN</span><svg class="lang-menu__check" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 4.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <a class="lang-menu__item" href="vi/account.html" hreflang="vi"><span>Vietnamese</span><span class="lang-menu__code">VI</span></a>
+        </div>
+      </details>
+      <a class="btn btn--primary nav__download" href="index.html#get-notified" data-ga="click_download"><svg class="nav__download-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg>Download</a>
+    </div>
+    </div>
+  </div>
+</header>
+
+<section class="hero container" style="padding-bottom: 0;">
+  <h1>Your account</h1>
+  <p class="hero__lead">Sign in with your email to see your credits and manage your subscription.</p>
+</section>
+
+<section class="section">
+  <div class="container account">
+    <p class="account__msg" id="msg" role="status" hidden></p>
+
+    <form id="signedOut" class="account__card" hidden>
+      <label for="email">Email</label>
+      <input type="email" id="email" autocomplete="email" placeholder="you@example.com" required>
+      <button type="submit" class="btn btn--primary" id="sendBtn">Email me a sign-in code</button>
+      <div id="codeRow" hidden>
+        <label for="code">6-digit code</label>
+        <input type="text" id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="123456">
+        <button type="button" class="btn btn--primary" id="verifyBtn">Sign in</button>
+      </div>
+    </form>
+
+    <div id="signedIn" class="account__card" hidden>
+      <p class="account__email" id="who"></p>
+      <p class="account__count" id="count">–</p>
+      <div class="credits-bar"><div class="credits-bar__fill" id="bar"></div></div>
+      <p class="account__sub" id="renew"></p>
+      <button type="button" class="btn btn--primary" id="subscribeBtn" hidden>Subscribe — $5 / month</button>
+      <button type="button" class="btn btn--secondary" id="manageBtn" hidden>Manage subscription</button>
+      <button type="button" class="btn btn--tertiary" id="signOutBtn">Sign out</button>
+    </div>
+
+    <div class="callout callout--center"><strong>We store only your email and credit balance. Your text is never stored or logged.</strong></div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container footer__inner">
+    <span>© 2026 Per My Last</span>
+    <span><a href="mailto:hello@permylast.app" data-ga="contact_click">hello@permylast.app</a></span>
+  </div>
+</footer>
+
+<script src="site-config.js"></script>
+<script>
+(function () {
+  var S = {"a_unavail": "Accounts aren’t available yet — check back at launch.", "a_sent": "Code sent to {email} — check your inbox.", "a_bad": "Enter a valid email address.", "a_err": "That didn’t work. Please try again.", "a_count": "{n} / {limit} credits", "a_noplan": "No active plan.", "a_renews": "Renews {date}", "a_ok": "Thanks! Your subscription is being activated — credits appear within a minute.", "a_cancel": "Checkout was cancelled. You haven’t been charged."};
+  var LOCALE = 'en-US';
+  var cfg = window.PML_CONFIG || {};
+  var KEY = 'pml-account-session';
+  var $ = function (id) { return document.getElementById(id); };
+  var session = null;
+
+  function load() { try { return JSON.parse(localStorage.getItem(KEY)); } catch (e) { return null; } }
+  function save(s) { try { if (s) localStorage.setItem(KEY, JSON.stringify(s)); else localStorage.removeItem(KEY); } catch (e) {} }
+  function fmt(s, v) { return Object.keys(v || {}).reduce(function (a, k) { return a.replace('{' + k + '}', v[k]); }, s); }
+  function say(text) { $('msg').textContent = text || ''; $('msg').hidden = !text; }
+
+  function api(path, opts) {
+    opts = opts || {};
+    var h = { 'Content-Type': 'application/json', apikey: cfg.supabaseAnonKey };
+    if (opts.token) h.Authorization = 'Bearer ' + opts.token;
+    return fetch(cfg.supabaseUrl.replace(/\/+$/, '') + path, { method: opts.method || 'POST', headers: h, body: opts.body ? JSON.stringify(opts.body) : undefined })
+      .then(function (r) { return r.json().catch(function () { return null; }).then(function (d) { return { ok: r.ok, status: r.status, data: d }; }); });
+  }
+
+  function toSession(d) {
+    return { accessToken: d.access_token, refreshToken: d.refresh_token, email: (d.user && d.user.email) || '',
+      expiresAt: Date.now() + Math.max(0, (d.expires_in || 3600) - 60) * 1000 };
+  }
+
+  function token() {
+    if (!session) return Promise.reject();
+    if (Date.now() < session.expiresAt) return Promise.resolve(session.accessToken);
+    return api('/auth/v1/token?grant_type=refresh_token', { body: { refresh_token: session.refreshToken } }).then(function (r) {
+      if (!r.ok || !r.data || !r.data.access_token) { session = null; save(null); show(); throw 0; }
+      session = toSession(r.data); save(session); return session.accessToken;
+    });
+  }
+
+  function show() {
+    $('signedOut').hidden = !!session;
+    $('signedIn').hidden = !session;
+    if (session) refresh();
+  }
+
+  function refresh() {
+    $('who').textContent = session.email;
+    token().then(function (t) {
+      return api('/rest/v1/profiles?select=credits,credits_limit,subscription_status,current_period_end&limit=1', { method: 'GET', token: t });
+    }).then(function (r) {
+      var p = r.ok && r.data && r.data[0];
+      if (!p) return;
+      var active = p.subscription_status === 'active' || p.subscription_status === 'trialing';
+      var limit = p.credits_limit || 1000;
+      $('count').textContent = fmt(S.a_count, { n: Number(p.credits).toLocaleString(LOCALE), limit: limit.toLocaleString(LOCALE) });
+      $('bar').style.width = (active ? Math.min(100, Math.round(p.credits / limit * 100)) : 0) + '%';
+      $('renew').textContent = !active ? S.a_noplan : (p.current_period_end ? fmt(S.a_renews, { date: new Date(p.current_period_end).toLocaleDateString(LOCALE, { month: 'short', day: 'numeric' }) }) : '');
+      $('subscribeBtn').hidden = active;
+      $('manageBtn').hidden = !active;
+    }).catch(function () {});
+  }
+
+  function billing(action) {
+    say('');
+    token().then(function (t) { return api('/functions/v1/billing', { token: t, body: { action: action } }); }).then(function (r) {
+      if (r.ok && r.data && /^https:\/\//.test(r.data.url)) window.location.href = r.data.url;
+      else say(S.a_err);
+    }).catch(function () { say(S.a_err); });
+  }
+
+  if (!cfg.supabaseUrl || !cfg.supabaseAnonKey) { say(S.a_unavail); return; }
+
+  var q = new URLSearchParams(location.search).get('checkout');
+  if (q === 'success') say(S.a_ok); else if (q === 'cancelled') say(S.a_cancel);
+
+  $('signedOut').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var email = $('email').value.trim();
+    if (!/^\S+@\S+\.\S+$/.test(email)) return say(S.a_bad);
+    api('/auth/v1/otp', { body: { email: email, create_user: true } }).then(function (r) {
+      if (!r.ok) return say(S.a_err);
+      $('codeRow').hidden = false; say(fmt(S.a_sent, { email: email })); $('code').focus();
+    }).catch(function () { say(S.a_err); });
+  });
+
+  $('verifyBtn').addEventListener('click', function () {
+    api('/auth/v1/verify', { body: { type: 'email', email: $('email').value.trim(), token: $('code').value.trim() } }).then(function (r) {
+      if (!r.ok || !r.data || !r.data.access_token) return say(S.a_err);
+      session = toSession(r.data); save(session); say(''); $('code').value = ''; show();
+    }).catch(function () { say(S.a_err); });
+  });
+
+  $('subscribeBtn').addEventListener('click', function () { billing('checkout'); });
+  $('manageBtn').addEventListener('click', function () { billing('portal'); });
+  $('signOutBtn').addEventListener('click', function () { session = null; save(null); show(); });
+
+  session = load();
+  show();
+})();
+</script>
+
+<script>
+  document.querySelectorAll('[data-ga]').forEach(function (el) {
+    el.addEventListener('click', function () {
+      if (typeof gtag === 'function') gtag('event', el.dataset.ga);
+    });
+  });
+</script>
+
+<script src="lang-menu.js"></script>
+</body>
+</html>
