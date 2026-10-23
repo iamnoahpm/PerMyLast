@@ -432,27 +432,47 @@ final class AppModel {
     func handleHotKey() {
         guard enabled else { return }
         Task { @MainActor in
-            await Self.copySelection()
-            guard let text = NSPasteboard.general.string(forType: .string) else { return }
-            self.open(with: text)
+            if let selection = await Self.copySelection() {
+                open(with: selection)
+            } else if let text = NSPasteboard.general.string(forType: .string) {
+                open(with: text)
+            }
         }
     }
 
-    /// Sends ⌘C to the frontmost app and waits briefly for the clipboard to change.
-    private static func copySelection() async {
-        guard CGPreflightPostEventAccess() || CGRequestPostEventAccess() else { return }
+    /// Whether macOS lets the app send keystrokes to other apps (needed to copy the selection).
+    static var canCopySelection: Bool { CGPreflightPostEventAccess() }
+
+    /// Sends ⌘C to the frontmost app and returns the text it copied, then puts the user's previous clipboard back.
+    /// Nil if permission is missing or nothing was selected.
+    private static func copySelection() async -> String? {
+        guard CGPreflightPostEventAccess() || CGRequestPostEventAccess() else { return nil }
         let pasteboard = NSPasteboard.general
+        // Let go of the hotkey's own modifiers first, or the target app sees ⇧⌘⌥-C instead of ⌘C.
+        for _ in 0..<20 where !NSEvent.modifierFlags.intersection([.shift, .option, .control, .command]).isEmpty {
+            try? await Task.sleep(for: .milliseconds(25))
+        }
+        let saved = pasteboard.pasteboardItems?.map { item -> NSPasteboardItem in
+            let copy = NSPasteboardItem()
+            for type in item.types { if let data = item.data(forType: type) { copy.setData(data, forType: type) } }
+            return copy
+        } ?? []
         let before = pasteboard.changeCount
         let source = CGEventSource(stateID: .combinedSessionState)
         let cKey: CGKeyCode = 8 // kVK_ANSI_C
         for down in [true, false] {
             let event = CGEvent(keyboardEventSource: source, virtualKey: cKey, keyDown: down)
-            event?.flags = .maskCommand // overrides any modifiers still held from the hotkey
+            event?.flags = .maskCommand
             event?.post(tap: .cgSessionEventTap)
         }
-        for _ in 0..<20 where pasteboard.changeCount == before {
+        for _ in 0..<24 where pasteboard.changeCount == before {
             try? await Task.sleep(for: .milliseconds(25))
         }
+        guard pasteboard.changeCount != before else { return nil }
+        let text = pasteboard.string(forType: .string)
+        pasteboard.clearContents()
+        if !saved.isEmpty { pasteboard.writeObjects(saved) }
+        return text
     }
 
     /// Opens the popup with `text` as the input, or as the question in Ask mode.

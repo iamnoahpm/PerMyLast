@@ -339,7 +339,7 @@ struct OutputPanel: View {
                 if model.lastErrorKind == .noEntitlement || model.lastErrorKind == .trialExpired || model.lastErrorKind == .trialCreditsExhausted {
                     Button("See plans →") { WindowCoordinator.shared.showPaywall() }
                 }
-                if message == AnthropicError.missingAPIKey.errorDescription {
+                if message == AnthropicError.missingAPIKey.errorDescription || model.lastErrorKind == .unauthenticated {
                     Button("Open Settings →") { WindowCoordinator.shared.showSettings() }
                 }
                 Button("Dismiss") { model.errorMessage = nil }

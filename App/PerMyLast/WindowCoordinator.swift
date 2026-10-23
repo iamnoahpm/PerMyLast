@@ -27,10 +27,9 @@ final class WindowCoordinator: NSObject, NSWindowDelegate {
     /// Something to send requests with: the user's own key, or an account (trial or plan).
     private var hasUsableSetup: Bool { !AppModel.shared.apiKey.isEmpty || AccountModel.shared.signedIn }
 
-    /// What "open the app" means: Settings until there is a key or an account, then the popup.
-    func showMain() {
-        if hasUsableSetup { showPopup() } else { showSettings() }
-    }
+    /// What "open the app" means: the popup. Without a key or an account the first run still opens the app; it
+    /// sends the user to Settings when they try to run a prompt.
+    func showMain() { showPopup() }
 
     func hidePopup() { popup?.orderOut(nil) }
 

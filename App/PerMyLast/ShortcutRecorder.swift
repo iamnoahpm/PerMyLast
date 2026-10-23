@@ -79,6 +79,7 @@ final class ShortcutRecorder: ObservableObject {
 struct ShortcutRecorderRow: View {
     @Environment(AppModel.self) private var model
     @StateObject private var recorder = ShortcutRecorder()
+    @State private var canCopySelection = AppModel.canCopySelection
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -101,14 +102,32 @@ struct ShortcutRecorderRow: View {
             }
             Text("Select some text, then press \(model.shortcutDisplay) anywhere to open it in Per My Last.")
                 .font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted)
-            Text("The first time, macOS asks you to allow Per My Last to copy your selection. To avoid that permission, use Services → Open in Per My Last instead and give it a shortcut in System Settings → Keyboard → Keyboard Shortcuts → Services.")
-                .font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted)
+            if canCopySelection {
+                Text("Selection copying is allowed.").font(PMLFont.hint).foregroundStyle(PMLColor.success)
+            } else {
+                Text("To copy your selection for you, macOS needs your OK. Until then the shortcut uses whatever you last copied.")
+                    .font(PMLFont.hint).foregroundStyle(PMLColor.warning)
+                HStack {
+                    Button("Allow in System Settings") {
+                        _ = CGRequestPostEventAccess()
+                        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+                            NSWorkspace.shared.open(url)
+                        }
+                    }
+                    .buttonStyle(PMLSecondaryButtonStyle())
+                }
+                Text("No permission? Use Services → Open in Per My Last and give it a shortcut in System Settings → Keyboard → Keyboard Shortcuts → Services.")
+                    .font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted)
+            }
             if let error = model.hotKeyError {
                 Text(error).font(PMLFont.hint).foregroundStyle(PMLColor.danger)
             }
             noteView
         }
         .onDisappear { if recorder.recording { recorder.stop() } }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            canCopySelection = AppModel.canCopySelection
+        }
     }
 
     @ViewBuilder private var noteView: some View {
