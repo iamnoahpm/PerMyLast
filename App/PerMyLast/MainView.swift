@@ -7,9 +7,15 @@ struct MainView: View {
     @FocusState private var askFocused: Bool
     @FocusState private var intentFocused: Bool
 
+    private let onboarding = OnboardingModel.shared
+
     var body: some View {
+        if onboarding.isActive { OnboardingView() } else { mainContent }
+    }
+
+    private var mainContent: some View {
         @Bindable var model = model
-        GeometryReader { geo in
+        return GeometryReader { geo in
             let wide = geo.size.width >= PMLLayout.railBreakpoint
             VStack(spacing: 0) {
                 HStack(alignment: .top, spacing: 0) {
@@ -296,7 +302,11 @@ struct OutputPanel: View {
         }
     }
 
-    private var emptyState: some View {
+    @ViewBuilder private var emptyState: some View {
+        if OnboardingModel.shared.checklistComplete { plainEmptyState } else { GettingStartedChecklist() }
+    }
+
+    private var plainEmptyState: some View {
         VStack(spacing: PMLSpace.s1) {
             Text("Your draft appears here.").font(PMLFont.select).fontWeight(.bold).foregroundStyle(PMLColor.ink)
             Text(LocalizedStringKey(model.isAsk
@@ -340,6 +350,9 @@ struct OutputPanel: View {
                     Button("See plans →") { WindowCoordinator.shared.showPaywall() }
                 }
                 if message == AnthropicError.missingAPIKey.errorDescription || model.lastErrorKind == .unauthenticated {
+                    Button("Set up access →") { model.errorMessage = nil; OnboardingModel.shared.reopen(at: .access) }
+                    Button("Open Settings →") { WindowCoordinator.shared.showSettings() }
+                } else if model.motherLanguageMissing {
                     Button("Open Settings →") { WindowCoordinator.shared.showSettings() }
                 }
                 Button("Dismiss") { model.errorMessage = nil }

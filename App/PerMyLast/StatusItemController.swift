@@ -57,6 +57,12 @@ final class StatusItemController: NSObject {
 
         menu.addItem(.separator())
 
+        if !OnboardingModel.shared.checklistComplete || OnboardingModel.shared.isActive {
+            let start = NSMenuItem(title: L("Getting started…"), action: #selector(openGettingStarted), keyEquivalent: "")
+            start.target = self
+            menu.addItem(start)
+        }
+
         let settings = NSMenuItem(title: L("Settings…"), action: #selector(openSettings), keyEquivalent: ",")
         settings.target = self
         menu.addItem(settings)
@@ -82,6 +88,7 @@ final class StatusItemController: NSObject {
     @objc private func toggleEnabled() { AppModel.shared.setEnabled(!AppModel.shared.enabled) }
     @objc private func toggleDock() { AppModel.shared.setShowInDock(!AppModel.shared.settings.showInDock) }
     @objc private func openPaywall() { WindowCoordinator.shared.showPaywall() }
+    @objc private func openGettingStarted() { OnboardingModel.shared.reopen(at: .welcome) }
     @objc private func openSettings() { WindowCoordinator.shared.showSettings() }
     @objc private func checkForUpdates() { AppModel.shared.checkForUpdates() }
     @objc private func quit() { NSApp.terminate(nil) }

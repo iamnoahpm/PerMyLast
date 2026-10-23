@@ -127,6 +127,9 @@ struct GeneralSettingsView: View {
                 }
             Text("Starts Per My Last automatically when you log in to your Mac.")
                 .font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted)
+            Toggle("Share anonymous setup stats", isOn: model.settings.shareAnonymousUsage)
+            Text("Tells us which first-run step people get stuck on. Never includes your text, email, key or anything you select.")
+                .font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted)
         }
     }
 

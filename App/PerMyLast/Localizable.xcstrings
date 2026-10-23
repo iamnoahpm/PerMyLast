@@ -2948,6 +2948,699 @@
           }
         }
       }
+    },
+    "Skip setup": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bỏ qua thiết lập"
+          }
+        }
+      }
+    },
+    "Back": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quay lại"
+          }
+        }
+      }
+    },
+    "Show me": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xem thử"
+          }
+        }
+      }
+    },
+    "Next": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiếp"
+          }
+        }
+      }
+    },
+    "Skip for now": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Để sau"
+          }
+        }
+      }
+    },
+    "Start using Per My Last": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bắt đầu dùng Per My Last"
+          }
+        }
+      }
+    },
+    "Welcome": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chào mừng"
+          }
+        }
+      }
+    },
+    "Say it right, every time.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nói đúng ý, lần nào cũng chuẩn."
+          }
+        }
+      }
+    },
+    "Select text in any app, press a shortcut, and get a calm, professional version back. Takes about a minute to set up.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bôi đen văn bản ở bất kỳ ứng dụng nào, nhấn phím tắt và nhận lại bản viết lịch sự, chuyên nghiệp. Thiết lập chỉ mất khoảng một phút."
+          }
+        }
+      }
+    },
+    "You wrote": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bạn viết"
+          }
+        }
+      }
+    },
+    "You send": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bạn gửi"
+          }
+        }
+      }
+    },
+    "hey, just following up AGAIN on the invoice. it's been 3 weeks. need this sorted asap": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "này, nhắc LẠI về hóa đơn nữa nè. 3 tuần rồi. cần xử lý gấp"
+          }
+        }
+      }
+    },
+    "Hi, I wanted to follow up on the invoice from three weeks ago. Could you let me know when I can expect payment? Thank you for your help.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chào anh/chị, em xin nhắc lại về hóa đơn đã gửi cách đây ba tuần. Anh/chị cho em biết khi nào có thể thanh toán được không ạ? Em cảm ơn anh/chị đã hỗ trợ."
+          }
+        }
+      }
+    },
+    "Hi, the invoice from three weeks ago is still unpaid. Please confirm a payment date by Friday.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chào anh/chị, hóa đơn từ ba tuần trước vẫn chưa được thanh toán. Vui lòng xác nhận ngày thanh toán trước thứ Sáu."
+          }
+        }
+      }
+    },
+    "Hi! Just a gentle nudge about the invoice from a few weeks back. Any chance you could take a look this week? Thanks so much!": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chào anh/chị! Em xin nhắc nhẹ về hóa đơn từ vài tuần trước, tuần này anh/chị xem giúp em được không ạ? Cảm ơn anh/chị nhiều!"
+          }
+        }
+      }
+    },
+    "No account needed to try it.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dùng thử không cần tài khoản."
+          }
+        }
+      }
+    },
+    "Try it": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dùng thử"
+          }
+        }
+      }
+    },
+    "Fix a message in one click.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sửa tin nhắn chỉ với một cú nhấp."
+          }
+        }
+      }
+    },
+    "Here is a message that could go better. Pick a tone and watch it get rewritten.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đây là một tin nhắn có thể viết tốt hơn. Chọn giọng điệu và xem nó được viết lại."
+          }
+        }
+      }
+    },
+    "Original": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bản gốc"
+          }
+        }
+      }
+    },
+    "Polite": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lịch sự"
+          }
+        }
+      }
+    },
+    "Direct": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thẳng thắn"
+          }
+        }
+      }
+    },
+    "Example result": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kết quả mẫu"
+          }
+        }
+      }
+    },
+    "That is the whole loop: select, shortcut, pick a tone, copy. Paste it anywhere.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vậy là xong: bôi đen, nhấn phím tắt, chọn giọng điệu, sao chép. Rồi dán ở bất kỳ đâu."
+          }
+        }
+      }
+    },
+    "This is an example, so nothing is sent anywhere. Your real drafts come from Claude.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đây chỉ là ví dụ nên không có gì được gửi đi. Bản nháp thật sẽ do Claude viết."
+          }
+        }
+      }
+    },
+    "Use it anywhere": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dùng ở mọi nơi"
+          }
+        }
+      }
+    },
+    "Press one shortcut, in any app.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Một phím tắt, mọi ứng dụng."
+          }
+        }
+      }
+    },
+    "Select text in Mail, Slack, a browser, anything, then press the shortcut. Per My Last opens with your text ready.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bôi đen văn bản trong Mail, Slack, trình duyệt hay bất kỳ đâu, rồi nhấn phím tắt. Per My Last sẽ mở ra với văn bản đã sẵn sàng."
+          }
+        }
+      }
+    },
+    "Change…": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đổi…"
+          }
+        }
+      }
+    },
+    "Allowed: Per My Last can read the text you select.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã cho phép: Per My Last có thể đọc văn bản bạn bôi đen."
+          }
+        }
+      }
+    },
+    "macOS needs your OK (Accessibility) before Per My Last can read what you select. Without it, the shortcut uses whatever is on your clipboard.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS cần bạn đồng ý (Trợ năng) để Per My Last đọc được văn bản bạn bôi đen. Nếu không, phím tắt sẽ dùng nội dung đang có trong bộ nhớ tạm."
+          }
+        }
+      }
+    },
+    "Allow access…": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cho phép truy cập…"
+          }
+        }
+      }
+    },
+    "Open System Settings": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mở Cài đặt hệ thống"
+          }
+        }
+      }
+    },
+    "Prefer not to? Select text, then right-click and choose Services, Open in Per My Last. That needs no permission.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không muốn cấp quyền? Bôi đen văn bản, nhấp chuột phải, chọn Dịch vụ, rồi Open in Per My Last. Cách này không cần quyền."
+          }
+        }
+      }
+    },
+    "Try it now": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thử ngay"
+          }
+        }
+      }
+    },
+    "Select this sentence, then press %@.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bôi đen câu này, rồi nhấn %@."
+          }
+        }
+      }
+    },
+    "It worked!": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Được rồi!"
+          }
+        }
+      }
+    },
+    "It used your clipboard, not your selection. Allow access above and it will read what you select.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phím tắt đã dùng bộ nhớ tạm, không phải văn bản bạn bôi đen. Hãy cho phép truy cập ở trên để nó đọc đúng phần bạn chọn."
+          }
+        }
+      }
+    },
+    "Or try it in any other app. We will notice when it works.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoặc thử ở ứng dụng khác. Chúng tôi sẽ nhận ra khi nó hoạt động."
+          }
+        }
+      }
+    },
+    "Closing this window does not quit the app. Look for the umbrella in your menu bar.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đóng cửa sổ này không thoát ứng dụng. Hãy tìm biểu tượng chiếc ô trên thanh menu."
+          }
+        }
+      }
+    },
+    "Open Per My Last when I log in": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mở Per My Last khi tôi đăng nhập"
+          }
+        }
+      }
+    },
+    "Last step": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bước cuối"
+          }
+        }
+      }
+    },
+    "Get your first real drafts.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhận những bản nháp thật đầu tiên."
+          }
+        }
+      }
+    },
+    "Choose how Per My Last reaches Claude. You can change this any time in Settings.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chọn cách Per My Last kết nối với Claude. Bạn có thể đổi bất cứ lúc nào trong Cài đặt."
+          }
+        }
+      }
+    },
+    "Start your free trial": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bắt đầu dùng thử miễn phí"
+          }
+        }
+      }
+    },
+    "%lld runs over %lld days. No card, no key to find.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld lượt trong %lld ngày. Không cần thẻ, không cần tìm khóa."
+          }
+        }
+      }
+    },
+    "Trial started": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã bắt đầu dùng thử"
+          }
+        }
+      }
+    },
+    "you@example.com": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "you@example.com"
+          }
+        }
+      }
+    },
+    "Email me a code": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gửi mã qua email"
+          }
+        }
+      }
+    },
+    "Start trial": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bắt đầu dùng thử"
+          }
+        }
+      }
+    },
+    "I already have a Claude API key": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tôi đã có khóa API Claude"
+          }
+        }
+      }
+    },
+    "Checking your key…": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đang kiểm tra khóa…"
+          }
+        }
+      }
+    },
+    "Kept in your Mac's Keychain and only sent to Anthropic. You pay Anthropic directly.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Khóa được lưu trong Chuỗi khóa của Mac và chỉ gửi tới Anthropic. Bạn trả tiền trực tiếp cho Anthropic."
+          }
+        }
+      }
+    },
+    "Getting started": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bắt đầu"
+          }
+        }
+      }
+    },
+    "Connect a trial or your Claude key": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kết nối bản dùng thử hoặc khóa Claude của bạn"
+          }
+        }
+      }
+    },
+    "Try the shortcut in another app": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thử phím tắt ở ứng dụng khác"
+          }
+        }
+      }
+    },
+    "Write your first real draft": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Viết bản nháp thật đầu tiên"
+          }
+        }
+      }
+    },
+    "Set up": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thiết lập"
+          }
+        }
+      }
+    },
+    "Set up access →": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thiết lập truy cập →"
+          }
+        }
+      }
+    },
+    "Getting started…": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bắt đầu…"
+          }
+        }
+      }
+    },
+    "Share anonymous setup stats": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chia sẻ thống kê thiết lập ẩn danh"
+          }
+        }
+      }
+    },
+    "Tells us which first-run step people get stuck on. Never includes your text, email, key or anything you select.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cho chúng tôi biết người dùng vướng ở bước nào khi mới bắt đầu. Không bao giờ gồm văn bản, email, khóa hay nội dung bạn bôi đen."
+          }
+        }
+      }
+    },
+    "Step %lld of %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bước %lld/%lld"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

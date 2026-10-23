@@ -64,6 +64,10 @@ enum AppConfig {
     /// Where Lifetime users can download the last build their licence covers. Empty hides the link.
     static let lastEligibleDownloadURL = ""
 
+    /// What the free trial includes, as the onboarding says it. Keep in step with TRIAL_CREDITS and TRIAL_DAYS in backend/config.ts.
+    static let trialRuns = 50
+    static let trialDays = 21
+
     /// FR-A14: warn at this share of the allowance, and this many days before the trial ends.
     static let warnAtFraction = 0.8
     static let warnDaysBeforeTrialEnds = 3

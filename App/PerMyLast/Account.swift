@@ -102,7 +102,7 @@ final class AccountModel {
     }
 
     /// Random per-install id kept in the Keychain so it survives a reinstall (FR-A8).
-    private func installID() -> String {
+    func installID() -> String {
         if let existing = try? installStore.load(), !existing.isEmpty { return existing }
         let fresh = UUID().uuidString
         try? installStore.save(fresh)

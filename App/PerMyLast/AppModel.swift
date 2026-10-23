@@ -433,9 +433,9 @@ final class AppModel {
         guard enabled else { return }
         Task { @MainActor in
             if let selection = await Self.copySelection() {
-                open(with: selection)
+                open(with: selection, source: .selection)
             } else if let text = NSPasteboard.general.string(forType: .string) {
-                open(with: text)
+                open(with: text, source: .clipboard)
             }
         }
     }
@@ -476,8 +476,10 @@ final class AppModel {
     }
 
     /// Opens the popup with `text` as the input, or as the question in Ask mode.
-    func open(with text: String) {
+    func open(with text: String, source: CaptureSource = .service) {
         guard enabled, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        // On the onboarding shortcut step the capture is the test; show it there instead of loading the popup behind it.
+        if OnboardingModel.shared.noteCapture(text, source: source) { WindowCoordinator.shared.showPopup(); return }
         if isAsk { askPrompt = TextCleanup.beautify(text) } else { inputText = TextCleanup.beautify(text) }
         output = ""
         errorMessage = nil
@@ -592,6 +594,7 @@ final class AppModel {
             writeMyWay: writeMyWay)
         do {
             try await stream(PromptBuilder.templateRun(text: text, prompt: prompt, isEmail: preset.isEmail))
+            OnboardingModel.shared.noteRealRun()
             presets = PresetLibrary.incrementUses(presets, label: preset.label)
             savePresets()
         } catch {
@@ -612,6 +615,7 @@ final class AppModel {
         defer { isSending = false }
         do {
             try await stream(PromptBuilder.askRun(prompt: prompt, input: ""))
+            OnboardingModel.shared.noteRealRun()
         } catch {
             hasResult = false
             errorMessage = describe(error)

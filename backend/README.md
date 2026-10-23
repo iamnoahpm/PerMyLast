@@ -18,7 +18,7 @@ the Claude proxy (`POST /v1/run`), rate limits, `GET /v1/me` and `GET /v1/templa
 | `src/trial.ts`, `src/emailAuth.ts`, `src/limits.ts` | Trial start, emailed-code sign-in, per-user rate and stream limits |
 | `src/purchases.ts`, `src/lemonsqueezy.ts`, `src/license.ts` | What a purchase does to an account; Lemon Squeezy webhook; licence-key activation |
 | `src/appstore.ts`, `src/x509.ts` | App Store transactions and notifications: Apple-signed JWS checked against Apple Root CA - G3 |
-| `scripts/` | `measure-cost.mjs` (cost per run) and `cost-report.sql` (from real usage) |
+| `scripts/` | `measure-cost.mjs` (cost per run), `cost-report.sql` (from real usage) and `funnel-report.sql` (onboarding funnel: `npx wrangler d1 execute permylast --remote --file scripts/funnel-report.sql`) |
 | `test/` | 97 tests in a local D1 simulation, including AC-11 directly and through the proxy |
 
 ## Endpoints
@@ -30,6 +30,7 @@ the Claude proxy (`POST /v1/run`), rate limits, `GET /v1/me` and `GET /v1/templa
 | `POST /v1/auth/email/request` | `{email}` | `{ok: true}` whether or not the address has an account; a 6-digit code is emailed (3 per address per 15 min) |
 | `POST /v1/auth/email/verify` | `{email, code}` | session; the code works once, for 10 minutes, and locks after 5 wrong guesses |
 | `POST /v1/trial/start` | `{install_id_hash}` (Bearer) | `{plan, trial_ends_at, runs_allowance}`; idempotent; `409 trial_already_used` for a second account on the same Mac |
+| `POST /v1/events` | `{install_id_hash, app_version?, events: [{name, at?, props?}]}` | Anonymous onboarding funnel events (no sign-in). Only allowlisted names (`src/events.ts`), at most 20 per request and 500 per install. `400` for anything else, `429` past the cap |
 | `POST /v1/run` | `{template_id, variables}` (Bearer) | SSE: `delta` events `{text}`, then `done` `{runs_remaining}`; or `error` `{code, message}` |
 | `POST /v1/purchases/storekit` | `{signed_transaction}` (Bearer) | Verifies the Apple-signed transaction and grants the plan; returns the `/v1/me` body. Used after a purchase and for Restore |
 | `POST /v1/license/activate` | `{license_key}` (Bearer) | Links a Lemon Squeezy licence key to the account; `404 unknown_license`, `409 license_already_used` |

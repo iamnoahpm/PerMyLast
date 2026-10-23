@@ -22,6 +22,10 @@ export const config = {
   MAX_CONCURRENT_STREAMS: 2,
   UPSTREAM_TIMEOUT_S: 60,
 
+  /** Onboarding funnel events (anonymous): events per request, and the most one install may ever log. */
+  EVENTS_PER_REQUEST: 20,
+  EVENTS_PER_INSTALL: 500,
+
   /** Email sign-in codes. */
   EMAIL_CODE_TTL_S: 600,
   EMAIL_CODE_MAX_ATTEMPTS: 5,

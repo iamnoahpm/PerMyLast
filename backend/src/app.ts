@@ -4,6 +4,7 @@ import { normalizeEmail, requestEmailCode, verifyEmailCode } from "./emailAuth.t
 import { sendEmail } from "./email.ts";
 import type { Deps, Env } from "./env.ts";
 import { AuthError } from "./jwt.ts";
+import { recordEvents } from "./events.ts";
 import { getMe } from "./me.ts";
 import { AppStoreError, handleAppStoreNotification, submitTransaction } from "./appstore.ts";
 import { handleLemonSqueezy, verifySignature } from "./lemonsqueezy.ts";
@@ -97,6 +98,14 @@ export async function handleRequest(req: Request, env: Env, deps: Deps = default
           ? fail(409, "trial_already_used", "A free trial has already been used on this Mac.")
           : fail(400, "bad_request", "install_id_hash must be a SHA-256 hex string.");
       }
+      case "POST /v1/events": {
+        // Anonymous on purpose: the funnel starts before anyone signs in.
+        const result = await recordEvents(env.DB, await readJson(req), deps.now());
+        if (result.ok) return json({ ok: true, accepted: result.accepted });
+        return result.reason === "too_many"
+          ? fail(429, "rate_limited", "Too many events from this install.")
+          : fail(400, "bad_request", "install_id_hash and a list of known events are required.");
+      }
       case "POST /v1/run": {
         const userId = await authenticate(req, env, deps.now());
         if (!userId) return fail(401, "unauthenticated", "Sign in to continue.");
@@ -148,7 +157,7 @@ export async function handleRequest(req: Request, env: Env, deps: Deps = default
       }
     }
 
-    const known = ["/v1/purchases/storekit", "/v1/license/activate", "/webhooks/lemonsqueezy", "/webhooks/appstore", "/v1/me", "/v1/templates", "/v1/run", "/v1/trial/start", "/v1/auth/apple", "/v1/auth/google", "/v1/auth/refresh",
+    const known = ["/v1/purchases/storekit", "/v1/license/activate", "/webhooks/lemonsqueezy", "/webhooks/appstore", "/v1/me", "/v1/templates", "/v1/run", "/v1/events", "/v1/trial/start", "/v1/auth/apple", "/v1/auth/google", "/v1/auth/refresh",
       "/v1/auth/email/request", "/v1/auth/email/verify"];
     return known.includes(url.pathname) ? fail(405, "method_not_allowed", "Method not allowed.") : fail(404, "not_found", "Not found.");
   } catch (error) {

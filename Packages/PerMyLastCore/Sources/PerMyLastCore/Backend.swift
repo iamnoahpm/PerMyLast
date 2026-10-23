@@ -277,6 +277,17 @@ public struct AuthSession: Codable, Equatable, Sendable {
     }
 }
 
+/// One funnel event: a name from the backend's allowlist and a few short string props. Never user text.
+public struct FunnelEvent: Equatable, Sendable {
+    public var name: String
+    public var at: Date
+    public var props: [String: String]
+
+    public init(name: String, at: Date = Date(), props: [String: String] = [:]) {
+        self.name = name; self.at = at; self.props = props
+    }
+}
+
 public struct TrialInfo: Equatable, Sendable {
     public var plan: PlanKind
     public var trialEndsAt: Date?
@@ -334,6 +345,16 @@ public struct BackendClient: Sendable {
         return try BackendCoding.decoder.decode(EntitlementInfo.self, from: data)
     }
 
+    /// Anonymous onboarding funnel events (no sign-in needed). Best effort: callers ignore failures.
+    public func sendEvents(installIDHash: String, appVersion: String, events: [FunnelEvent]) async throws {
+        let list: [[String: Any]] = events.map { e in
+            var item: [String: Any] = ["name": e.name, "at": Int(e.at.timeIntervalSince1970 * 1000)]
+            if !e.props.isEmpty { item["props"] = e.props }
+            return item
+        }
+        _ = try await send("v1/events", body: ["install_id_hash": installIDHash, "app_version": appVersion, "events": list])
+    }
+
     private func session(_ data: Data, now: Date) throws -> AuthSession {
         struct Wire: Decodable { var user_id: String; var access_token: String; var refresh_token: String; var expires_in: Int }
         let w = try JSONDecoder().decode(Wire.self, from: data)
@@ -341,7 +362,7 @@ public struct BackendClient: Sendable {
                            accessExpiresAt: now.addingTimeInterval(TimeInterval(w.expires_in)))
     }
 
-    private func send(_ path: String, method: String = "POST", body: [String: String]? = nil, token: String? = nil) async throws -> Data {
+    private func send(_ path: String, method: String = "POST", body: [String: Any]? = nil, token: String? = nil) async throws -> Data {
         var request = URLRequest(url: baseURL.appendingPathComponent(path))
         request.httpMethod = method
         if let body {

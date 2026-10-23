@@ -16,6 +16,8 @@ struct AppSettings: Codable, Equatable {
     var shortcut = "Command+Shift+W"
     /// Language of the app's own UI.
     var appLanguage = AppLanguage.detectDefault()
+    /// Anonymous first-run funnel events (which setup step was reached; never text, email or keys).
+    var shareAnonymousUsage = true
 
     init() {}
 
@@ -32,6 +34,7 @@ struct AppSettings: Codable, Equatable {
         wartimePeacetimeEnabled = try c.decodeIfPresent(Bool.self, forKey: .wartimePeacetimeEnabled) ?? d.wartimePeacetimeEnabled
         shortcut = try c.decodeIfPresent(String.self, forKey: .shortcut) ?? d.shortcut
         appLanguage = try c.decodeIfPresent(AppLanguage.self, forKey: .appLanguage) ?? d.appLanguage
+        shareAnonymousUsage = try c.decodeIfPresent(Bool.self, forKey: .shareAnonymousUsage) ?? d.shareAnonymousUsage
     }
 }
 

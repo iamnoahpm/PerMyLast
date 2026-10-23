@@ -190,6 +190,23 @@ struct BackendClientTests {
         #expect(t.requests[0].url?.path == "/v1/auth/email/verify")
     }
 
+    @Test func sendEventsPostsAnonymouslyWithNamesAndProps() async throws {
+        let t = FakeHTTP()
+        t.body = Data(#"{"ok":true,"accepted":2}"#.utf8)
+        let events = [FunnelEvent(name: "onboarding_started", at: now),
+                      FunnelEvent(name: "onboarding_step_viewed", at: now, props: ["step": "welcome"])]
+        try await BackendClient(baseURL: base, transport: t).sendEvents(installIDHash: installIDHash("abc"), appVersion: "1.2.0", events: events)
+        #expect(t.requests[0].url?.path == "/v1/events")
+        #expect(t.requests[0].value(forHTTPHeaderField: "Authorization") == nil)
+        let raw = try #require(t.requests[0].httpBody)
+        let body = try #require(JSONSerialization.jsonObject(with: raw) as? [String: Any])
+        #expect(body["app_version"] as? String == "1.2.0")
+        let list = try #require(body["events"] as? [[String: Any]])
+        #expect(list.count == 2 && list[0]["name"] as? String == "onboarding_started" && list[0]["props"] == nil)
+        #expect(list[0]["at"] as? Int == 1_800_000_000_000)
+        #expect((list[1]["props"] as? [String: String]) == ["step": "welcome"])
+    }
+
     @Test func startTrialSendsTheHashedInstallID() async throws {
         let t = FakeHTTP()
         t.body = Data(#"{"plan":"trial","trial_ends_at":"2026-11-12T00:00:00.000Z","runs_allowance":50}"#.utf8)
