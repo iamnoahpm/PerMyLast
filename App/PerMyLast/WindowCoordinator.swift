@@ -24,9 +24,12 @@ final class WindowCoordinator: NSObject, NSWindowDelegate {
         present(window)
     }
 
-    /// What "open the app" means: Settings until an API key exists, then the popup.
+    /// Something to send requests with: the user's own key, or an account (trial or plan).
+    private var hasUsableSetup: Bool { !AppModel.shared.apiKey.isEmpty || AccountModel.shared.signedIn }
+
+    /// What "open the app" means: Settings until there is a key or an account, then the popup.
     func showMain() {
-        if AppModel.shared.apiKey.isEmpty { showSettings() } else { showPopup() }
+        if hasUsableSetup { showPopup() } else { showSettings() }
     }
 
     func hidePopup() { popup?.orderOut(nil) }
@@ -47,9 +50,16 @@ final class WindowCoordinator: NSObject, NSWindowDelegate {
     }
 
     func windowWillClose(_ notification: Notification) {
-        guard notification.object as? NSWindow === settingsWindow, restorePopupWhenSettingsCloses else { return }
+        guard notification.object as? NSWindow === settingsWindow else { return }
+        // Hand the screen back to the popup if it was open before, or if the app is ready to use (for example right after
+        // signing in on first launch, when the popup was never open).
+        let restore = restorePopupWhenSettingsCloses || hasUsableSetup
         restorePopupWhenSettingsCloses = false
-        if let popup { present(popup) }
+        guard restore else { return }
+        let window = popup ?? makePopup()
+        popup = window
+        window.setFrame(dockedFrame(), display: true)
+        present(window)
     }
 
     private func present(_ window: NSWindow) {
