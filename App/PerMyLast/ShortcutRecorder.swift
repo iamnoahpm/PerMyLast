@@ -99,7 +99,7 @@ struct ShortcutRecorderRow: View {
                     .buttonStyle(PMLGhostButtonStyle())
                     .help("Clear")
             }
-            Text("Copy some text, then press \(model.shortcutDisplay) anywhere to open it in Per My Last.")
+            Text("Select some text, then press \(model.shortcutDisplay) anywhere to open it in Per My Last.")
                 .font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted)
             if let error = model.hotKeyError {
                 Text(error).font(PMLFont.hint).foregroundStyle(PMLColor.danger)

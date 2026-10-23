@@ -426,10 +426,35 @@ final class AppModel {
 
     // MARK: Hotkey
 
-    /// The hotkey opens the popup with whatever is on the clipboard (the user
-    /// presses ⌘C first). Nothing on the clipboard means nothing happens.
+    /// The hotkey copies the current selection in the frontmost app (a synthetic ⌘C) and opens the popup with
+    /// it. If macOS hasn't granted permission to send keystrokes, or nothing is selected, it falls back to
+    /// whatever is already on the clipboard. Nothing on the clipboard means nothing happens.
     func handleHotKey() {
         guard enabled else { return }
+        Task { @MainActor in
+            await Self.copySelection()
+            self.openPopupWithClipboard()
+        }
+    }
+
+    /// Sends ⌘C to the frontmost app and waits briefly for the clipboard to change.
+    private static func copySelection() async {
+        guard CGPreflightPostEventAccess() || CGRequestPostEventAccess() else { return }
+        let pasteboard = NSPasteboard.general
+        let before = pasteboard.changeCount
+        let source = CGEventSource(stateID: .combinedSessionState)
+        let cKey: CGKeyCode = 8 // kVK_ANSI_C
+        for down in [true, false] {
+            let event = CGEvent(keyboardEventSource: source, virtualKey: cKey, keyDown: down)
+            event?.flags = .maskCommand // overrides any modifiers still held from the hotkey
+            event?.post(tap: .cgSessionEventTap)
+        }
+        for _ in 0..<20 where pasteboard.changeCount == before {
+            try? await Task.sleep(for: .milliseconds(25))
+        }
+    }
+
+    private func openPopupWithClipboard() {
         guard let text = NSPasteboard.general.string(forType: .string),
               !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         if isAsk { askPrompt = TextCleanup.beautify(text) } else { inputText = TextCleanup.beautify(text) }
