@@ -86,6 +86,8 @@ URL (sandbox and production) to `https://<your-worker>/webhooks/appstore`. 4) Wh
 the Worker checks the Apple signature chain against the pinned root, the bundle id, the environment and the account before granting anything.
 Purchases made with Xcode's local StoreKit configuration are signed by a local test certificate, not Apple's, so the Worker rejects them: test with a sandbox account instead.
 
+**Prices (USD, assuming dollars).** Power user / `lifetime_byok` $40; `lifetime_upgrade_1` $20; `lifetime_upgrade_2` $10; `lifetime_upgrade_3` $5 (and stays at $5 after that). Pro prices are not set yet.
+
 **Before launch:** remove `APPSTORE_ENVIRONMENTS` sandbox and set `LS_ACCEPT_TEST_MODE` back to `"false"`, then set `AppConfig.paymentsLiveInRelease = true` (this is what makes an own key require Lifetime).
 
 ## Behaviour notes
