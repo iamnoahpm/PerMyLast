@@ -55,7 +55,7 @@ enum AppConfig {
     /// FR-P7: the date this build was released. Update it for every release. A Lifetime licence whose 12 months of updates
     /// ended before this date cannot use the build (it shows "Renew updates to use this version").
     static let releaseDate: Date = {
-        var c = DateComponents(); c.year = 2026; c.month = 10; c.day = 22
+        var c = DateComponents(); c.year = 2026; c.month = 10; c.day = 23
         var cal = Calendar(identifier: .gregorian); cal.timeZone = TimeZone(identifier: "UTC")!
         return cal.date(from: c) ?? Date()
     }()
