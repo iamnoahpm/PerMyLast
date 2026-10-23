@@ -52,8 +52,9 @@ struct MainView: View {
                 }
                 .overlay(alignment: .leading) { if wide && !railPinned { peekRail } }
                 Rectangle().fill(PMLColor.divider).frame(height: 1)
-                FooterBar(onShowSidebar: wide && !railPinned ? { withAnimation(PMLMotion.base) { railPinned = true; railPeek = false } } : nil)
+                FooterBar()
             }
+            .overlay(alignment: .topLeading) { if wide { sidebarToggle } }
         }
         .background(PMLColor.surface)
         .frame(minWidth: PMLLayout.popupMinWidth, minHeight: PMLLayout.popupMinHeight)
@@ -78,18 +79,25 @@ struct MainView: View {
                      onSettings: { WindowCoordinator.shared.showSettings() })
             SetupProgressCard()
             PlansCard()
-            HStack(spacing: PMLSpace.s1) {
-                AccountFooter()
-                SidebarToggleButton(collapsed: !railPinned) {
-                    withAnimation(PMLMotion.base) { railPinned.toggle(); railPeek = false }
-                }
-            }
+            AccountFooter()
         }
         .padding(PMLSpace.s3)
         .frame(width: PMLLayout.railWidth)
         .frame(maxHeight: .infinity, alignment: .top)
         .background(PMLColor.surfaceInset)
         .overlay(alignment: .trailing) { Rectangle().fill(PMLColor.divider).frame(width: 1) }
+    }
+
+    /// In the title bar, on the traffic lights' line: at the sidebar's right edge while it is open,
+    /// right after the traffic lights while it is hidden.
+    private var sidebarToggle: some View {
+        SidebarToggleButton(collapsed: !railPinned) {
+            withAnimation(PMLMotion.base) { railPinned.toggle(); railPeek = false }
+        }
+        .padding(.leading, railPinned ? PMLLayout.railWidth - 50 : 78)
+        .frame(height: 28)
+        .offset(y: 2)
+        .ignoresSafeArea()
     }
 
     /// While the rail is collapsed: a thin strip at the left edge reveals it on hover, and leaving it hides it again.
@@ -444,12 +452,9 @@ struct OutputPanel: View {
 
 struct FooterBar: View {
     @Environment(AppModel.self) private var model
-    /// Set while the sidebar is hidden: shows the control to bring it back, at the bottom left where it was.
-    var onShowSidebar: (() -> Void)? = nil
 
     var body: some View {
         HStack(spacing: PMLSpace.s4) {
-            if let onShowSidebar { SidebarToggleButton(collapsed: true, action: onShowSidebar) }
             Text("Version \(model.appVersion)").foregroundStyle(PMLColor.inkMuted)
             UsageMeterLabel()
             Spacer()
