@@ -3312,13 +3312,35 @@
         }
       }
     },
-    "Select this sentence, then press %@.": {
+    "Select the text below…": {
       "extractionState": "manual",
       "localizations": {
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bôi đen câu này, rồi nhấn %@."
+            "value": "Bôi đen đoạn văn bên dưới…"
+          }
+        }
+      }
+    },
+    "Hi, could you send me the invoice by Friday? Thank you!": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chào bạn, bạn gửi giúp mình hóa đơn trước thứ Sáu nhé? Cảm ơn bạn!"
+          }
+        }
+      }
+    },
+    "…then press %@.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "…rồi nhấn %@."
           }
         }
       }
@@ -3334,13 +3356,24 @@
         }
       }
     },
-    "It used your clipboard, not your selection. Allow access above and it will read what you select.": {
+    "Not yet: it could not read your selection": {
       "extractionState": "manual",
       "localizations": {
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Phím tắt đã dùng bộ nhớ tạm, không phải văn bản bạn bôi đen. Hãy cho phép truy cập ở trên để nó đọc đúng phần bạn chọn."
+            "value": "Chưa được: chưa đọc được đoạn bạn bôi đen"
+          }
+        }
+      }
+    },
+    "Per My Last only got what is on your clipboard. Allow access above, then select the text and press the shortcut again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Per My Last chỉ lấy được nội dung trong clipboard. Hãy cấp quyền ở trên, rồi bôi đen đoạn văn và nhấn lại phím tắt."
           }
         }
       }

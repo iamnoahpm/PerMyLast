@@ -107,6 +107,19 @@ final class OnboardingModel {
         isActive = true
     }
 
+    #if DEBUG
+    /// Debug menu aid: forget everything onboarding remembers (progress, shortcut test, first run) and start over.
+    func resetForTesting() {
+        for key in ["onboardingDone", "onboardingStep", "onboardingShortcutWorked", "hadFirstRealRun", "onboardingStartedLogged"] {
+            defaults.removeObject(forKey: key)
+        }
+        shortcutWorked = false
+        hadFirstRealRun = false
+        restart()
+        WindowCoordinator.shared.showPopup()
+    }
+    #endif
+
     private func logStep() { FunnelLog.shared.log(.stepViewed, ["step": step.rawValue]) }
 
     // MARK: Signals from the rest of the app
@@ -115,6 +128,8 @@ final class OnboardingModel {
     func noteCapture(_ text: String, source: CaptureSource) -> Bool {
         guard isActive, step == .shortcut else { return false }
         caught = (text, source)
+        // Clipboard text is the fallback when the selection could not be read: that is the failure this step exists to catch.
+        guard source != .clipboard else { return true }
         shortcutWorked = true
         defaults.set(true, forKey: "onboardingShortcutWorked")
         FunnelLog.shared.log(.shortcutTested, ["via": source.rawValue])

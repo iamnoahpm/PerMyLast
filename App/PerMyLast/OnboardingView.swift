@@ -287,18 +287,26 @@ private struct ShortcutStep: View {
         PMLPanel(fill: PMLColor.surfaceInset) {
             VStack(alignment: .leading, spacing: PMLSpace.s2) {
                 Text("Try it now").pmlEyebrow()
-                Text("Select this sentence, then press \(model.shortcutDisplay).")
+                Text("Select the text below…").font(PMLFont.select).fontWeight(.bold).foregroundStyle(PMLColor.ink)
+                Text("Hi, could you send me the invoice by Friday? Thank you!")
                     .font(PMLFont.input).foregroundStyle(PMLColor.ink)
                     .textSelection(.enabled)
-                if let caught = flow.caught {
+                    .padding(PMLSpace.s3)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(RoundedRectangle(cornerRadius: PMLRadius.input, style: .continuous).fill(PMLColor.surface))
+                    .overlay(RoundedRectangle(cornerRadius: PMLRadius.input, style: .continuous)
+                        .strokeBorder(PMLColor.accent, style: StrokeStyle(lineWidth: 1.5, dash: [5, 4])))
+                Text("…then press \(model.shortcutDisplay).").font(PMLFont.select).fontWeight(.bold).foregroundStyle(PMLColor.ink)
+                if let caught = flow.caught, caught.source == .clipboard {
+                    Label("Not yet: it could not read your selection", systemImage: "exclamationmark.triangle.fill")
+                        .font(PMLFont.select).foregroundStyle(PMLColor.warning)
+                    Text("Per My Last only got what is on your clipboard. Allow access above, then select the text and press the shortcut again.")
+                        .font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted)
+                } else if let caught = flow.caught {
                     Label("It worked!", systemImage: "checkmark.circle.fill")
                         .font(PMLFont.select).foregroundStyle(PMLColor.success)
                     Text(verbatim: "“\(String(caught.text.prefix(120)))”")
                         .font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted).lineLimit(2)
-                    if caught.source == .clipboard {
-                        Text("It used your clipboard, not your selection. Allow access above and it will read what you select.")
-                            .font(PMLFont.hint).foregroundStyle(PMLColor.warning)
-                    }
                 } else {
                     Text("Or try it in any other app. We will notice when it works.")
                         .font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted)

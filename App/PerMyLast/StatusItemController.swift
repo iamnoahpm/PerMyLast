@@ -77,6 +77,13 @@ final class StatusItemController: NSObject {
         updates.target = self
         menu.addItem(updates)
 
+        #if DEBUG
+        menu.addItem(.separator())
+        let reset = NSMenuItem(title: "Reset Onboarding (debug)", action: #selector(resetOnboarding), keyEquivalent: "")
+        reset.target = self
+        menu.addItem(reset)
+        #endif
+
         menu.addItem(.separator())
 
         let quit = NSMenuItem(title: L("Quit Per My Last"), action: #selector(quit), keyEquivalent: "q")
@@ -89,6 +96,9 @@ final class StatusItemController: NSObject {
     @objc private func toggleDock() { AppModel.shared.setShowInDock(!AppModel.shared.settings.showInDock) }
     @objc private func openPaywall() { WindowCoordinator.shared.showPaywall() }
     @objc private func openGettingStarted() { OnboardingModel.shared.reopen(at: .welcome) }
+    #if DEBUG
+    @objc private func resetOnboarding() { OnboardingModel.shared.resetForTesting() }
+    #endif
     @objc private func openSettings() { WindowCoordinator.shared.showSettings() }
     @objc private func checkForUpdates() { AppModel.shared.checkForUpdates() }
     @objc private func quit() { NSApp.terminate(nil) }
