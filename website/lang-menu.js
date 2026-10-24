@@ -10,3 +10,12 @@
     menus.forEach(function (m) { m.removeAttribute('open'); });
   });
 })();
+
+// Per My Last — nav: a translucent bar appears once the page is scrolled.
+(function () {
+  var nav = document.querySelector('.nav');
+  if (!nav) return;
+  function update() { nav.classList.toggle('is-scrolled', window.scrollY > 8); }
+  window.addEventListener('scroll', update, { passive: true });
+  update();
+})();

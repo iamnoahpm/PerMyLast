@@ -495,7 +495,7 @@ a.lang-menu__item:hover { background: var(--bg-sunken); color: var(--fg); }
   text-align: center;
 }
 @media (max-width: 700px) { .privacy { grid-template-columns: 1fr; } }
-.privacy__item { max-width: 28ch; margin-inline: auto; }
+.privacy__item { max-width: 34ch; margin-inline: auto; }
 .privacy__item strong {
   display: flex;
   align-items: center;
@@ -512,7 +512,8 @@ a.lang-menu__item:hover { background: var(--bg-sunken); color: var(--fg); }
   box-shadow: 0 0 0 4px var(--success-soft);
   flex: none;
 }
-.privacy__item span { color: var(--fg-muted); font-size: 0.9375rem; }
+.privacy__item strong { font-size: 1.1875rem; letter-spacing: -0.01em; }
+.privacy__item span { color: var(--fg-muted); font-size: 1.0625rem; line-height: 1.55; }
 
 /* Privacy items with an icon badge instead of the plain status dot */
 .privacy--icons .privacy__item { display: flex; flex-direction: column; align-items: center; }
@@ -655,3 +656,56 @@ a.lang-menu__item:hover { background: var(--bg-sunken); color: var(--fg); }
 /* Inner pages: same dark hero as home, but a compact page header instead of a full-screen one. */
 .page--home.page--sub .hero { min-height: 0; padding-block: 128px 72px; }
 @media (max-width: 520px) { .page--home.page--sub .hero { padding-top: 136px; } }
+
+/* --- Whole site dark, after macbartender.com: #0a0a0a canvas, glassy cards, 48px/800 headings --- */
+.page--home {
+  color-scheme: dark;
+  --bg: #0a0a0a;
+  --bg-alt: #0a0a0c;
+  --bg-sunken: rgba(255,255,255,.06);
+  --bg-inset: rgba(255,255,255,.05);
+  --fg: #fff;
+  --fg-muted: #a3a3a3;
+  --fg-hint: #737373;
+  --line: rgba(255,255,255,.1);
+  --line-strong: rgba(255,255,255,.14);
+  --accent: #7ea3ff;
+  --accent-soft: rgba(126,163,255,.14);
+  --focus-ring: #7ea3ff;
+  --sh-card: none;
+  --sh-card-lg: 0 30px 80px -30px rgba(0,0,0,.85);
+  --fs-h2: clamp(2rem, 1.2rem + 2.4vw, 3rem);
+  background: var(--bg);
+}
+.page--home h2 { font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; }
+.page--home .section__head p { font-size: 1.125rem; }
+.page--home .section--alt { background: var(--bg-alt); }
+
+/* Cards: a faint top-lit glass panel with a hairline border and generous radius. */
+.page--home :is(.feature, .plan, .account__card, .callout) {
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+  border-color: var(--line);
+  border-radius: 24px;
+}
+.page--home .callout { border-radius: 16px; }
+.page--home .plan--featured { border-color: rgba(255,255,255,.3); box-shadow: 0 0 0 1px rgba(126,163,255,.12), var(--sh-card-lg); }
+.page--home .account__card input { background: rgba(255,255,255,.05); }
+.page--home .step__icon { background: var(--bg-alt); }
+
+/* The pull-quote band becomes a lit stage instead of a flat black bar. */
+.page--home .section--dark {
+  background: radial-gradient(60% 140% at 50% 0%, rgba(80,112,235,.3), transparent 72%), #0a0a0a;
+  border-block: 1px solid var(--line);
+}
+.page--home .pull-quote span { color: var(--accent); }
+
+/* Fixed bar: transparent over the hero, frosted once scrolled. */
+.page--home .nav { position: fixed; transition: background .2s, border-color .2s; border-bottom: 1px solid transparent; }
+.page--home .nav.is-scrolled {
+  background: rgba(10,10,10,.72);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  backdrop-filter: blur(16px) saturate(1.4);
+  border-bottom-color: var(--line);
+}
+.lang-banner { position: relative; z-index: 20; }
+.page--home :is(h1, h2) { text-wrap: balance; }
