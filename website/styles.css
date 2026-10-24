@@ -587,3 +587,71 @@ a.lang-menu__item:hover { background: var(--bg-sunken); color: var(--fg); }
 .account__sub { margin: 0; color: var(--fg-muted); font-size: 0.875rem; }
 .credits-bar { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
 .credits-bar__fill { height: 100%; width: 0; background: var(--fg); transition: width .3s; }
+
+/* --- Home: full-bleed dark hero with the nav floating over it (after macbartender.com) --- */
+.page--home .nav {
+  position: absolute; /* top stays at its static position, i.e. below the language banner when shown */
+  left: 0;
+  right: 0;
+  z-index: 5;
+  border-bottom: 0;
+  background: transparent;
+}
+.page--home .nav__brand { color: #fff; }
+.page--home .nav__link { color: rgba(255,255,255,.7); }
+.page--home .nav__link:hover,
+.page--home .nav__link.is-current { color: #fff; }
+.page--home .nav__sep { color: rgba(255,255,255,.22); }
+.page--home .lang-menu__btn { background: rgba(255,255,255,.12); color: #fff; }
+.page--home .lang-menu__btn:hover { background: rgba(255,255,255,.2); }
+.page--home .lang-menu__caret { color: rgba(255,255,255,.6); }
+.page--home .btn--primary { background: #fff; color: var(--vc-ink); }
+.page--home .btn--primary:hover { box-shadow: 0 10px 30px -10px rgba(0,0,0,.6); }
+.page--home .btn--secondary { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.22); color: #fff; }
+.page--home .btn--secondary:hover { background: rgba(255,255,255,.16); }
+
+.page--home .hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  min-height: min(100svh, 940px);
+  padding-block: 120px clamp(56px, 8vw, 120px);
+  color: #fff;
+  background:
+    radial-gradient(120% 75% at 12% -5%, rgba(112,146,255,.55), transparent 58%),
+    radial-gradient(80% 65% at 95% 10%, rgba(200,208,255,.30), transparent 60%),
+    linear-gradient(180deg, #171d3b 0%, #0c0e1a 62%, #07070a 100%);
+}
+/* Soft ribbon highlights, standing in for the reference's satin wave. */
+.page--home .hero::before,
+.page--home .hero::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 50%;
+}
+.page--home .hero::before {
+  width: 150%; height: 150%; left: -25%; top: -62%;
+  border-top: 2px solid rgba(255,255,255,.22);
+  box-shadow: 0 -30px 90px rgba(150,172,255,.25), inset 0 40px 120px rgba(150,172,255,.12);
+  transform: rotate(-9deg);
+}
+.page--home .hero::after {
+  width: 130%; height: 130%; left: -5%; top: -40%;
+  border-top: 2px solid rgba(255,255,255,.14);
+  box-shadow: 0 -24px 80px rgba(120,150,255,.2);
+  transform: rotate(8deg);
+}
+.page--home .hero__inner { width: 100%; }
+.page--home .hero__icon { box-shadow: 0 24px 60px -16px rgba(0,0,0,.7); }
+.page--home .hero__eyebrow { background: rgba(255,255,255,.1); color: #d6deff; }
+.page--home .hero h1 { color: #fff; }
+.page--home .hero__lead { color: rgba(255,255,255,.74); }
+.page--home .hero__note { color: rgba(255,255,255,.5); }
+@media (max-width: 520px) {
+  /* The nav is two rows here, so the floating nav needs more room above the hero. */
+  .page--home .hero { padding-top: 152px; }
+}
