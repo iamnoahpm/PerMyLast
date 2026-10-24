@@ -71,6 +71,7 @@ struct PaywallView: View {
                 Text("Power user").font(PMLFont.select.weight(.bold))
                 Text("Bring your own Claude key and pay Anthropic directly. One purchase includes updates for 12 months. After that, each upgrade costs half of your last payment, and halves again each time.")
                     .font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted)
+                    .fixedSize(horizontal: false, vertical: true)
                 HStack {
                     Button(lifetimeTitle) { Task { await purchases.buy(.lifetime) } }
                         .disabled(!account.signedIn || !purchases.isAvailable(.lifetime) || purchases.isBusy)

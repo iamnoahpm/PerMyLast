@@ -69,6 +69,7 @@ struct AccountSection: View {
             Button("Refresh") { Task { await self.account.refreshEntitlement() } }
             Button("Sign out") { self.account.signOut() }
         }
+        .buttonStyle(PMLSecondaryButtonStyle())
     }
 }
 
