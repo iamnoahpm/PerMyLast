@@ -195,7 +195,7 @@ a { color: inherit; }
 .nav__right { display: flex; align-items: center; gap: var(--s-3); justify-self: end; }
 .nav__brand { display: flex; align-items: center; gap: var(--s-3); font-weight: 700; font-size: 1.125rem; letter-spacing: -0.01em; color: var(--fg); text-decoration: none; white-space: nowrap; }
 /* The icon matches the height of the CTA buttons on the right. */
-.nav__brand img { width: 48px; height: 48px; border-radius: 12px; }
+.nav__brand img { width: 48px; height: 48px; border-radius: 22.6%; }
 .nav__right .lang-menu__btn { min-height: 48px; }
 .nav__group { display: flex; align-items: center; gap: var(--s-6); white-space: nowrap; }
 
@@ -213,7 +213,7 @@ a { color: inherit; }
   .nav__right .lang-menu__btn { min-height: 40px; }
   .lang-menu__caret { display: none; }
   .nav__brand { min-width: max-content; font-size: 1rem; }
-  .nav__brand img { width: 40px; height: 40px; border-radius: 10px; }
+  .nav__brand img { width: 40px; height: 40px; }
 }
 @media (max-width: 380px) {
   .nav .nav__links .nav__download { padding: 8px 12px; gap: 6px; }
@@ -329,7 +329,7 @@ a.lang-menu__item:hover { background: var(--bg-sunken); color: var(--fg); }
 
 /* --- Hero --- */
 .hero { padding-block: clamp(56px, 9vw, 136px) clamp(48px, 7vw, 104px); text-align: center; }
-.hero__icon { width: clamp(88px, 8vw, 120px); height: clamp(88px, 8vw, 120px); margin: 0 auto var(--s-6); border-radius: 27%; box-shadow: var(--sh-card-lg); }
+.hero__icon { width: clamp(88px, 8vw, 120px); height: clamp(88px, 8vw, 120px); margin: 0 auto var(--s-6); border-radius: 22.6%; box-shadow: var(--sh-card-lg); }
 .hero__eyebrow {
   display: inline-block;
   font-size: 0.8125rem;
