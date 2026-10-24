@@ -1,0 +1,3 @@
+# Minimal Supabase CLI config. Run `supabase link` to attach your project.
+[functions.stripe-webhook]
+verify_jwt = false

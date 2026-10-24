@@ -116,6 +116,13 @@
   .shortcut-conflict-msg { color:var(--danger); font-weight:600; }
   button { background:var(--accent-cool); color:#fff; border:none; box-shadow:none; padding:12px 20px; border-radius:var(--r-inset); font-size:var(--t-input); font-weight:700; cursor:pointer; width:100%; transition:transform var(--dur-fast) var(--ease), opacity var(--dur-fast) var(--ease); }
   button:hover { transform:translateY(var(--lift)); opacity:.92; }
+  .credits-meter { background:var(--vc-paper-2); border-radius:var(--r-input); padding:12px; margin:10px 0; }
+  .credits-meter-top { display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+  .credits-meter-top strong { font-size:20px; }
+  .credits-meter-top span { font-size:11px; color:var(--vc-label-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .credits-bar { height:6px; border-radius:3px; background:var(--vc-border); margin:8px 0 6px; overflow:hidden; }
+  .credits-bar-fill { height:100%; width:0; background:var(--fg); transition:width .3s; }
+  .credits-bar-fill.low { background:var(--danger); }
   .btn-outline { background:var(--bg); color:var(--vc-ink-soft); border:1px solid var(--vc-border-btn); box-shadow:none; margin-bottom:10px; font-weight:600; }
   .btn-outline:hover { background:var(--vc-paper-2); opacity:1; }
   .lang-combobox { position:relative; }
@@ -226,6 +233,43 @@
     <div class="content">
       <div class="tab-panel active" data-panel="general">
         <div class="card">
+          <label data-i18n="apiModeLabel">How do you want to use Claude?</label>
+          <div class="effort-segmented" id="apiModeSegmented">
+            <button type="button" class="effort-seg-btn" data-mode="credits" data-i18n="apiModeCredits">Per My Last credits</button>
+            <button type="button" class="effort-seg-btn" data-mode="own" data-i18n="apiModeOwn">My own API key</button>
+          </div>
+
+          <div id="creditsPanel" style="display:none;">
+            <div id="creditsUnconfigured" style="display:none;"><small data-i18n="creditsUnavailable">Credits aren't available in this build yet. Use your own API key for now.</small></div>
+
+            <div id="creditsSignedOut" style="display:none;">
+              <small data-i18n="creditsIntro">No API key needed. Subscribe and get 1,000 rewrites every month — sign in with your email to start.</small>
+              <label for="creditsEmail" data-i18n="creditsEmailLabel">Email</label>
+              <input type="email" id="creditsEmail" placeholder="you@example.com" autocomplete="email">
+              <button type="button" id="creditsSendCodeBtn" class="btn-outline" data-i18n="creditsSendCode">Email me a sign-in code</button>
+              <div id="creditsCodeRow" style="display:none;">
+                <label for="creditsCode" data-i18n="creditsCodeLabel">6-digit code</label>
+                <input type="text" id="creditsCode" inputmode="numeric" maxlength="8" placeholder="123456" autocomplete="one-time-code">
+                <button type="button" id="creditsVerifyBtn" class="btn-outline" data-i18n="creditsVerify">Sign in</button>
+              </div>
+              <small class="shortcut-conflict-msg" id="creditsAuthMsg" style="display:none;"></small>
+            </div>
+
+            <div id="creditsSignedIn" style="display:none;">
+              <div class="credits-meter">
+                <div class="credits-meter-top"><strong id="creditsCount">–</strong><span id="creditsAccount"></span></div>
+                <div class="credits-bar"><div class="credits-bar-fill" id="creditsBarFill"></div></div>
+                <small id="creditsRenew"></small>
+              </div>
+              <button type="button" id="creditsSubscribeBtn" data-i18n="creditsSubscribe" style="display:none;">Subscribe — 1,000 credits / month</button>
+              <button type="button" id="creditsManageBtn" class="btn-outline" data-i18n="creditsManage" style="display:none;">Manage subscription</button>
+              <button type="button" id="creditsSignOutBtn" class="btn-outline" data-i18n="creditsSignOut">Sign out</button>
+              <small class="shortcut-conflict-msg" id="creditsBillingMsg" style="display:none;"></small>
+              <small data-i18n="creditsPrivacyNote">In credits mode your selected text is sent through our server to Claude. We don't store or log it.</small>
+            </div>
+          </div>
+
+          <div id="ownKeyPanel">
           <label for="apiKey" data-i18n="apiKeyLabel">Claude API Key</label>
           <input type="password" id="apiKey" placeholder="sk-ant-api…" autocomplete="off">
           <small><span data-i18n="apiKeyGetOne">Get one at </span><a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a></small>
@@ -233,6 +277,7 @@
           <label for="workspaceId" data-i18n="workspaceIdLabel">Workspace ID (optional)</label>
           <input type="text" id="workspaceId" placeholder="wrkspc_…" autocomplete="off">
           <small data-i18n="workspaceIdHint">Only needed if you see "anthropic-workspace-id is required" — that means your key is linked to your identity within an org, not a standalone workspace key.</small>
+          </div>
 
           <label for="model" data-i18n="modelLabel">Model</label>
           <select id="model">
@@ -527,6 +572,9 @@
   // without needing to close and reopen Settings. The main popup picks up the
   // same change separately, via the existing app-language-status push.
   let currentLang = 'en-US';
+  // False in Mac App Store builds: the hotkey reads the clipboard instead of
+  // auto-capturing, so the Permissions tab and capture wording don't apply.
+  let autoCapture = true;
   let appVersion = '';
   function applyTranslations(lang) {
     currentLang = lang || 'en-US';
@@ -610,7 +658,7 @@
 
   function updateShortcutHint() {
     $('#shortcutHint').textContent = currentShortcut
-      ? window.I18n.t(currentLang, 'shortcutHintSet', { shortcut: acceleratorToDisplay(currentShortcut) })
+      ? window.I18n.t(currentLang, autoCapture ? 'shortcutHintSet' : 'shortcutHintSetClipboard', { shortcut: acceleratorToDisplay(currentShortcut) })
       : window.I18n.t(currentLang, 'shortcutHintUnset');
   }
 
@@ -774,9 +822,91 @@
     setEffort(btn.dataset.effort);
   });
 
+  // Credits mode -----------------------------------------------------------
+  let apiMode = 'own';
+  let creditsState = null;
+  const tr = (key, vars) => window.I18n.t(currentLang, key, vars);
+  const fmt = (n) => Number(n).toLocaleString(currentLang === 'vi' ? 'vi-VN' : 'en-US');
+
+  function setApiMode(mode) {
+    apiMode = mode;
+    $('#apiModeSegmented').querySelectorAll('.effort-seg-btn').forEach((b) => b.classList.toggle('active', b.dataset.mode === mode));
+    $('#creditsPanel').style.display = mode === 'credits' ? '' : 'none';
+    $('#ownKeyPanel').style.display = mode === 'own' ? '' : 'none';
+  }
+
+  function authMsg(el, text) { el.textContent = text || ''; el.style.display = text ? 'block' : 'none'; }
+
+  function renderCredits(state) {
+    creditsState = state;
+    if (!state) return;
+    $('#creditsUnconfigured').style.display = state.configured ? 'none' : '';
+    $('#creditsSignedOut').style.display = state.configured && !state.signedIn ? '' : 'none';
+    $('#creditsSignedIn').style.display = state.configured && state.signedIn ? '' : 'none';
+    if (!state.signedIn) return;
+    const p = state.profile;
+    $('#creditsAccount').textContent = state.email;
+    if (!p) { $('#creditsCount').textContent = '–'; return; }
+    $('#creditsCount').textContent = tr('creditsCount', { n: fmt(p.credits), limit: fmt(p.limit) });
+    const pct = p.limit ? Math.min(100, Math.round((p.credits / p.limit) * 100)) : 0;
+    const fill = $('#creditsBarFill');
+    fill.style.width = (p.subscribed ? pct : 0) + '%';
+    fill.classList.toggle('low', p.subscribed && pct <= 10);
+    $('#creditsRenew').textContent = !p.subscribed ? tr('creditsNoPlan')
+      : p.renewsAt ? tr('creditsRenews', { date: new Date(p.renewsAt).toLocaleDateString(currentLang === 'vi' ? 'vi-VN' : 'en-US', { month: 'short', day: 'numeric' }) }) : '';
+    $('#creditsSubscribeBtn').style.display = p.subscribed ? 'none' : '';
+    $('#creditsManageBtn').style.display = p.subscribed ? '' : 'none';
+  }
+
+  $('#apiModeSegmented').addEventListener('click', (e) => {
+    const btn = e.target.closest('.effort-seg-btn');
+    if (btn) setApiMode(btn.dataset.mode);
+  });
+
+  $('#creditsSendCodeBtn').addEventListener('click', async () => {
+    const email = $('#creditsEmail').value.trim();
+    if (!/^\S+@\S+\.\S+$/.test(email)) return authMsg($('#creditsAuthMsg'), tr('creditsEmailInvalid'));
+    authMsg($('#creditsAuthMsg'), tr('creditsSending'));
+    const r = await window.api.creditsSendCode(email);
+    if (!r.success) return authMsg($('#creditsAuthMsg'), r.error);
+    $('#creditsCodeRow').style.display = '';
+    authMsg($('#creditsAuthMsg'), tr('creditsCodeSent', { email }));
+    $('#creditsCode').focus();
+  });
+
+  $('#creditsVerifyBtn').addEventListener('click', async () => {
+    const r = await window.api.creditsVerifyCode($('#creditsEmail').value.trim(), $('#creditsCode').value.trim());
+    if (!r.success) return authMsg($('#creditsAuthMsg'), r.error);
+    authMsg($('#creditsAuthMsg'), '');
+    $('#creditsCode').value = '';
+    $('#creditsCodeRow').style.display = 'none';
+    renderCredits(r.state);
+  });
+
+  $('#creditsSignOutBtn').addEventListener('click', async () => { await window.api.creditsSignOut(); });
+
+  async function openBilling(action) {
+    authMsg($('#creditsBillingMsg'), '');
+    const r = await window.api.creditsBilling(action);
+    if (!r.success) authMsg($('#creditsBillingMsg'), r.error);
+  }
+  $('#creditsSubscribeBtn').addEventListener('click', () => openBilling('checkout'));
+  $('#creditsManageBtn').addEventListener('click', () => openBilling('portal'));
+
+  window.api.onCreditsUpdated(renderCredits);
+  // Coming back from Stripe Checkout: refresh the balance when the window regains focus.
+  window.addEventListener('focus', () => { if (creditsState && creditsState.signedIn) window.api.getCredits().then(renderCredits); });
+
   (async () => {
     const s = await window.api.getSettings();
+    autoCapture = s.autoCapture !== false;
+    if (!autoCapture) {
+      document.querySelector('.tab[data-tab="permissions"]').style.display = 'none';
+      document.querySelector('.tab-panel[data-panel="permissions"]').style.display = 'none';
+    }
     if (s.apiKey) $('#apiKey').value = s.apiKey;
+    setApiMode(s.apiMode || 'own');
+    window.api.getCredits().then(renderCredits);
     if (s.workspaceId) $('#workspaceId').value = s.workspaceId;
     if (s.motherLanguage) { $('#motherLanguage').value = s.motherLanguage; updateMotherLanguageFlag(); }
     $('#appLanguage').value = s.appLanguage || 'en-US';
@@ -791,6 +921,7 @@
     setEffort(s.effort || 'medium');
     refreshModelUI();
     applyTranslations(s.appLanguage || 'en-US');
+    renderCredits(creditsState);
   })();
 
   $('#save').addEventListener('click', async () => {
@@ -802,7 +933,7 @@
     const effort = currentEffort();
     const showInDock = $('#showInDock').checked;
     const launchAtLogin = $('#launchAtLogin').checked;
-    if (!apiKey.startsWith('sk-ant-')) return status(window.I18n.t(currentLang, 'apiKeyInvalid'), false);
+    if (apiMode === 'own' && !apiKey.startsWith('sk-ant-')) return status(window.I18n.t(currentLang, 'apiKeyInvalid'), false);
     if (!model) return status(window.I18n.t(currentLang, 'modelRequired'), false);
     if (!currentShortcut) {
       showShortcutRequiredError();
@@ -813,7 +944,7 @@
     if (window.ShortcutConflicts.findShortcutConflict(currentShortcut, 'system')) {
       return status(window.I18n.t(currentLang, 'shortcutConflictsSystemSave'), false);
     }
-    await window.api.saveSettings({ apiKey, workspaceId, motherLanguage, appLanguage, model, effort, shortcut: currentShortcut, showInDock, launchAtLogin });
+    await window.api.saveSettings({ apiMode, apiKey, workspaceId, motherLanguage, appLanguage, model, effort, shortcut: currentShortcut, showInDock, launchAtLogin });
     applyTranslations(appLanguage);
     status(window.I18n.t(currentLang, 'savedUsing', { model }), true);
     flashSaved();

@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mode selector samples</title>
+<link rel="stylesheet" href="../renderer/tokens.css">
+<style>
+  * { box-sizing:border-box; }
+  body { margin:0; padding:32px 24px 56px; background:var(--vc-desktop); font-family:var(--vc-font-body); color:var(--fg); }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .lede { font-size:13px; color:var(--fg-muted); margin:0 0 24px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(440px, 1fr)); gap:28px; max-width:1100px; }
+  .variant-label { font-size:12px; font-weight:700; color:var(--vc-label-muted); margin:0 0 8px; }
+  .variant-label span { font-weight:500; }
+
+  .win { background:var(--bg); border-radius:12px; border:1px solid var(--line); box-shadow:0 8px 24px rgba(0,0,0,.08); padding:20px 22px 22px; display:flex; flex-direction:column; gap:14px; }
+  .eyebrow { font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--accent-cool); margin:0; }
+  .heading { font-size:16px; font-weight:700; margin:0; }
+  .sub { font-size:13.5px; color:var(--vc-label-subtle); line-height:1.5; margin:0; min-height:40px; }
+  svg.i { width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; }
+
+  .settings-link { display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:8px; border:0; background:transparent; color:var(--vc-label-muted); cursor:pointer; font-size:16px; flex-shrink:0; }
+  .settings-link:hover { background:var(--vc-paper-2); color:var(--fg); }
+
+  /* A: segmented */
+  .seg-row { display:flex; align-items:center; gap:8px; }
+  .seg { display:flex; flex:1; gap:2px; padding:3px; background:var(--vc-paper-2); border-radius:10px; }
+  .seg button { flex:1; display:flex; align-items:center; justify-content:center; gap:6px; padding:8px 4px; border:0; border-radius:8px; background:transparent; font-family:inherit; font-size:13px; font-weight:600; color:var(--fg); cursor:pointer; transition:background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
+  .seg button:hover:not(.active) { background:rgba(0,0,0,.04); }
+  .seg button.active { background:var(--accent-cool); color:#fff; }
+
+  /* B: cards */
+  .cards { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .card { text-align:left; padding:12px 14px; border:1px solid var(--vc-border-strong); border-radius:10px; background:var(--bg); font-family:inherit; cursor:pointer; transition:all var(--dur-fast) var(--ease); }
+  .card:hover:not(.active) { border-color:var(--vc-label-muted); }
+  .card.active { border-color:var(--accent-cool); background:var(--accent-cool-soft); }
+  .card .t { display:flex; align-items:center; gap:7px; font-size:14px; font-weight:700; color:var(--fg); }
+  .card.active .t { color:var(--accent-cool); }
+  .card .h { display:block; margin-top:3px; font-size:12px; line-height:1.4; color:var(--vc-label-muted); }
+
+  /* C: sentence chips */
+  .sentence { font-size:20px; font-weight:700; margin:0; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; }
+  .chip { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border:1px solid var(--vc-border-strong); border-radius:999px; background:var(--bg); font-family:inherit; font-size:13px; font-weight:600; color:var(--fg); cursor:pointer; transition:all var(--dur-fast) var(--ease); }
+  .chip:hover:not(.active) { border-color:var(--vc-label-muted); }
+  .chip.active { background:var(--accent-cool); border-color:var(--accent-cool); color:#fff; }
+
+  /* D: list */
+  .list { display:flex; flex-direction:column; gap:6px; }
+  .row { display:flex; align-items:center; gap:12px; text-align:left; padding:9px 12px; border:1px solid var(--vc-border-strong); border-radius:10px; background:var(--bg); font-family:inherit; cursor:pointer; transition:all var(--dur-fast) var(--ease); }
+  .row:hover:not(.active) { border-color:var(--vc-label-muted); }
+  .row.active { border-color:var(--accent-cool); background:var(--accent-cool-soft); }
+  .row svg.i { width:18px; height:18px; color:var(--vc-label-muted); }
+  .row.active svg.i, .row.active .t { color:var(--accent-cool); }
+  .row .t { display:block; font-size:13.5px; font-weight:700; }
+  .row .h { display:block; font-size:12px; color:var(--vc-label-muted); margin-top:1px; }
+  .row .radio { margin-left:auto; width:16px; height:16px; border-radius:50%; border:1.5px solid var(--vc-faint-3); flex-shrink:0; }
+  .row.active .radio { border:5px solid var(--accent-cool); }
+
+  /* shared input + send */
+  .source { width:100%; min-height:96px; padding:10px 12px; border:1px solid var(--vc-border-strong); border-radius:10px; font-family:inherit; font-size:13.5px; line-height:1.5; color:var(--fg); resize:vertical; }
+  .source::placeholder { color:var(--vc-hint); }
+  .source:focus { outline:none; border-color:var(--accent-cool); }
+  .send { height:40px; border:0; border-radius:10px; background:var(--accent-cool); color:#fff; font-family:inherit; font-size:14px; font-weight:700; cursor:pointer; }
+  .send:hover { transform:translateY(-1px); }
+  button:focus-visible { outline:2px solid var(--focus-ring); outline-offset:2px; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-reply" viewBox="0 0 24 24"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></symbol>
+    <symbol id="i-write" viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></symbol>
+    <symbol id="i-explain" viewBox="0 0 24 24"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></symbol>
+    <symbol id="i-ask" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></symbol>
+  </defs>
+</svg>
+
+<h1>Mode selector: four options</h1>
+<p class="lede">Click any mode. The choice is shared across all four and remembered after a reload (localStorage).</p>
+
+<div class="grid">
+  <section><p class="variant-label">A · Tabs + dynamic subtitle <span>(closest to today)</span></p>
+    <div class="win" data-variant="a">
+      <p class="eyebrow">What are you trying to do?</p>
+      <p class="sub" data-sub></p>
+      <div class="seg-row"><div class="seg" role="tablist" aria-label="What are you trying to do" data-options></div>
+        <button class="settings-link" title="Tone and preferences" aria-label="Tone and preferences">⚙</button></div>
+      <textarea class="source" data-input></textarea>
+      <button class="send" data-send></button>
+    </div></section>
+
+  <section><p class="variant-label">B · Cards <span>(everything visible)</span></p>
+    <div class="win" data-variant="b">
+      <p class="heading">What do you need help with?</p>
+      <div class="cards" role="radiogroup" aria-label="What do you need help with" data-options></div>
+      <textarea class="source" data-input></textarea>
+      <button class="send" data-send></button>
+    </div></section>
+
+  <section><p class="variant-label">C · "I want to…" <span>(conversational)</span></p>
+    <div class="win" data-variant="c">
+      <p class="sentence">I want to…</p>
+      <div class="chips" role="radiogroup" aria-label="I want to" data-options></div>
+      <p class="sub" data-sub style="min-height:0"></p>
+      <textarea class="source" data-input></textarea>
+      <button class="send" data-send></button>
+    </div></section>
+
+  <section><p class="variant-label">D · List <span>(compact, all visible)</span></p>
+    <div class="win" data-variant="d">
+      <p class="eyebrow">What are you trying to do?</p>
+      <div class="list" role="radiogroup" aria-label="What are you trying to do" data-options></div>
+      <textarea class="source" data-input></textarea>
+      <button class="send" data-send></button>
+    </div></section>
+</div>
+
+<script>
+  const MODES = [
+    { id:'reply',   label:'Reply',   verb:'reply to', icon:'i-reply',   hint:'Answer a message you got',   sub:'Paste what you received. Get a reply that says what you mean, professionally.',      ph:'Paste the email or message you got…',              cta:'Draft reply' },
+    { id:'write',   label:'Write',   verb:'write',    icon:'i-write',   hint:'Say something new, polished', sub:'Tell me what you need to say. Get a clear, professional draft.',                  ph:'What do you need to say, and to whom?',            cta:'Draft message' },
+    { id:'explain', label:'Explain', verb:'understand', icon:'i-explain', hint:'Decode a confusing message', sub:'Paste something unclear. See what they really mean and what they want from you.', ph:'Paste the message you want explained…',            cta:'Explain it' },
+    { id:'ask',     label:'Ask',     verb:'ask about', icon:'i-ask',     hint:'Get advice on tone or wording', sub:'Ask anything about tone, wording, or handling a tricky situation.',              ph:'Ask a question…',                                   cta:'Ask' }
+  ];
+  const KEY = 'pml.lastMode';
+  let current = 'reply';
+  try { const s = localStorage.getItem(KEY); if (MODES.some(m => m.id === s)) current = s; } catch (_) {}
+
+  const icon = m => `<svg class="i" aria-hidden="true"><use href="#${m.icon}"/></svg>`;
+  const tpl = {
+    a: m => `<button role="tab" data-id="${m.id}">${icon(m)}${m.label}</button>`,
+    b: m => `<button class="card" role="radio" data-id="${m.id}"><span class="t">${icon(m)}${m.label}</span><span class="h">${m.hint}</span></button>`,
+    c: m => `<button class="chip" role="radio" data-id="${m.id}">${icon(m)}${m.verb}</button>`,
+    d: m => `<button class="row" role="radio" data-id="${m.id}">${icon(m)}<span><span class="t">${m.label}</span><span class="h">${m.hint}</span></span><span class="radio"></span></button>`
+  };
+
+  document.querySelectorAll('[data-variant]').forEach(win => {
+    const v = win.dataset.variant;
+    const box = win.querySelector('[data-options]');
+    box.innerHTML = MODES.map(tpl[v]).join('');
+    box.addEventListener('click', e => {
+      const b = e.target.closest('[data-id]');
+      if (b) setMode(b.dataset.id);
+    });
+  });
+
+  function setMode(id) {
+    current = id;
+    try { localStorage.setItem(KEY, id); } catch (_) {}
+    render();
+  }
+
+  function render() {
+    const m = MODES.find(x => x.id === current);
+    document.querySelectorAll('[data-variant]').forEach(win => {
+      win.querySelectorAll('[data-id]').forEach(b => {
+        const on = b.dataset.id === current;
+        b.classList.toggle('active', on);
+        b.setAttribute(b.getAttribute('role') === 'tab' ? 'aria-selected' : 'aria-checked', on);
+      });
+      const sub = win.querySelector('[data-sub]'); if (sub) sub.textContent = m.sub;
+      win.querySelector('[data-input]').placeholder = m.ph;
+      win.querySelector('[data-send]').textContent = m.cta;
+    });
+  }
+  render();
+</script>
+</body>
+</html>

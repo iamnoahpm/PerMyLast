@@ -170,6 +170,8 @@
   .footer { display:flex; align-items:center; gap:10px; padding:0 16px; height:34px; border-top:1px solid #e5e5e8; background:var(--bg); font-size:11.5px; color:var(--vc-hint); flex-shrink:0; }
   .footer a, .footer button.link { color:var(--accent-cool); text-decoration:none; background:none; border:0; padding:0; font-family:inherit; font-size:11.5px; cursor:pointer; }
   .footer a:hover, .footer button.link:hover { text-decoration:underline; }
+  .credits-badge { margin-left:auto; background:var(--vc-paper-2,#f2f2f4); border:0; border-radius:10px; padding:2px 8px; font-family:inherit; font-size:11px; font-weight:600; color:var(--vc-ink-soft,#444); cursor:pointer; }
+  .credits-badge.low { background:var(--danger-soft,#fde8e8); color:var(--danger,#b42318); }
   .footer-divider { width:1px; height:11px; background:#dcdce1; }
 </style>
 </head>
@@ -276,6 +278,7 @@
       <span id="footerVersion"></span>
       <span class="footer-divider"></span>
       <button type="button" class="link" id="footerFeedbackBtn">Send feedback</button>
+      <button type="button" class="credits-badge" id="creditsBadge" style="display:none;"></button>
     </div>
   </div>
 
@@ -314,9 +317,29 @@
     motherLanguage = s.motherLanguage || '';
     appLanguage = s.appLanguage || 'en';
     if (s.shortcut) shortcutDisplay = window.ShortcutConflicts.acceleratorToDisplay(s.shortcut);
+    apiMode = s.apiMode || 'own';
     applyTranslations();
     renderActions();
+    if (apiMode === 'credits') window.api.getCredits().then(renderCreditsBadge);
   });
+
+  // Live "N credits left" in the footer. The server owns the number; this
+  // only mirrors what main.js last broadcast after each request.
+  let apiMode = 'own';
+  let creditsState = null;
+  function renderCreditsBadge(state) {
+    if (state) { creditsState = state; if (state.mode) apiMode = state.mode; }
+    const badge = $('#creditsBadge');
+    const p = creditsState && creditsState.profile;
+    const show = apiMode === 'credits' && creditsState && creditsState.signedIn && p;
+    badge.style.display = show ? '' : 'none';
+    if (!show) return;
+    const empty = !p.subscribed || p.credits <= 0;
+    badge.textContent = empty ? tr('creditsBadgeNone') : tr('creditsBadge', { n: p.credits.toLocaleString() });
+    badge.classList.toggle('low', empty || p.credits <= Math.max(1, Math.round(p.limit * 0.1)));
+  }
+  $('#creditsBadge').addEventListener('click', () => window.api.openSettings());
+  window.api.onCreditsUpdated(renderCreditsBadge);
 
   const selectedEl = $('#selected');
   const askBoxEl = $('#askBox');
@@ -891,6 +914,7 @@
 
   function applyTranslations() {
     $('#settingsLinkLabel').textContent = tr('openSettings').replace(' →', '');
+    renderCreditsBadge();
     replyIntentEl.placeholder = tr('replyIntentPlaceholder');
     askBoxEl.placeholder = tr('askPlaceholder');
     $('#askLabel').textContent = tr('askLabel');

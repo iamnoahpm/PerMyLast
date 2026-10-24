@@ -1,9 +1,10 @@
-const { app, BrowserWindow, globalShortcut, ipcMain, Tray, Menu, clipboard, nativeImage, screen, shell, net, systemPreferences, dialog } = require('electron');
+const { app, BrowserWindow, globalShortcut, ipcMain, Tray, Menu, clipboard, nativeImage, screen, shell, net, systemPreferences, dialog, safeStorage } = require('electron');
 const Store = require('electron-store');
 const path = require('path');
 const { execFile } = require('child_process');
 const { DEFAULT_MODES, DEFAULT_PRESETS, migrateLegacyDefaults, validateLabel, normalizePresets, upsertPreset, deletePreset, incrementUses, applyPresetEdits, addMode, renameMode, deleteMode, reorderModes, buildClaudeRequest, buildAskRequest, ASK_MAX_TOKENS, normalizeWriteMyWay, buildWriteMyWayText } = require('./presets');
 const { findShortcutConflict } = require('./renderer/shortcutConflicts');
+const credits = require('./credits');
 
 // Distinguishes a dev/test run from the packaged app installed from the DMG —
 // otherwise both show "Per My Last" in the Dock/menu bar with no way to tell
@@ -128,6 +129,13 @@ function openSettingsWindow() {
   if (mainWindow && mainWindow.isVisible()) mainWindow.hide();
   createSettingsWindow(bounds);
 }
+
+// Auto-capture drives other apps through System Events (osascript), which the
+// Mac App Store sandbox doesn't allow. In a MAS build (process.mas) the hotkey
+// instead opens the popup with whatever is already on the clipboard — the user
+// presses Cmd+C themselves first. PML_CLIPBOARD_ONLY=1 forces that mode in an
+// unpackaged/DMG build so the MAS flow can be tried without a MAS build.
+const AUTO_CAPTURE = !(process.mas || process.env.PML_CLIPBOARD_ONLY === '1');
 
 // Simulates Cmd+C via System Events so the hotkey works on whatever text is
 // currently selected in the frontmost app, without requiring a manual copy
@@ -283,6 +291,19 @@ async function captureAndFill() {
   clipboard.writeText(previousClipboard);
 }
 
+// Clipboard-only variant of the hotkey for builds where auto-capture isn't
+// available (see AUTO_CAPTURE). No keystroke simulation, no System Events, so
+// no Accessibility/Automation permissions — the user copied the text already.
+async function clipboardFill() {
+  if (!isEnabled) return;
+  const text = await Promise.resolve(clipboard.readText());
+  if (!text || !text.trim()) return;
+
+  showMainWindow();
+  mainWindow.webContents.send('selected-text', text);
+  mainWindow.focus();
+}
+
 // Docks the window to the right edge of whichever display currently has the
 // cursor, full height, width = 1/2 the screen. Re-applied on every show, not
 // just once, so it stays consistent even if the user manually resized it
@@ -306,7 +327,7 @@ function positionWindow() {
 
 // First-run setup (no key / not signed in yet) takes priority over the popup.
 function needsSetup() {
-  return !store.get('apiKey');
+  return getApiMode() === 'own' ? !store.get('apiKey') : !loadCreditsSession();
 }
 
 // What a left-click on the tray icon, a Dock-icon click, and a plain launch
@@ -369,12 +390,121 @@ function updateTrayIcon() {
 function registerShortcut() {
   globalShortcut.unregisterAll();
   const sc = store.get('shortcut', DEFAULT_SHORTCUT);
-  const ok = globalShortcut.register(sc, captureAndFill);
+  const ok = globalShortcut.register(sc, AUTO_CAPTURE ? captureAndFill : clipboardFill);
   if (!ok) console.error('Failed to register global shortcut:', sc, '— it may already be in use by another app.');
 }
 
+// --- Shared-key credits ----------------------------------------------------
+// Alternative to bringing your own API key: sign in, subscribe, and requests
+// go through our proxy (which holds the shared key and the credit balance).
+// The balance is only ever *displayed* here — the server is the source of
+// truth, so editing local storage can't grant credits.
+const creditsClient = credits.createClient(
+  { url: credits.SUPABASE_URL, anonKey: credits.SUPABASE_ANON_KEY },
+  (url, opts) => net.fetch(url, opts)
+);
+let creditsProfile = null; // last known balance, shown in the UI
+
+// Tokens are encrypted with the macOS Keychain-backed safeStorage, never
+// written to electron-store in plain text.
+function loadCreditsSession() {
+  const blob = store.get('creditsSession', '');
+  if (!blob || !safeStorage.isEncryptionAvailable()) return null;
+  try { return JSON.parse(safeStorage.decryptString(Buffer.from(blob, 'base64'))); }
+  catch (e) { return null; }
+}
+
+function saveCreditsSession(session) {
+  if (!session) { store.delete('creditsSession'); return; }
+  if (!safeStorage.isEncryptionAvailable()) throw new Error('Secure storage is unavailable on this Mac.');
+  store.set('creditsSession', safeStorage.encryptString(JSON.stringify(session)).toString('base64'));
+}
+
+async function getCreditsToken() {
+  let session = loadCreditsSession();
+  if (!session) throw new credits.CreditsError('unauthorized', credits.messageForError('unauthorized'));
+  if (Date.now() >= session.expiresAt) {
+    try { session = await creditsClient.refresh(session.refreshToken); }
+    catch (err) { saveCreditsSession(null); creditsProfile = null; broadcastCreditsUpdate(); throw err; }
+    saveCreditsSession(session);
+  }
+  return session.accessToken;
+}
+
+function creditsState() {
+  const session = loadCreditsSession();
+  return {
+    configured: credits.isConfigured(),
+    signedIn: !!session,
+    email: session ? session.email : '',
+    mode: getApiMode(),
+    profile: creditsProfile
+  };
+}
+
+function broadcastCreditsUpdate() {
+  const state = creditsState();
+  if (mainWindow) mainWindow.webContents.send('credits-updated', state);
+  if (settingsWindow) settingsWindow.webContents.send('credits-updated', state);
+}
+
+async function refreshCredits() {
+  creditsProfile = await creditsClient.getProfile(await getCreditsToken());
+  broadcastCreditsUpdate();
+  return creditsState();
+}
+
+function creditsFail(err) {
+  return { success: false, error: err.message || 'Something went wrong.', code: err.code };
+}
+
+ipcMain.handle('credits-get', async () => {
+  // Cached state first; best-effort refresh so a stale balance self-heals.
+  if (creditsState().signedIn) { try { await refreshCredits(); } catch (e) { /* offline: show cached */ } }
+  return creditsState();
+});
+
+ipcMain.handle('credits-send-code', async (e, email) => {
+  try { await creditsClient.sendCode(String(email || '').trim()); return { success: true }; }
+  catch (err) { return creditsFail(err); }
+});
+
+ipcMain.handle('credits-verify-code', async (e, { email, code }) => {
+  try {
+    saveCreditsSession(await creditsClient.verifyCode(String(email || '').trim(), String(code || '').trim()));
+    await refreshCredits();
+    return { success: true, state: creditsState() };
+  } catch (err) { return creditsFail(err); }
+});
+
+ipcMain.handle('credits-sign-out', () => {
+  saveCreditsSession(null);
+  creditsProfile = null;
+  broadcastCreditsUpdate();
+  return { success: true };
+});
+
+ipcMain.handle('credits-billing', async (e, action) => {
+  try {
+    const url = await creditsClient.billingUrl(await getCreditsToken(), action === 'portal' ? 'portal' : 'checkout');
+    if (!/^https:\/\//.test(url)) throw new Error('Unexpected billing URL.');
+    shell.openExternal(url);
+    return { success: true };
+  } catch (err) { return creditsFail(err); }
+});
+
+// Existing installs predate credits mode and all use their own key, so the
+// default is 'own' whenever a key is saved; fresh installs start on credits.
+function getApiMode() {
+  const saved = store.get('apiMode');
+  if (saved === 'own' || saved === 'credits') return saved;
+  return !store.get('apiKey') && credits.isConfigured() ? 'credits' : 'own';
+}
+
 ipcMain.handle('get-settings', () => ({
+  autoCapture: AUTO_CAPTURE,
   apiKey: store.get('apiKey', ''),
+  apiMode: getApiMode(),
   model: store.get('model', DEFAULT_MODEL),
   effort: store.get('effort', DEFAULT_EFFORT),
   shortcut: store.get('shortcut', DEFAULT_SHORTCUT),
@@ -389,6 +519,11 @@ ipcMain.handle('get-settings', () => ({
 
 ipcMain.handle('save-settings', (e, s) => {
   if (s.apiKey !== undefined) store.set('apiKey', s.apiKey);
+  if (s.apiMode === 'own' || s.apiMode === 'credits') {
+    const changed = s.apiMode !== getApiMode();
+    store.set('apiMode', s.apiMode);
+    if (changed) broadcastCreditsUpdate();
+  }
   if (s.model !== undefined) store.set('model', s.model);
   if (s.effort !== undefined && EFFORT_LEVELS.includes(s.effort)) store.set('effort', s.effort);
   if (s.workspaceId !== undefined) store.set('workspaceId', s.workspaceId);
@@ -543,9 +678,32 @@ ipcMain.handle('claude-request', async (e, { text, prompt, isEmail, presetLabel,
   const model = store.get('model', DEFAULT_MODEL);
   const effort = store.get('effort', DEFAULT_EFFORT);
   const workspaceId = store.get('workspaceId', '');
-  if (!apiKey) return { success: false, error: 'API key not set. Open Settings from the menu bar icon.' };
+  const useCredits = getApiMode() === 'credits';
+  if (!useCredits && !apiKey) return { success: false, error: 'API key not set. Open Settings from the menu bar icon.' };
 
   const { system, content } = ask ? buildAskRequest(text) : buildClaudeRequest(text, withWriteMyWay(prompt, presetLabel), isEmail);
+
+  if (useCredits) {
+    try {
+      const out = await creditsClient.rewrite(await getCreditsToken(), { system, content });
+      if (creditsProfile && typeof out.creditsRemaining === 'number') {
+        creditsProfile = { ...creditsProfile, credits: out.creditsRemaining };
+        broadcastCreditsUpdate();
+      }
+      if (presetLabel) {
+        const presets = incrementUses(store.get('presets', DEFAULT_PRESETS), presetLabel);
+        store.set('presets', presets);
+        broadcastPresetsUpdate(presets);
+      }
+      return { success: true, data: out.text, isEmail };
+    } catch (err) {
+      // 402: the server's count is authoritative — sync the UI to it.
+      if (err.code === 'no_credits' && creditsProfile) { creditsProfile = { ...creditsProfile, credits: 0 }; broadcastCreditsUpdate(); }
+      else if (typeof err.creditsRemaining === 'number' && creditsProfile) { creditsProfile = { ...creditsProfile, credits: err.creditsRemaining }; broadcastCreditsUpdate(); }
+      if (!(err instanceof credits.CreditsError)) console.error('credits request failed:', err);
+      return creditsFail(err instanceof credits.CreditsError ? err : new Error(credits.messageForError('server_error')));
+    }
+  }
   const body = { model, max_tokens: ask ? ASK_MAX_TOKENS : 1024, system, messages: [{ role: 'user', content }] };
   // Sonnet 5, Opus 5, and Fable 5 default to adaptive thinking with no
   // `thinking` param needed — effort just tunes how much of it they do.
@@ -613,10 +771,14 @@ ipcMain.on('close-settings', () => settingsWindow && settingsWindow.close());
 ipcMain.on('open-accessibility-settings', () => shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility'));
 ipcMain.on('open-automation-settings', () => shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_Automation'));
 
-ipcMain.handle('check-permissions', async () => ({
-  accessibility: checkAccessibilityGranted(),
-  automation: await checkAutomationGranted()
-}));
+ipcMain.handle('check-permissions', async () => {
+  // Nothing to check (and no osascript to run) when auto-capture is off.
+  if (!AUTO_CAPTURE) return { accessibility: true, automation: true };
+  return {
+    accessibility: checkAccessibilityGranted(),
+    automation: await checkAutomationGranted()
+  };
+});
 ipcMain.on('copy-to-clipboard', (e, t) => clipboard.writeText(t));
 
 // Opens the user's own default mail client with a pre-filled draft rather
