@@ -83,7 +83,7 @@
 
   --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 24px; --s-6: 32px; --s-7: 48px; --s-8: 64px; --s-9: 96px;
 
-  --container: 1180px;
+  --container: 1200px;
   --gutter: clamp(20px, 4vw, 48px);
   --section-y: clamp(64px, 9vw, 128px);
 
@@ -188,15 +188,13 @@ a { color: inherit; }
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  padding-block: var(--s-4);
-  min-height: 72px;
+  height: 56px;
 }
 .nav__links { display: contents; }
-.nav__right { display: flex; align-items: center; gap: var(--s-3); justify-self: end; }
-.nav__brand { display: flex; align-items: center; gap: var(--s-3); font-weight: 700; font-size: 1.125rem; letter-spacing: -0.01em; color: var(--fg); text-decoration: none; white-space: nowrap; }
-/* The icon matches the height of the CTA buttons on the right. */
-.nav__brand img { width: 48px; height: 48px; border-radius: 22.6%; }
-.nav__right .lang-menu__btn { min-height: 48px; }
+.nav__right { display: flex; align-items: center; gap: var(--s-2); justify-self: end; }
+.nav__brand { display: flex; align-items: center; gap: 10px; font-weight: 500; font-size: 1rem; color: var(--fg); text-decoration: none; white-space: nowrap; }
+/* Proportions measured from macbartender.com: 56px bar, 28px logo, 13px/500 links, ~32px pill buttons. */
+.nav__brand img { width: 28px; height: 28px; border-radius: 22.6%; }
 .nav__group { display: flex; align-items: center; gap: var(--s-6); white-space: nowrap; }
 
 @media (max-width: 860px) {
@@ -208,21 +206,20 @@ a { color: inherit; }
   .nav__inner { grid-template-columns: 1fr auto; row-gap: var(--s-3); column-gap: var(--s-2); }
   .nav__right { gap: var(--s-2); }
   .nav__group { grid-column: 1 / -1; grid-row: 2; justify-content: space-between; justify-self: stretch; }
-  .nav .nav__links .nav__download { padding: 7px 14px; font-size: 0.9375rem; }
-  .lang-menu__btn { padding: 8px 10px; gap: 6px; }
-  .nav__right .lang-menu__btn { min-height: 40px; }
+  .nav__inner { height: auto; padding-block: 12px; }
+  .lang-menu__btn { padding: 6px 12px; }
   .lang-menu__caret { display: none; }
-  .nav__brand { min-width: max-content; font-size: 1rem; }
-  .nav__brand img { width: 40px; height: 40px; }
+  .nav__brand { min-width: max-content; }
 }
 @media (max-width: 380px) {
-  .nav .nav__links .nav__download { padding: 8px 12px; gap: 6px; }
+  .nav .nav__links .nav__download { padding: 6px 12px; }
   .nav__download-icon { display: none; }
   .lang-menu__btn > span { display: none; }
 }
 .nav__link {
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.5;
   color: var(--fg-muted);
   text-decoration: none;
 }
@@ -237,15 +234,15 @@ a { color: inherit; }
 .lang-menu__btn {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 9px 12px;
-  font-size: 1rem;
+  gap: 6px;
+  padding: 6px 14px;
+  font-size: 0.8125rem;
   font-weight: 500;
-  line-height: 1;
+  line-height: 19.5px;
   color: var(--fg);
   background: var(--bg-sunken);
-  border: 2px solid transparent;
-  border-radius: 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
   cursor: pointer;
   list-style: none;
   user-select: none;
@@ -253,7 +250,7 @@ a { color: inherit; }
 .lang-menu__btn::-webkit-details-marker { display: none; }
 .lang-menu__btn:hover { background: var(--bg-inset); }
 .lang-menu[open] > .lang-menu__btn { border-color: var(--accent); }
-.lang-menu__globe { width: 18px; height: 18px; }
+.lang-menu__globe { width: 16px; height: 16px; }
 .lang-menu__caret { width: 10px; height: 6px; color: var(--fg-hint); transition: transform .15s; transform: rotate(180deg); }
 .lang-menu[open] .lang-menu__caret { transform: none; }
 .lang-menu__panel {
@@ -291,8 +288,8 @@ a.lang-menu__item:hover { background: var(--bg-sunken); color: var(--fg); }
 .lang-menu__item.is-current { color: var(--fg); font-weight: 700; }
 .lang-menu__code { font-size: 0.75rem; font-weight: 700; letter-spacing: .08em; color: var(--fg-hint); }
 .lang-menu__check { width: 16px; height: 16px; color: var(--fg-hint); }
-.nav__links .nav__download { gap: 8px; padding: 10px 18px; font-size: 1rem; border-radius: 999px; white-space: nowrap; }
-.nav__download-icon { width: 16px; height: 16px; }
+.nav__links .nav__download { gap: 6px; padding: 6px 16px; font-size: 0.8125rem; font-weight: 500; line-height: 19.5px; border-radius: 999px; white-space: nowrap; }
+.nav__download-icon { width: 14px; height: 14px; }
 
 .lang-banner {
   background: var(--accent-cool-soft);
@@ -598,11 +595,11 @@ a.lang-menu__item:hover { background: var(--bg-sunken); color: var(--fg); }
   background: transparent;
 }
 .page--home .nav__brand { color: #fff; }
-.page--home .nav__link { color: rgba(255,255,255,.7); }
+.page--home .nav__link { color: rgba(255,255,255,.55); }
 .page--home .nav__link:hover,
 .page--home .nav__link.is-current { color: #fff; }
-.page--home .lang-menu__btn { background: rgba(255,255,255,.12); color: #fff; }
-.page--home .lang-menu__btn:hover { background: rgba(255,255,255,.2); }
+.page--home .lang-menu__btn { background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.12); color: #fff; }
+.page--home .lang-menu__btn:hover { background: rgba(255,255,255,.12); }
 .page--home .lang-menu__caret { color: rgba(255,255,255,.6); }
 .page--home .btn--primary { background: #fff; color: var(--vc-ink); }
 .page--home .btn--primary:hover { box-shadow: 0 10px 30px -10px rgba(0,0,0,.6); }
@@ -616,7 +613,7 @@ a.lang-menu__item:hover { background: var(--bg-sunken); color: var(--fg); }
   display: flex;
   align-items: center;
   min-height: min(100svh, 940px);
-  padding-block: 120px clamp(56px, 8vw, 120px);
+  padding-block: 104px clamp(56px, 8vw, 120px);
   color: #fff;
   background:
     radial-gradient(120% 75% at 12% -5%, rgba(112,146,255,.55), transparent 58%),
@@ -652,5 +649,5 @@ a.lang-menu__item:hover { background: var(--bg-sunken); color: var(--fg); }
 .page--home .hero__note { color: rgba(255,255,255,.5); }
 @media (max-width: 520px) {
   /* The nav is two rows here, so the floating nav needs more room above the hero. */
-  .page--home .hero { padding-top: 152px; }
+  .page--home .hero { padding-top: 128px; }
 }
