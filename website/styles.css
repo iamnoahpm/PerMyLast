@@ -199,8 +199,19 @@ a { color: inherit; }
   .nav__group { gap: var(--s-2); justify-self: center; }
 }
 @media (max-width: 520px) {
-  .nav__inner { display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-3); }
-  .nav__links { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-3); width: 100%; }
+  /* Row 1: brand left, language + download right. Row 2: the page links. */
+  .nav__inner { grid-template-columns: 1fr auto; row-gap: var(--s-3); column-gap: var(--s-2); }
+  .nav__right { gap: var(--s-2); }
+  .nav__group { grid-column: 1 / -1; grid-row: 2; justify-content: space-between; justify-self: stretch; }
+  .nav__links .nav__download { padding: 8px 14px; font-size: 0.9375rem; }
+  .lang-menu__btn { padding: 8px 10px; gap: 6px; }
+  .lang-menu__caret { display: none; }
+  .nav__brand { min-width: max-content; }
+}
+@media (max-width: 380px) {
+  .nav__links .nav__download { padding: 8px 12px; gap: 6px; }
+  .nav__download-icon { display: none; }
+  .lang-menu__btn > span { display: none; }
 }
 .nav__link {
   font-size: 0.9375rem;
