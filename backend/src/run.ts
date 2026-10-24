@@ -112,11 +112,12 @@ export async function handleRun(req: Request, env: Env, deps: Deps, ctx: Executi
   const timer = setTimeout(() => abort.abort("timeout"), config.UPSTREAM_TIMEOUT_S * 1000);
   let upstream: Response;
   try {
-    if (!env.ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not set");
-    upstream = await deps.fetch(`${env.ANTHROPIC_BASE_URL ?? "https://api.anthropic.com"}/v1/messages`, {
+    const apiKey = env.ANTHROPIC_API_KEY;
+    if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not set");
+    const send = () => deps.fetch(`${env.ANTHROPIC_BASE_URL ?? "https://api.anthropic.com"}/v1/messages`, {
       method: "POST",
       signal: abort.signal,
-      headers: { "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+      headers: { "x-api-key": apiKey, "anthropic-version": "2023-06-01", "content-type": "application/json" },
       body: JSON.stringify({
         model,
         max_tokens: Math.min(template.max_tokens, config.MAX_OUTPUT_TOKENS),
@@ -125,6 +126,13 @@ export async function handleRun(req: Request, env: Env, deps: Deps, ctx: Executi
         messages: [{ role: "user", content: renderTemplate(template, variables) }],
       }),
     });
+    upstream = await send();
+    // A 403 "Request not allowed" comes and goes with the Worker's egress location, not the key, so try once more.
+    if (upstream.status === 403) {
+      await upstream.body?.cancel();
+      await new Promise((resolve) => setTimeout(resolve, 250));
+      upstream = await send();
+    }
   } catch (error) {
     clearTimeout(timer);
     const reason = error instanceof Error ? error.message : String(error);

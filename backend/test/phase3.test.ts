@@ -186,6 +186,29 @@ describe("POST /v1/run (AC-2, AC-3, AC-4)", () => {
       .toBe("http 529 overloaded_error: overloaded");
   });
 
+  it("a 403 from upstream is retried once and a good second answer succeeds", async () => {
+    const u = await withFree();
+    let called = 0;
+    upstream = async () => {
+      called++;
+      return called === 1 ? new Response('{"error":{"type":"forbidden","message":"Request not allowed"}}', { status: 403 }) : okStream()();
+    };
+    const res = await run(u);
+    expect(res.status).toBe(200);
+    await res.text();
+    await settle();
+    expect(called).toBe(2);
+  });
+
+  it("a persistent 403 is retried once, then refunded", async () => {
+    const u = await withFree();
+    let called = 0;
+    upstream = async () => { called++; return new Response('{"error":{"type":"forbidden","message":"Request not allowed"}}', { status: 403 }); };
+    expect((await run(u)).status).toBe(502);
+    expect(called).toBe(2);
+    expect((await usage(u))?.used).toBe(0);
+  });
+
   it("a network failure or timeout is refunded too", async () => {
     const u = await withFree();
     upstream = async () => { throw new Error("connection reset"); };
