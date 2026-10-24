@@ -54,6 +54,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if let dir = env["PML_SNAPSHOT"] { OnboardingSnapshots.write(to: dir); NSApp.terminate(nil) }
             if env["PML_SHOW_POPUP"] == "1" { WindowCoordinator.shared.showPopup() }
             if env["PML_SHOW_SETTINGS"] == "1" { WindowCoordinator.shared.showSettings() }
+            if env["PML_SHOW_PAYWALL"] == "1" { WindowCoordinator.shared.showPaywall() }
             // First run opens Settings; otherwise the popup, as the Electron app did.
             WindowCoordinator.shared.showMain()
         }
