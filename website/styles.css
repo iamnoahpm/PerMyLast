@@ -354,10 +354,10 @@ a.lang-menu__item:hover { background: var(--bg-sunken); color: var(--fg); }
   align-items: center;
   gap: var(--s-2);
   font-family: inherit;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 600;
-  padding: 12px 22px;
-  border-radius: var(--r-btn);
+  padding: 13px 26px;
+  border-radius: var(--r-pill);
   border: 1px solid transparent;
   cursor: pointer;
   text-decoration: none;
@@ -527,11 +527,11 @@ a.lang-menu__item:hover { background: var(--bg-sunken); color: var(--fg); }
 .section--dark .muted { color: var(--vc-on-dark-muted); }
 
 .pull-quote {
-  font-size: clamp(1.5rem, 1.15rem + 1.6vw, 2.375rem);
-  font-weight: 700;
-  line-height: 1.35;
-  letter-spacing: -0.01em;
-  max-width: 28ch;
+  font-size: clamp(2rem, 1.2rem + 3vw, 3.75rem);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+  max-width: 22ch;
   margin: 0 auto;
   text-wrap: balance;
 }
@@ -555,33 +555,33 @@ a.lang-menu__item:hover { background: var(--bg-sunken); color: var(--fg); }
 .footer a:hover { color: var(--fg); }
 
 /* Pricing + account (credits) */
-.plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--s-5); max-width: 760px; }
-.plan { position: relative; background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: var(--s-6); display: flex; flex-direction: column; gap: var(--s-4); }
+.plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--s-6); max-width: 980px; }
+.plan { position: relative; background: var(--bg); border: 1px solid var(--line-strong); border-radius: 20px; padding: 40px; display: flex; flex-direction: column; gap: var(--s-5); }
 .plan--featured { border-color: var(--fg); box-shadow: var(--sh-card-lg); }
-.plan h2 { font-size: 1.125rem; margin: 0; }
-.plan__badge { position: absolute; top: -11px; left: var(--s-6); background: var(--fg); color: var(--bg); font-size: 0.75rem; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
+.plan h2 { font-size: 1.375rem; letter-spacing: -0.01em; margin: 0; }
+.plan__badge { position: absolute; top: -11px; left: 40px; background: var(--fg); color: var(--bg); font-size: 0.8125rem; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
 .plan__price { margin: 0; color: var(--fg-muted); }
-.plan__price strong { font-size: 2rem; color: var(--fg); }
-.plan__list { list-style: none; padding: 0; margin: 0 0 auto; display: flex; flex-direction: column; gap: var(--s-3); font-size: 0.9375rem; color: var(--fg-muted); }
+.plan__price strong { font-size: 3rem; letter-spacing: -0.03em; line-height: 1; color: var(--fg); }
+.plan__list { list-style: none; padding: 0; margin: 0 0 auto; display: flex; flex-direction: column; gap: var(--s-4); font-size: 1.0625rem; color: var(--fg-muted); }
 .plan__list li { display: flex; gap: var(--s-2); align-items: flex-start; }
 .plan__list svg { flex: none; width: 18px; height: 18px; margin-top: 2px; fill: none; stroke: var(--fg); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.plans__note { text-align: center; color: var(--fg-muted); font-size: 0.875rem; margin-top: var(--s-5); }
-.faq { max-width: 680px; }
+.plans__note { text-align: center; color: var(--fg-muted); font-size: 0.9375rem; margin-top: var(--s-5); }
+.faq { max-width: 760px; }
 .faq h2 { margin-bottom: var(--s-5); }
 .faq__item { margin-bottom: var(--s-5); }
-.faq__item h3 { font-size: 1rem; margin-bottom: var(--s-2); }
-.faq__item p { color: var(--fg-muted); margin: 0; font-size: 0.9375rem; }
-.account { max-width: 440px; }
-.account__card { background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: var(--s-6); display: flex; flex-direction: column; gap: var(--s-3); margin-bottom: var(--s-5); }
+.faq__item h3 { font-size: 1.125rem; margin-bottom: var(--s-2); }
+.faq__item p { color: var(--fg-muted); margin: 0; font-size: 1.0625rem; }
+.account { max-width: 560px; }
+.account__card { background: var(--bg); border: 1px solid var(--line-strong); border-radius: 20px; padding: 40px; display: flex; flex-direction: column; gap: var(--s-4); margin-bottom: var(--s-5); }
 .account__card[hidden], .account__msg[hidden], #codeRow[hidden] { display: none; }
-.account__card label { font-size: 0.8125rem; font-weight: 600; }
-.account__card input { font: inherit; padding: 11px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--fg); }
+.account__card label { font-size: 0.9375rem; font-weight: 600; }
+.account__card input { font: inherit; padding: 14px 16px; font-size: 1.0625rem; border: 1px solid var(--line-strong); border-radius: 12px; background: var(--bg); color: var(--fg); }
 .account__card input:focus-visible { outline: 2px solid var(--fg); outline-offset: 1px; }
 #codeRow { display: flex; flex-direction: column; gap: var(--s-3); }
-.account__msg { background: var(--bg-alt); border: 1px solid var(--line); border-radius: 10px; padding: var(--s-3) var(--s-4); font-size: 0.875rem; margin-bottom: var(--s-5); }
-.account__email { margin: 0; color: var(--fg-muted); font-size: 0.875rem; overflow-wrap: anywhere; }
-.account__count { margin: 0; font-size: 1.75rem; font-weight: 700; }
-.account__sub { margin: 0; color: var(--fg-muted); font-size: 0.875rem; }
+.account__msg { background: var(--bg-alt); border: 1px solid var(--line); border-radius: 12px; padding: var(--s-4) var(--s-5); font-size: 1rem; margin-bottom: var(--s-5); }
+.account__email { margin: 0; color: var(--fg-muted); font-size: 1rem; overflow-wrap: anywhere; }
+.account__count { margin: 0; font-size: 2.5rem; letter-spacing: -0.02em; font-weight: 700; }
+.account__sub { margin: 0; color: var(--fg-muted); font-size: 1rem; }
 .credits-bar { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
 .credits-bar__fill { height: 100%; width: 0; background: var(--fg); transition: width .3s; }
 
@@ -601,10 +601,10 @@ a.lang-menu__item:hover { background: var(--bg-sunken); color: var(--fg); }
 .page--home .lang-menu__btn { background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.12); color: #fff; }
 .page--home .lang-menu__btn:hover { background: rgba(255,255,255,.12); }
 .page--home .lang-menu__caret { color: rgba(255,255,255,.6); }
-.page--home .btn--primary { background: #fff; color: var(--vc-ink); }
-.page--home .btn--primary:hover { box-shadow: 0 10px 30px -10px rgba(0,0,0,.6); }
-.page--home .btn--secondary { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.22); color: #fff; }
-.page--home .btn--secondary:hover { background: rgba(255,255,255,.16); }
+.page--home :is(.hero, .nav) .btn--primary { background: #fff; color: var(--vc-ink); }
+.page--home :is(.hero, .nav) .btn--primary:hover { box-shadow: 0 10px 30px -10px rgba(0,0,0,.6); }
+.page--home .hero .btn--secondary { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.22); color: #fff; }
+.page--home .hero .btn--secondary:hover { background: rgba(255,255,255,.16); }
 
 .page--home .hero {
   position: relative;
@@ -642,12 +642,16 @@ a.lang-menu__item:hover { background: var(--bg-sunken); color: var(--fg); }
   transform: rotate(8deg);
 }
 .page--home .hero__inner { width: 100%; }
-.page--home .hero__icon { box-shadow: 0 24px 60px -16px rgba(0,0,0,.7); }
-.page--home .hero__eyebrow { background: rgba(255,255,255,.1); color: #d6deff; }
+.page--home .hero .hero__icon { box-shadow: 0 24px 60px -16px rgba(0,0,0,.7); }
+.page--home .hero .hero__eyebrow { background: rgba(255,255,255,.1); color: #d6deff; }
 .page--home .hero h1 { color: #fff; }
-.page--home .hero__lead { color: rgba(255,255,255,.74); }
-.page--home .hero__note { color: rgba(255,255,255,.5); }
+.page--home .hero .hero__lead { color: rgba(255,255,255,.74); }
+.page--home .hero .hero__note { color: rgba(255,255,255,.5); }
 @media (max-width: 520px) {
   /* The nav is two rows here, so the floating nav needs more room above the hero. */
   .page--home .hero { padding-top: 128px; }
 }
+
+/* Inner pages: same dark hero as home, but a compact page header instead of a full-screen one. */
+.page--home.page--sub .hero { min-height: 0; padding-block: 128px 72px; }
+@media (max-width: 520px) { .page--home.page--sub .hero { padding-top: 136px; } }
