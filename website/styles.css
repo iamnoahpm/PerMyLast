@@ -195,11 +195,11 @@ a { color: inherit; }
 .nav__right { display: flex; align-items: center; gap: var(--s-3); justify-self: end; }
 .nav__brand { display: flex; align-items: center; gap: var(--s-2); font-weight: 700; font-size: 1rem; color: var(--fg); text-decoration: none; white-space: nowrap; }
 .nav__brand img { width: 24px; height: 24px; border-radius: 6px; }
-.nav__group { display: flex; align-items: center; gap: var(--s-3); white-space: nowrap; }
+.nav__group { display: flex; align-items: center; gap: var(--s-6); white-space: nowrap; }
 
 @media (max-width: 860px) {
   .nav__inner { grid-template-columns: auto 1fr auto; column-gap: var(--s-3); }
-  .nav__group { gap: var(--s-2); justify-self: center; }
+  .nav__group { gap: var(--s-5); justify-self: center; }
 }
 @media (max-width: 520px) {
   /* Row 1: brand left, language + download right. Row 2: the page links. */
@@ -226,12 +226,8 @@ a { color: inherit; }
 .nav__link.is-current { color: var(--fg); }
 .nav__link--cta { color: var(--accent); }
 
-.nav__sep {
-  color: var(--line-strong);
-  font-size: 0.9375rem;
-  line-height: 1;
-  user-select: none;
-}
+/* No separators between nav links: spacing carries the grouping. */
+.nav__sep { display: none; }
 
 .lang-menu { position: relative; }
 .lang-menu__btn {
@@ -601,7 +597,6 @@ a.lang-menu__item:hover { background: var(--bg-sunken); color: var(--fg); }
 .page--home .nav__link { color: rgba(255,255,255,.7); }
 .page--home .nav__link:hover,
 .page--home .nav__link.is-current { color: #fff; }
-.page--home .nav__sep { color: rgba(255,255,255,.22); }
 .page--home .lang-menu__btn { background: rgba(255,255,255,.12); color: #fff; }
 .page--home .lang-menu__btn:hover { background: rgba(255,255,255,.2); }
 .page--home .lang-menu__caret { color: rgba(255,255,255,.6); }
