@@ -4895,6 +4895,28 @@
           }
         }
       }
+    },
+    "Delete the account %@?": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xoá tài khoản %@?"
+          }
+        }
+      }
+    },
+    "Your Sign in with Apple access to Per My Last will also be revoked.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quyền Đăng nhập bằng Apple của Per My Last cũng sẽ bị thu hồi."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

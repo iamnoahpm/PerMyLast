@@ -354,6 +354,18 @@ final class AccountModel {
         }
     }
 
+    /// Names the account in the delete confirmation so it is clear which one is going.
+    var deleteTitle: String {
+        let who = displayName ?? identity.title ?? providerName
+        return entitlement?.provider == nil ? L("Delete your account?") : L("Delete the account \(who)?")
+    }
+
+    var deleteMessage: String {
+        let base = L("This permanently erases your account, plan and usage from our servers. It can't be undone. It does not cancel an App Store subscription: cancel it in your Apple ID settings first, or you'll keep being billed.")
+        guard entitlement?.provider == .apple else { return base }
+        return base + " " + L("Your Sign in with Apple access to Per My Last will also be revoked.")
+    }
+
     /// Explains a hidden address so it doesn't look like a bug.
     var hiddenEmailNote: String? {
         guard entitlement?.provider == .apple, identity.title == nil else { return nil }

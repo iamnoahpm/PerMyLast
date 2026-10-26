@@ -64,6 +64,9 @@ struct AccountSection: View {
             if self.account.displayName != nil, let email = self.account.identity.title {
                 LabeledContent("Email") { Text(verbatim: email).textSelection(.enabled) }
             }
+            if let relay = self.account.identity.detail {
+                LabeledContent("Email") { Text(verbatim: relay).textSelection(.enabled) }
+            }
             if let note = self.account.hiddenEmailNote {
                 Text(note).font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted)
             }
@@ -87,11 +90,11 @@ struct AccountSection: View {
         Button("Delete account…", role: .destructive) { confirmingDelete = true }
             .buttonStyle(PMLGhostButtonStyle())
             .disabled(self.account.isBusy)
-            .confirmationDialog("Delete your account?", isPresented: $confirmingDelete, titleVisibility: .visible) {
+            .confirmationDialog(Text(verbatim: self.account.deleteTitle), isPresented: $confirmingDelete, titleVisibility: .visible) {
                 Button("Delete account", role: .destructive) { Task { _ = await self.account.deleteAccount() } }
                 Button("Cancel", role: .cancel) {}
             } message: {
-                Text("This permanently erases your account, plan and usage from our servers. It can't be undone. It does not cancel an App Store subscription: cancel it in your Apple ID settings first, or you'll keep being billed.")
+                Text(verbatim: self.account.deleteMessage)
             }
     }
 }
@@ -147,7 +150,7 @@ struct AccountFooter: View {
     var body: some View {
         Button { WindowCoordinator.shared.showSettings() } label: {
             HStack(spacing: PMLSpace.s2) {
-                UmbrellaAvatar(active: account.signedIn)
+                UmbrellaAvatar(active: account.signedIn, provider: account.signedIn ? account.entitlement?.provider : nil)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(verbatim: title).font(PMLFont.select).fontWeight(.bold).foregroundStyle(PMLColor.ink)
                         .lineLimit(1).truncationMode(.middle)
@@ -175,6 +178,8 @@ struct AccountFooter: View {
 /// The app mark (seven-panel umbrella seen from above) on a round tile, used as the account avatar.
 private struct UmbrellaAvatar: View {
     let active: Bool
+    /// How the person signed in, shown as a small badge on the tile.
+    var provider: SignInProvider?
     /// The intro plays once per launch, not every time the window reappears.
     private static var played = false
     @State private var tick = 0
@@ -227,10 +232,31 @@ private struct UmbrellaAvatar: View {
         .background(Circle().fill(PMLColor.accentText.opacity(0.12)))
         .overlay(Circle().strokeBorder(PMLColor.accentText.opacity(0.18), lineWidth: 1))
         .opacity(active ? 1 : 0.6)
+        .overlay(alignment: .bottomTrailing) {
+            if let symbol = badgeSymbol {
+                Image(systemName: symbol)
+                    .font(.system(size: 8, weight: .bold))
+                    .foregroundStyle(PMLColor.ink)
+                    .padding(3)
+                    .background(Circle().fill(PMLColor.surfaceSunken))
+                    .overlay(Circle().strokeBorder(PMLColor.accentText.opacity(0.18), lineWidth: 0.5))
+                    .offset(x: 3, y: 3)
+                    .accessibilityHidden(true)
+            }
+        }
         .onAppear {
             guard !Self.played else { return }
             Self.played = true
             tick += 1
+        }
+    }
+
+    private var badgeSymbol: String? {
+        switch provider {
+        case .apple: "apple.logo"
+        case .google: "g.circle.fill"
+        case .email: "envelope.fill"
+        case .none: nil
         }
     }
 
