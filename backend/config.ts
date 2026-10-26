@@ -8,8 +8,8 @@ export const config = {
 
   /** Input cap per run. Placeholder. Used by /v1/run (Phase 3). */
   MAX_INPUT_CHARS: 12_000,
-  /** Output cap per run. Placeholder. Used by /v1/run (Phase 3). */
-  MAX_OUTPUT_TOKENS: 1_024,
+  /** Output cap per run (thinking counts toward it). A ceiling, not a charge: only tokens produced are billed. */
+  MAX_OUTPUT_TOKENS: 8_192,
   /** Model for templates without one. Placeholder: a Haiku-class model; confirm the id in Anthropic's docs. */
   DEFAULT_MODEL: "claude-haiku-4-5",
   /** Runs charged for a larger model (NFR-6). Placeholder: set it from the measured cost ratio. */

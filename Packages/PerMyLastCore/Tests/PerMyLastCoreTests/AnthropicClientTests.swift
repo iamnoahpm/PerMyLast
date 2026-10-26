@@ -40,7 +40,7 @@ struct AnthropicClientTests {
 
         let body = try requestBody(request)
         #expect(body["model"] as? String == "claude-sonnet-5")
-        #expect(body["max_tokens"] as? Int == 1024)
+        #expect(body["max_tokens"] as? Int == 4096)
         #expect((body["output_config"] as? [String: String])?["effort"] == "high")
         let messages = try #require(body["messages"] as? [[String: String]])
         #expect(messages == [["role": "user", "content": "Fix grammar.\n\nText: hello"]])

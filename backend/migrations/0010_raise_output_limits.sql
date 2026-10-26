@@ -1,0 +1,9 @@
+-- Raise each template's output ceiling. The model's thinking counts toward max_tokens, so at higher effort the old
+-- 1024 / 4096 could cut an answer short. It is only a ceiling: runs are billed for tokens actually produced.
+-- A test keeps this set and Templates.json in step.
+UPDATE templates SET active = 0 WHERE id = 'text.process' AND active = 1;
+INSERT INTO templates (id, version, json, active) VALUES ('text.process', 2, '{"id": "text.process", "title": "Text action", "description": "Runs a preset prompt (rewrite, translate, explain, reply...) over the user''s text.", "system": "You are a text processing assistant. Respond ONLY with the processed result, no preamble, explanation, or surrounding quotation marks.", "user_template": "{{content}}", "variables": ["content"], "model": null, "max_tokens": 4096, "version": 2}', 1);
+UPDATE templates SET active = 0 WHERE id = 'email.reply' AND active = 1;
+INSERT INTO templates (id, version, json, active) VALUES ('email.reply', 2, '{"id": "email.reply", "title": "Email reply", "description": "Drafts an email reply from the original email and the user''s instructions.", "system": "You are an email writing assistant. Write ONLY the reply email content, no preamble. Start with the greeting and end with a sign-off. Professional yet friendly unless told otherwise.", "user_template": "{{content}}", "variables": ["content"], "model": null, "max_tokens": 4096, "version": 2}', 1);
+UPDATE templates SET active = 0 WHERE id = 'ask' AND active = 1;
+INSERT INTO templates (id, version, json, active) VALUES ('ask', 2, '{"id": "ask", "title": "Ask", "description": "Answers a free-form question.", "system": "You are a helpful assistant. Answer the user''s request directly and clearly.", "user_template": "{{content}}", "variables": ["content"], "model": null, "max_tokens": 8192, "version": 2}', 1);

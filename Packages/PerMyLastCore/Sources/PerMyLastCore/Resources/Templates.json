@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "templates": [
     {
       "id": "text.process",
@@ -11,8 +11,8 @@
         "content"
       ],
       "model": null,
-      "max_tokens": 1024,
-      "version": 1
+      "max_tokens": 4096,
+      "version": 2
     },
     {
       "id": "email.reply",
@@ -24,8 +24,8 @@
         "content"
       ],
       "model": null,
-      "max_tokens": 1024,
-      "version": 1
+      "max_tokens": 4096,
+      "version": 2
     },
     {
       "id": "ask",
@@ -37,8 +37,8 @@
         "content"
       ],
       "model": null,
-      "max_tokens": 4096,
-      "version": 1
+      "max_tokens": 8192,
+      "version": 2
     }
   ]
 }

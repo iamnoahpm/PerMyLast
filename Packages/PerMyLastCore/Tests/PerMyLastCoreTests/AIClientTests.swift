@@ -40,7 +40,7 @@ struct TemplateTests {
     @Test func bundledTemplatesLoad() throws {
         let lib = TemplateLibrary.bundled
         #expect(lib.templates.map(\.id) == ["ask", "email.reply", "text.process"])
-        #expect(lib.version == 1)
+        #expect(lib.version == 2)
     }
 
     /// The system prompts live in Templates.json; PromptBuilder still builds the same
@@ -95,7 +95,7 @@ struct DirectAnthropicClientTests {
         let b = try body(request)
         #expect(b["stream"] as? Bool == true)
         #expect(b["model"] as? String == "claude-sonnet-5")   // the user's model, not the template's
-        #expect(b["max_tokens"] as? Int == 1024)
+        #expect(b["max_tokens"] as? Int == 4096)
         #expect((b["messages"] as? [[String: String]]) == [["role": "user", "content": "Fix.\n\nText: hi"]])
     }
 
@@ -105,7 +105,7 @@ struct DirectAnthropicClientTests {
         _ = try await collect(DirectAnthropicClient(config: config, transport: transport)
             .run(templateID: TemplateID.ask, variables: ["content": "Why?"]))
         let b = try body(transport.lastRequest)
-        #expect(b["max_tokens"] as? Int == 4096)
+        #expect(b["max_tokens"] as? Int == 8192)
         #expect((b["system"] as? String)?.contains("helpful assistant") == true)
     }
 

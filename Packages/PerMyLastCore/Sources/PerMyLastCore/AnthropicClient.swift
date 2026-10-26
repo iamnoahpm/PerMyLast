@@ -53,9 +53,9 @@ public struct URLSessionTransport: HTTPTransport {
 public struct AnthropicClient: Sendable {
     public static let endpoint = URL(string: "https://api.anthropic.com/v1/messages")!
     public static let apiVersion = "2023-06-01"
-    public static let maxTokens = 1024
+    public static let maxTokens = 4096
     /// Free-form answers can be long; the preset actions stay short.
-    public static let askMaxTokens = 4096
+    public static let askMaxTokens = 8192
 
     private let transport: any HTTPTransport
 

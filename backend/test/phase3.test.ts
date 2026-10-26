@@ -164,7 +164,7 @@ describe("POST /v1/run (AC-2, AC-3, AC-4)", () => {
     expect(seen.headers["x-api-key"]).toBe("test-upstream-key");
     expect(seen.body.model).toBe(config.DEFAULT_MODEL);
     expect(seen.body.stream).toBe(true);
-    expect(seen.body.max_tokens).toBe(config.MAX_OUTPUT_TOKENS);
+    expect(seen.body.max_tokens).toBe(4096);   // the template's own limit, under the cap
     expect(seen.body.system[0]).toMatchObject({ type: "text", cache_control: { type: "ephemeral" } });
     expect(seen.body.system[0].text).toContain("text processing assistant");
     expect(seen.body.messages).toEqual([{ role: "user", content: "Fix.\n\nText: hi" }]);

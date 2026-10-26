@@ -46,13 +46,13 @@ describe("GET /v1/me", () => {
 describe("GET /v1/templates", () => {
   it("serves the seeded templates, identical to the copy bundled in the app", async () => {
     const body = await (await call("/v1/templates", { user: await newUser() })).json<{ version: number; templates: { id: string }[] }>();
-    expect(body.version).toBe(1);
+    expect(body.version).toBe(2);
     expect([...body.templates].sort((x, y) => x.id.localeCompare(y.id))).toEqual([...bundled.templates].sort((x, y) => x.id.localeCompare(y.id)));
   });
 
   it("is empty once the caller has the newest version", async () => {
     const u = await newUser();
-    expect(await (await call("/v1/templates?since_version=1", { user: u })).json()).toEqual({ version: 1, templates: [] });
+    expect(await (await call("/v1/templates?since_version=2", { user: u })).json()).toEqual({ version: 2, templates: [] });
   });
 
   it("needs sign-in", async () => {
