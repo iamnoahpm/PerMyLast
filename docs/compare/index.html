@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Per My Last: v1 vs v2</title>
+<style>
+:root{--bg:#0e0e11;--panel:#17171b;--line:rgba(255,255,255,.12);--fg:#f2f2f5;--mut:#a0a0a8;--acc:#90b2f5}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font:14px/1.4 -apple-system,system-ui,sans-serif;display:flex;flex-direction:column}
+.bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+.bar h1{font-size:15px;margin:0 8px 0 0;font-weight:700}
+.seg{display:flex;gap:2px;background:#232328;border-radius:10px;padding:3px}
+.seg button,.btn{font:inherit;color:var(--mut);background:none;border:0;border-radius:8px;padding:6px 10px;cursor:pointer}
+.seg button:hover,.btn:hover{color:var(--fg)}
+.seg button.on{background:#3a3a42;color:var(--fg)}
+.btn{border:1px solid var(--line);color:var(--fg)}
+.btn.primary{background:var(--fg);color:#111;border-color:var(--fg);font-weight:600}
+label.chk{display:flex;gap:6px;align-items:center;color:var(--mut)}
+.spacer{flex:1}
+.panes{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);min-height:0}
+.pane{background:var(--bg);display:flex;flex-direction:column;min-width:0;min-height:0}
+.pane header{padding:8px 14px;display:flex;gap:10px;align-items:baseline;border-bottom:1px solid var(--line)}
+.pane header b{font-size:13px}.pane header span{color:var(--mut);font-size:12px}
+.view{flex:1;overflow:hidden;position:relative;min-height:0;display:flex;justify-content:center;background:#050507}
+.view iframe{border:0;background:#000;transform-origin:top left;position:absolute;top:0;left:0}
+.drawer{position:fixed;right:0;top:0;bottom:0;width:360px;background:var(--panel);border-left:1px solid var(--line);transform:translateX(100%);transition:transform .2s;display:flex;flex-direction:column;z-index:10}
+.drawer.open{transform:none}
+.drawer h2{font-size:15px;margin:0;padding:14px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.picks{flex:1;overflow:auto;padding:8px 16px}
+.pick{padding:12px 0;border-bottom:1px solid var(--line)}
+.pick h3{font-size:13px;margin:0 0 2px}
+.pick p{margin:0 0 8px;color:var(--mut);font-size:12px}
+.pick .opts{display:flex;gap:6px;flex-wrap:wrap}
+.pick .opts label{border:1px solid var(--line);border-radius:8px;padding:4px 10px;cursor:pointer;color:var(--mut);font-size:12px}
+.pick .opts input{display:none}
+.pick .opts label:has(input:checked){background:var(--acc);color:#0b0b12;border-color:var(--acc);font-weight:600}
+.pick textarea{width:100%;margin-top:8px;background:#0e0e11;color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font:12px/1.4 inherit;resize:vertical;min-height:34px}
+.dfoot{padding:12px 16px;border-top:1px solid var(--line);display:flex;gap:8px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--fg);color:#111;border-radius:10px;padding:8px 14px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+.toast.show{opacity:1}
+</style></head>
+<body>
+<div class="bar">
+  <h1>v1 vs v2</h1>
+  <div class="seg" id="jump" aria-label="Jump to part"></div>
+  <span class="spacer"></span>
+  <label class="chk"><input type="checkbox" id="sync" checked> Sync scroll</label>
+  <div class="seg" id="dev"><button data-w="1440" class="on">Desktop</button><button data-w="390">Mobile</button></div>
+  <button class="btn primary" id="open">My picks</button>
+</div>
+<div class="panes">
+  <section class="pane"><header><b>V1</b><span>current local site (website/)</span></header><div class="view" id="v1"><iframe id="f1" title="v1"></iframe></div></section>
+  <section class="pane"><header><b>V2</b><span>after the design critique (website-v2/)</span></header><div class="view" id="v2"><iframe id="f2" title="v2"></iframe></div></section>
+</div>
+
+<aside class="drawer" id="drawer" aria-label="My picks">
+  <h2>My picks <button class="btn" id="close">Close</button></h2>
+  <div class="picks" id="picks"></div>
+  <div class="dfoot"><button class="btn primary" id="copy">Copy my picks</button><button class="btn" id="reset">Reset</button></div>
+</aside>
+<div class="toast" id="toast">Copied</div>
+
+<script>
+const PARTS=[
+ {id:'nav',short:'Nav',name:'Navigation',sel:['.nav','.nav'],desc:'v1: logo, Features / Pricing / Account, Download. v2: logo, Features / Pricing, "Notify me".'},
+ {id:'hero',short:'Hero',name:'Hero copy and action',sel:['.hero','.hero'],desc:'v1: "Download for Mac" + long lead. v2: one sentence, honest "Notify me at launch".'},
+ {id:'bg',short:'Background',name:'Hero background',sel:['.hero','.hero'],desc:'v1: ribbons + gradient, full height. v2: umbrella facets at the top only.'},
+ {id:'product',short:'Product',name:'Product window in the hero',sel:[null,'.stage'],desc:'Only v2 shows the app window (illustrative mock).',opts:['Include (v2)','Skip']},
+ {id:'how',short:'How it works',name:'How it works',sel:['#how-it-works','#how-it-works'],desc:'v1: three text steps with icons. v2: one picture, three frames.'},
+ {id:'caps',short:'Features',name:'Capabilities',sel:['.features','.features'],desc:'v1: four cards. v2: three cards.'},
+ {id:'privacy',short:'Privacy',name:'Privacy',sel:['.privacy','.privacy'],desc:'v1: three items with icons. v2: shorter, no icons.'},
+ {id:'close',short:'Closing',name:'Closing',sel:['#get-notified','#get-notified'],desc:'v1: quote band, then "Launching soon". v2: quote and one action.'},
+ {id:'footer',short:'Footer',name:'Footer',sel:['.footer','.footer'],desc:'v1: copyright and email. v2: brand, tagline, links.'}
+];
+const f=[document.getElementById('f1'),document.getElementById('f2')];
+const view=[document.getElementById('v1'),document.getElementById('v2')];
+let width=1440, syncing=false;
+const urls=['/website/index.html','/website-v2/index.html'];
+f.forEach((fr,i)=>fr.src=urls[i]+'?t='+Date.now());
+
+function layout(){
+  view.forEach((v,i)=>{
+    const w=v.clientWidth,h=v.clientHeight;
+    const s=width>=1000?Math.min(1,w/width):Math.min(1,h/844);
+    const fw=width, fh=h/s;
+    const fr=f[i];
+    fr.style.width=fw+'px';fr.style.height=fh+'px';fr.style.transform='scale('+s+')';
+    fr.style.left=Math.max(0,(w-fw*s)/2)+'px';
+  });
+}
+addEventListener('resize',layout);layout();
+
+document.getElementById('dev').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  width=+b.dataset.w;[...e.currentTarget.children].forEach(x=>x.classList.toggle('on',x===b));layout();
+});
+
+// jump buttons
+const jump=document.getElementById('jump');
+PARTS.forEach(p=>{const b=document.createElement('button');b.textContent=p.short;b.title=p.name;b.onclick=()=>goTo(p);jump.appendChild(b)});
+function goTo(p){
+  syncing=true;
+  f.forEach((fr,i)=>{
+    const d=fr.contentDocument;if(!d)return;
+    const el=p.sel[i]&&d.querySelector(p.sel[i]);
+    const top=el?Math.max(0,el.getBoundingClientRect().top+fr.contentWindow.scrollY-60):0;
+    fr.contentWindow.scrollTo({top,behavior:'instant'});
+  });
+  setTimeout(()=>syncing=false,120);
+}
+
+// proportional synced scroll
+function ratio(w){const d=w.document.documentElement;const m=d.scrollHeight-w.innerHeight;return m>0?w.scrollY/m:0}
+function bind(){
+  f.forEach((fr,i)=>{
+    const w=fr.contentWindow;if(!w)return;
+    w.addEventListener('scroll',()=>{
+      if(syncing||!document.getElementById('sync').checked)return;
+      const o=f[1-i].contentWindow;const d=o.document.documentElement;
+      syncing=true;o.scrollTo(0,ratio(w)*(d.scrollHeight-o.innerHeight));
+      requestAnimationFrame(()=>syncing=false);
+    },{passive:true});
+  });
+}
+let loaded=0;f.forEach(fr=>fr.addEventListener('load',()=>{if(++loaded===2)bind()}));
+
+// picks
+const KEY='pml-compare-picks';
+let state={};try{state=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
+const wrap=document.getElementById('picks');
+PARTS.forEach(p=>{
+  const o=p.opts||['V1','V2','Mix'];
+  const cur=(state[p.id]||{}).v||'';
+  const d=document.createElement('div');d.className='pick';
+  d.innerHTML=`<h3>${p.name}</h3><p>${p.desc}</p><div class="opts">${o.map(x=>`<label><input type="radio" name="${p.id}" value="${x}" ${cur===x?'checked':''}>${x}</label>`).join('')}</div><textarea placeholder="Note (optional)">${(state[p.id]||{}).n||''}</textarea>`;
+  d.addEventListener('change',save);d.addEventListener('input',save);
+  d.querySelector('h3').onclick=()=>goTo(p);d.querySelector('h3').style.cursor='pointer';
+  wrap.appendChild(d);
+});
+function save(){
+  PARTS.forEach(p=>{
+    const c=document.querySelector(`input[name="${p.id}"]:checked`);
+    const t=wrap.querySelectorAll('.pick')[PARTS.indexOf(p)].querySelector('textarea').value;
+    state[p.id]={v:c?c.value:'',n:t};
+  });
+  try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}
+}
+const drawer=document.getElementById('drawer');
+document.getElementById('open').onclick=()=>drawer.classList.toggle('open');
+document.getElementById('close').onclick=()=>drawer.classList.remove('open');
+document.getElementById('reset').onclick=()=>{state={};try{localStorage.removeItem(KEY)}catch(e){};wrap.querySelectorAll('input').forEach(i=>i.checked=false);wrap.querySelectorAll('textarea').forEach(t=>t.value='')};
+document.getElementById('copy').onclick=async()=>{
+  save();
+  const txt='My picks for Per My Last (v1 vs v2):\n'+PARTS.map(p=>`- ${p.name}: ${(state[p.id]||{}).v||'(undecided)'}${(state[p.id]||{}).n?' — '+state[p.id].n:''}`).join('\n');
+  try{await navigator.clipboard.writeText(txt)}catch(e){}
+  const t=document.getElementById('toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1400);
+};
+</script>
+</body></html>

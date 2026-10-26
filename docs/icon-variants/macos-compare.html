@@ -1,0 +1,26 @@
+<!doctype html><meta charset="utf-8"><title>macOS icon compare</title>
+<style>
+body{font-family:-apple-system,system-ui,sans-serif;margin:0;padding:28px;background:#ececef;color:#17171a}
+h1{font-size:20px;margin:0 0 6px}p.s{margin:0 0 20px;color:#6b6b73;font-size:13px}
+.row{display:flex;gap:18px;flex-wrap:wrap}
+.panel{border-radius:16px;padding:22px 26px;margin-bottom:18px}
+.dock{background:linear-gradient(135deg,#6b8fb8,#c7a98b);}
+.lp{background:linear-gradient(135deg,#3b4a6b,#7c5a7a)}
+.fin{background:#fff}
+.panel h2{font-size:12px;letter-spacing:.06em;text-transform:uppercase;margin:0 0 14px;opacity:.75}
+.dock h2,.lp h2{color:#fff}
+.icons{display:flex;gap:22px;align-items:flex-end;position:relative}
+.guide{position:absolute;left:-8px;right:-8px;height:0;border-top:1.5px solid #000;opacity:.8;pointer-events:none}
+.i{text-align:center;font-size:11px}
+.i img{display:block;margin:0 auto 6px}
+.lp .i,.dock .i{color:#fff}
+.tag{font-weight:700}
+</style>
+<h1>Icon B, chuẩn macOS (tile 824px), hình căn theo Chrome/Photos (660px, đỉnh y=182)</h1>
+<p class="s">So với Chrome, Photos, Notes (xuất từ chính icon hệ thống) và icon hiện tại của app (tile 922px).</p>
+<div id="o"></div>
+<script>
+const set=[['Chrome','ref-chrome.png'],['Photos','ref-photos.png'],['Notes','ref-notes.png'],['PerMyLast (hiện tại)','../../App/PerMyLast/Assets.xcassets/AppIcon.appiconset/icon_512x512@2x.png'],['PerMyLast B mới','B-macos-824.svg']];
+const row=z=>set.map(([n,s],k)=>`<div class="i"><img src="${s}" width="${z}" height="${z}"><span class="${k==4?'tag':''}">${n}</span></div>`).join('');
+o.innerHTML=[['Dock (128px)','dock',128],['Launchpad / Applications (96px)','lp',96],['Finder (64px)','fin',64],['Nhỏ (32px)','fin',32]].map(([t,c,z])=>`<div class="panel ${c}"><h2>${t}</h2><div class="icons"><div class="guide" style="top:${(182/1024*z).toFixed(1)}px"></div>${row(z)}</div></div>`).join('');
+</script>

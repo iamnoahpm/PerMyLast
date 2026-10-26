@@ -8,3 +8,4 @@ build/
 *.xcarchive
 *.dSYM
 dist/
+.wrangler/

@@ -1,0 +1,24 @@
+<!doctype html><meta charset="utf-8"><title>Icon variants</title>
+<style>
+body{font-family:-apple-system,system-ui,sans-serif;margin:0;padding:32px;background:#ececef;color:#17171a}
+h1{font-size:20px;margin:0 0 20px}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:20px}
+.card{background:#fff;border-radius:16px;padding:16px;text-align:center}
+.card img.big{width:100%;display:block;border-radius:0}
+.card h2{font-size:15px;margin:12px 0 2px}.card p{font-size:12px;color:#6b6b73;margin:0 0 12px;min-height:32px}
+.sizes{display:flex;gap:14px;align-items:flex-end;justify-content:center;padding:14px;border-radius:12px;background:#0d0f1a}
+.sizes.light{background:#f4f4f6;margin-top:8px}
+.sizes img{display:block}
+</style>
+<h1>Icon: bỏ đĩa tròn phía sau hình bảy cạnh</h1>
+<div class="grid" id="g"></div>
+<script>
+const v=[['Hiện tại','Có đĩa tròn mờ phía sau','../../website/assets/icon.png'],
+['A','Cùng kích thước, chỉ bỏ đĩa','A-same-size.svg'],
+['B','Lớn hơn 10%, căn giữa tile','B-larger-centered.svg'],
+['C','Đậm hơn: lớn hơn 25%','C-bold.svg'],
+['D','Như B, tile có chút gradient','D-subtle-tile-gradient.svg']];
+g.innerHTML=v.map(([n,d,s])=>`<div class="card"><img class="big" src="${s}"><h2>${n}</h2><p>${d}</p>
+<div class="sizes">${[96,48,24,16].map(z=>`<img src="${s}" width="${z}" height="${z}">`).join('')}</div>
+<div class="sizes light">${[96,48,24,16].map(z=>`<img src="${s}" width="${z}" height="${z}">`).join('')}</div></div>`).join('');
+</script>
