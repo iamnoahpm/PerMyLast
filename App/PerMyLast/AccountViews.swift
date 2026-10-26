@@ -55,6 +55,19 @@ struct AccountSection: View {
     }
 
     @ViewBuilder private func signedIn(account: Bindable<AccountModel>) -> some View {
+        if let method = self.account.signInMethodText {
+            LabeledContent {
+                Text(verbatim: self.account.accountTitle).textSelection(.enabled)
+            } label: {
+                Label(method, systemImage: self.account.entitlement?.provider == .apple ? "apple.logo" : "person.crop.circle")
+            }
+            if self.account.displayName != nil, let email = self.account.identity.title {
+                LabeledContent("Email") { Text(verbatim: email).textSelection(.enabled) }
+            }
+            if let note = self.account.hiddenEmailNote {
+                Text(note).font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted)
+            }
+        }
         if let meter = self.account.meterText {
             Label(meter, systemImage: "gauge.with.dots.needle.33percent")
         } else {
@@ -123,11 +136,11 @@ struct AccountFooter: View {
 
     private var title: String {
         guard account.signedIn else { return L("Guest") }
-        return account.planTitle
+        return account.accountTitle
     }
 
     private var subtitle: String? {
-        if account.signedIn { return account.usageText }
+        if account.signedIn { return [account.planTitle, account.usageText].compactMap { $0 }.joined(separator: " · ") }
         return account.isConfigured ? L("Sign in to save your setup") : nil
     }
 

@@ -362,3 +362,26 @@ struct PolicyTests {
         #expect(BackendError(code: "updates_expired", message: "").kind == .updatesExpired)
     }
 }
+
+@Suite struct AccountIdentityTests {
+    @Test func realAddressIsTheTitle() {
+        let id = AccountIdentity(email: " Noah@Example.com ", provider: .google)
+        #expect(id.title == "noah@example.com" && id.detail == nil)
+    }
+
+    @Test func appleRelayAddressIsHidden() {
+        let id = AccountIdentity(email: "abc123@privaterelay.appleid.com", provider: .apple)
+        #expect(id.title == nil && id.detail == "abc123@privaterelay.appleid.com")
+    }
+
+    @Test func missingAddressHasNoTitleOrDetail() {
+        #expect(AccountIdentity(email: nil, provider: .apple) == AccountIdentity(email: "", provider: .apple))
+        #expect(AccountIdentity(email: nil, provider: .apple).title == nil)
+    }
+
+    @Test func meDecodesIdentity() throws {
+        let json = #"{"plan":"free","owns_lifetime":false,"email":"a@b.co","provider":"apple"}"#
+        let me = try BackendCoding.decoder.decode(EntitlementInfo.self, from: Data(json.utf8))
+        #expect(me.email == "a@b.co" && me.provider == .apple)
+    }
+}

@@ -12,6 +12,12 @@ export interface Me {
   updates_until: string | null;
   /** Power user only: which `lifetime_upgrade_N` product the next upgrade is (price halves each step). */
   next_upgrade_tier: number | null;
+  /** Address on the account; for Sign in with Apple it may be a private relay address, or null if the person withheld it. */
+  email: string | null;
+  /** What to call the person (Sign in with Apple's full name), or null when we were never given one. */
+  name: string | null;
+  /** How this account signs in: Apple wins over Google, and an account with neither uses an emailed code. */
+  provider: "apple" | "google" | "email";
 }
 
 const iso = (ms: number | null | undefined) => (ms == null ? null : new Date(ms).toISOString());
@@ -24,6 +30,11 @@ export async function getMe(db: D1Database, userId: string, now = Date.now()): P
   const lifetimes = rows.filter((r) => r.plan === "lifetime" && r.status === "active");
   const updates = lifetimes.map((r) => r.updates_until).filter((v): v is number => v !== null);
   const upgrades = lifetimes.length ? Math.max(...lifetimes.map((r) => r.upgrade_count ?? 0)) : 0;
+
+  const user = await db
+    .prepare("SELECT email, name, apple_sub, google_sub FROM users WHERE id = ?")
+    .bind(userId)
+    .first<{ email: string | null; name: string | null; apple_sub: string | null; google_sub: string | null }>();
 
   let used: number | null = null;
   let allowance: number | null = null;
@@ -52,5 +63,8 @@ export async function getMe(db: D1Database, userId: string, now = Date.now()): P
     owns_lifetime: lifetimes.length > 0,
     updates_until: iso(updates.length ? Math.max(...updates) : null),
     next_upgrade_tier: lifetimes.length ? nextUpgradeTier(upgrades, config.UPGRADE_TIERS) : null,
+    email: user?.email ?? null,
+    name: user?.name ?? null,
+    provider: user?.apple_sub ? "apple" : user?.google_sub ? "google" : "email",
   };
 }

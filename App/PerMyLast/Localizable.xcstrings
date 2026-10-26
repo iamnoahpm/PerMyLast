@@ -4818,6 +4818,83 @@
           }
         }
       }
+    },
+    "Apple ID": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple ID"
+          }
+        }
+      }
+    },
+    "Google account": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tài khoản Google"
+          }
+        }
+      }
+    },
+    "Signed in with Apple": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã đăng nhập bằng Apple"
+          }
+        }
+      }
+    },
+    "Signed in with Google": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã đăng nhập bằng Google"
+          }
+        }
+      }
+    },
+    "Signed in with email": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã đăng nhập bằng email"
+          }
+        }
+      }
+    },
+    "Apple didn't share an email address.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple không chia sẻ địa chỉ email."
+          }
+        }
+      }
+    },
+    "Your email is hidden by Apple (Hide My Email).": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Email của bạn được Apple ẩn (Hide My Email)."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

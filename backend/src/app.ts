@@ -64,7 +64,8 @@ export async function handleRequest(req: Request, env: Env, deps: Deps = default
         const provider = url.pathname.endsWith("apple") ? "apple" : "google";
         const nonce = typeof body?.nonce === "string" ? body.nonce : undefined;
         const code = typeof body?.authorization_code === "string" && body.authorization_code ? body.authorization_code : undefined;
-        return json(await signInWithProvider(env, deps, provider as Provider, idToken, nonce, code));
+        const fullName = typeof body?.full_name === "string" ? body.full_name : undefined;
+        return json(await signInWithProvider(env, deps, provider as Provider, idToken, nonce, code, fullName));
       }
       case "POST /v1/auth/email/request": {
         const body = await readJson(req);

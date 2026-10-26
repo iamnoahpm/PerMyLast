@@ -148,22 +148,23 @@ final class AccountModel {
 
     // MARK: Apple and Google (FR-A7). Hidden until configured in AppConfig; see backend/README.
 
+    static let pendingNameKey = "pendingAppleName"
     private var appleDelegate: AppleSignInDelegate?
 
     func signInWithApple() {
         guard let backend else { return }
         let rawNonce = UUID().uuidString + UUID().uuidString
         let request = ASAuthorizationAppleIDProvider().createRequest()
-        request.requestedScopes = [.email]
+        request.requestedScopes = [.fullName, .email]
         request.nonce = SHA256.hash(data: Data(rawNonce.utf8)).map { String(format: "%02x", $0) }.joined()
         let delegate = AppleSignInDelegate { [weak self] result in
             guard let self else { return }
             Task { @MainActor in
                 self.appleDelegate = nil
                 switch result {
-                case .success(let (token, code)):
+                case .success(let (token, code, name)):
                     self.isBusy = true; defer { self.isBusy = false }
-                    do { await self.didSignIn(try await backend.signIn(provider: "apple", idToken: token, nonce: rawNonce, authorizationCode: code)) }
+                    do { await self.didSignIn(try await backend.signIn(provider: "apple", idToken: token, nonce: rawNonce, authorizationCode: code, fullName: name)); UserDefaults.standard.removeObject(forKey: Self.pendingNameKey) }
                     catch { self.show((error as? BackendError).map(self.friendly) ?? error.localizedDescription, error: true) }
                 case .failure(let error): self.show(error.localizedDescription, error: true)
                 }
@@ -320,6 +321,45 @@ final class AccountModel {
         }
     }
 
+    /// Who is signed in, from the server's answer; the locally kept address covers an email sign-in before `/v1/me` has answered.
+    var identity: AccountIdentity {
+        AccountIdentity(email: entitlement?.email ?? signedInEmail, provider: entitlement?.provider)
+    }
+
+    /// Provider name for when there is no usable address (Apple's "Hide My Email" relay, or none shared).
+    private var providerName: String {
+        switch entitlement?.provider {
+        case .apple: return L("Apple ID")
+        case .google: return L("Google account")
+        case .email, .none: return L("Signed in")
+        }
+    }
+
+    /// The account row's title: the person's name, else their address, else the provider they used.
+    var accountTitle: String { displayName ?? identity.title ?? providerName }
+
+    /// The name to greet the person with, when Apple gave us one.
+    var displayName: String? {
+        let name = entitlement?.name?.trimmingCharacters(in: .whitespacesAndNewlines)
+        return name?.isEmpty == false ? name : nil
+    }
+
+    /// "Signed in with Apple" and the like, for Settings; nil until the server has said how.
+    var signInMethodText: String? {
+        switch entitlement?.provider {
+        case .apple: return L("Signed in with Apple")
+        case .google: return L("Signed in with Google")
+        case .email: return L("Signed in with email")
+        case .none: return nil
+        }
+    }
+
+    /// Explains a hidden address so it doesn't look like a bug.
+    var hiddenEmailNote: String? {
+        guard entitlement?.provider == .apple, identity.title == nil else { return nil }
+        return identity.detail == nil ? L("Apple didn't share an email address.") : L("Your email is hidden by Apple (Hide My Email).")
+    }
+
     /// The plan's name, for the account row's title.
     var planTitle: String {
         guard let plan = entitlement?.plan else { return L("Signed in") }
@@ -387,13 +427,19 @@ final class AccountModel {
 }
 
 private final class AppleSignInDelegate: NSObject, ASAuthorizationControllerDelegate {
-    private let done: (Result<(token: String, code: String?), Error>) -> Void
-    init(done: @escaping (Result<(token: String, code: String?), Error>) -> Void) { self.done = done }
+    private let done: (Result<(token: String, code: String?, name: String?), Error>) -> Void
+    init(done: @escaping (Result<(token: String, code: String?, name: String?), Error>) -> Void) { self.done = done }
 
     func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
         if let cred = authorization.credential as? ASAuthorizationAppleIDCredential,
            let data = cred.identityToken, let token = String(data: data, encoding: .utf8) {
-            done(.success((token, cred.authorizationCode.flatMap { String(data: $0, encoding: .utf8) })))
+            // Apple shares the name once, on the first authorization. Hold on to it until the backend has it.
+            let defaults = UserDefaults.standard
+            if let parts = cred.fullName {
+                let text = PersonNameComponentsFormatter().string(from: parts).trimmingCharacters(in: .whitespacesAndNewlines)
+                if !text.isEmpty { defaults.set(text, forKey: AccountModel.pendingNameKey) }
+            }
+            done(.success((token, cred.authorizationCode.flatMap { String(data: $0, encoding: .utf8) }, defaults.string(forKey: AccountModel.pendingNameKey))))
         } else {
             done(.failure(URLError(.badServerResponse)))
         }

@@ -119,3 +119,23 @@ describe("AC-11: concurrency", () => {
     expect((await usage(u))?.used).toBe(1);
   });
 });
+
+describe("me identity", () => {
+  it("reports the email and how the account signs in", async () => {
+    const u = await newUser();
+    expect(await getMe(db, u)).toMatchObject({ email: `${u}@test`, provider: "email" });
+    await db.prepare("UPDATE users SET apple_sub = ?, email = ? WHERE id = ?").bind(`apple-${u}`, "x@privaterelay.appleid.com", u).run();
+    expect(await getMe(db, u)).toMatchObject({ email: "x@privaterelay.appleid.com", provider: "apple" });
+    await db.prepare("UPDATE users SET apple_sub = NULL, google_sub = ?, email = NULL WHERE id = ?").bind(`g-${u}`, u).run();
+    expect(await getMe(db, u)).toMatchObject({ email: null, provider: "google" });
+  });
+});
+
+describe("me name", () => {
+  it("returns the stored name", async () => {
+    const u = await newUser();
+    expect((await getMe(db, u)).name).toBeNull();
+    await db.prepare("UPDATE users SET name = ? WHERE id = ?").bind("Noah Nguyen", u).run();
+    expect((await getMe(db, u)).name).toBe("Noah Nguyen");
+  });
+});

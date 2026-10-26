@@ -11,6 +11,28 @@ public enum PlanKind: String, Codable, Sendable {
     public var isPro: Bool { self == .proMonthly || self == .proYearly }
 }
 
+public enum SignInProvider: String, Codable, Sendable {
+    case apple, google, email
+}
+
+/// What to show as "who is signed in", so Apple's private relay addresses and withheld emails read sensibly.
+public struct AccountIdentity: Equatable, Sendable {
+    public var title: String?
+    public var detail: String?
+
+    /// `title` is the address when it is a real one; `nil` when the address is a relay or missing, so the caller
+    /// can substitute a localised provider name. `detail` is the relay address, kept for the Account screen.
+    public init(email: String?, provider: SignInProvider?) {
+        let address = email?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let isRelay = address?.hasSuffix("@privaterelay.appleid.com") == true
+        if let address, !address.isEmpty, !isRelay {
+            title = address; detail = nil
+        } else {
+            title = nil; detail = isRelay ? address : nil
+        }
+    }
+}
+
 /// Response of `GET /v1/me`: the plan the server resolved for this user.
 public struct EntitlementInfo: Codable, Equatable, Sendable {
     public var plan: PlanKind
@@ -21,9 +43,16 @@ public struct EntitlementInfo: Codable, Equatable, Sendable {
     public var updatesUntil: Date?
     /// Power user only: which upgrade product is due next (1 = 50% of the purchase, 2 = 25%, ...).
     public var nextUpgradeTier: Int?
+    /// The account's address. For Sign in with Apple it can be a private relay address, or absent.
+    public var email: String?
+    /// What to call the person (their Apple full name), when they shared one.
+    public var name: String?
+    public var provider: SignInProvider?
 
     public init(plan: PlanKind, runsUsed: Int? = nil, runsAllowance: Int? = nil,
-                periodEnd: Date? = nil, ownsLifetime: Bool = false, updatesUntil: Date? = nil, nextUpgradeTier: Int? = nil) {
+                periodEnd: Date? = nil, ownsLifetime: Bool = false, updatesUntil: Date? = nil, nextUpgradeTier: Int? = nil,
+                email: String? = nil, provider: SignInProvider? = nil, name: String? = nil) {
+        self.email = email; self.name = name; self.provider = provider
         self.nextUpgradeTier = nextUpgradeTier
         self.plan = plan; self.runsUsed = runsUsed; self.runsAllowance = runsAllowance
         self.periodEnd = periodEnd; self.ownsLifetime = ownsLifetime; self.updatesUntil = updatesUntil
@@ -32,6 +61,7 @@ public struct EntitlementInfo: Codable, Equatable, Sendable {
     private enum CodingKeys: String, CodingKey {
         case plan, nextUpgradeTier = "next_upgrade_tier", runsUsed = "runs_used", runsAllowance = "runs_allowance"
         case periodEnd = "period_end", ownsLifetime = "owns_lifetime", updatesUntil = "updates_until"
+        case email, name, provider
     }
 
     public var runsLeft: Int? {
@@ -322,10 +352,11 @@ public struct BackendClient: Sendable {
     }
 
     /// `authorizationCode` is Apple's one-time code; the backend keeps the token it yields so it can revoke it on account deletion.
-    public func signIn(provider: String, idToken: String, nonce: String? = nil, authorizationCode: String? = nil, now: Date = Date()) async throws -> AuthSession {
+    public func signIn(provider: String, idToken: String, nonce: String? = nil, authorizationCode: String? = nil, fullName: String? = nil, now: Date = Date()) async throws -> AuthSession {
         var body = ["id_token": idToken]
         if let nonce { body["nonce"] = nonce }
         if let authorizationCode { body["authorization_code"] = authorizationCode }
+        if let fullName, !fullName.isEmpty { body["full_name"] = fullName }
         return try session(try await send("v1/auth/\(provider)", body: body), now: now)
     }
 
