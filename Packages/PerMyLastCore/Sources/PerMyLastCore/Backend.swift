@@ -344,6 +344,11 @@ public struct BackendClient: Sendable {
         return FreeInfo(plan: w.plan, periodEnd: w.period_end, runsAllowance: w.runs_allowance)
     }
 
+    /// Permanently deletes the signed-in account and its data (App Store guideline 5.1.1(v)).
+    public func deleteAccount(accessToken: String) async throws {
+        _ = try await send("v1/account", method: "DELETE", token: accessToken)
+    }
+
     /// Sends an Apple-signed StoreKit transaction after a purchase, and again on "Restore purchases".
     public func submitStoreKitTransaction(accessToken: String, signedTransaction: String) async throws -> EntitlementInfo {
         let data = try await send("v1/purchases/storekit", body: ["signed_transaction": signedTransaction], token: accessToken)

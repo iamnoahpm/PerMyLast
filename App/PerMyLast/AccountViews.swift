@@ -5,6 +5,7 @@ import SwiftUI
 struct AccountSection: View {
     @Environment(AppModel.self) private var model
     @Environment(AccountModel.self) private var account
+    @State private var confirmingDelete = false
 
     var body: some View {
         @Bindable var account = account
@@ -70,6 +71,15 @@ struct AccountSection: View {
             Button("Sign out") { self.account.signOut() }
         }
         .buttonStyle(PMLSecondaryButtonStyle())
+        Button("Delete account…", role: .destructive) { confirmingDelete = true }
+            .buttonStyle(PMLGhostButtonStyle())
+            .disabled(self.account.isBusy)
+            .confirmationDialog("Delete your account?", isPresented: $confirmingDelete, titleVisibility: .visible) {
+                Button("Delete account", role: .destructive) { Task { _ = await self.account.deleteAccount() } }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("This permanently erases your account, plan and usage from our servers. It can't be undone. It does not cancel an App Store subscription: cancel it in your Apple ID settings first, or you'll keep being billed.")
+            }
     }
 }
 

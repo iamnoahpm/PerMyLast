@@ -278,6 +278,15 @@ struct PurchaseTests {
         #expect(PaywallProduct.allCases.filter(\.isUpgrade).count == PaywallProduct.upgradeTiers)
     }
 
+    @Test func deleteAccountSendsADeleteWithTheToken() async throws {
+        let t = FakeHTTP()
+        t.body = Data(#"{"ok":true}"#.utf8)
+        try await BackendClient(baseURL: base, transport: t).deleteAccount(accessToken: "tok")
+        #expect(t.requests[0].httpMethod == "DELETE")
+        #expect(t.requests[0].url?.path == "/v1/account")
+        #expect(t.requests[0].value(forHTTPHeaderField: "Authorization") == "Bearer tok")
+    }
+
     @Test func receiptCallAndErrors() async throws {
         let t = FakeHTTP()
         t.body = Data(#"{"plan":"lifetime","trial_ends_at":null,"runs_used":null,"runs_allowance":null,"period_end":null,"owns_lifetime":true,"updates_until":"2027-10-22T00:00:00.000Z"}"#.utf8)

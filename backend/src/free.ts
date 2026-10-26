@@ -15,6 +15,9 @@ export type FreeResult =
 export async function startFree(db: D1Database, userId: string, installIdHash: unknown, now: number): Promise<FreeResult> {
   if (typeof installIdHash !== "string" || !HASH_RE.test(installIdHash)) return { ok: false, reason: "bad_request" };
 
+  // Deleting an account must not reset the Free credits for this Mac.
+  if (await db.prepare("SELECT 1 FROM deleted_installs WHERE install_id_hash = ?").bind(installIdHash).first()) return { ok: false, reason: "install_already_used" };
+
   try {
     // The unique index on install_id_hash is what stops a second account on the same install.
     await db.prepare("UPDATE profiles SET install_id_hash = ? WHERE user_id = ? AND install_id_hash IS NULL").bind(installIdHash, userId).run();

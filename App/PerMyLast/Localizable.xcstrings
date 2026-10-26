@@ -4763,6 +4763,61 @@
           }
         }
       }
+    },
+    "Delete account…": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xóa tài khoản…"
+          }
+        }
+      }
+    },
+    "Delete your account?": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xóa tài khoản của bạn?"
+          }
+        }
+      }
+    },
+    "Delete account": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xóa tài khoản"
+          }
+        }
+      }
+    },
+    "This permanently erases your account, plan and usage from our servers. It can't be undone. It does not cancel an App Store subscription: cancel it in your Apple ID settings first, or you'll keep being billed.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thao tác này xóa vĩnh viễn tài khoản, gói và lượt dùng của bạn khỏi máy chủ của chúng tôi và không thể hoàn tác. Nó không hủy gói đăng ký App Store: hãy hủy trong cài đặt Apple ID trước, nếu không bạn vẫn bị tính phí."
+          }
+        }
+      }
+    },
+    "Your account was deleted.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tài khoản của bạn đã được xóa."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

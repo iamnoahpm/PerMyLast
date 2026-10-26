@@ -19,7 +19,7 @@ the Claude proxy (`POST /v1/run`), rate limits, `GET /v1/me` and `GET /v1/templa
 | `src/purchases.ts` | What a purchase does to an account |
 | `src/appstore.ts`, `src/x509.ts` | App Store transactions and notifications: Apple-signed JWS checked against Apple Root CA - G3 |
 | `scripts/` | `measure-cost.mjs` (cost per run), `cost-report.sql` (from real usage) and `funnel-report.sql` (onboarding funnel: `npx wrangler d1 execute permylast --remote --file scripts/funnel-report.sql`) |
-| `test/` | 97 tests in a local D1 simulation, including AC-11 directly and through the proxy |
+| `test/` | 101 tests in a local D1 simulation, including AC-11 directly and through the proxy |
 
 ## Endpoints
 
@@ -34,6 +34,7 @@ the Claude proxy (`POST /v1/run`), rate limits, `GET /v1/me` and `GET /v1/templa
 | `POST /v1/run` | `{template_id, variables}` (Bearer) | SSE: `delta` events `{text}`, then `done` `{runs_remaining}`; or `error` `{code, message}` |
 | `POST /v1/purchases/storekit` | `{signed_transaction}` (Bearer) | Verifies the Apple-signed transaction and grants the plan; returns the `/v1/me` body. Used after a purchase and for Restore |
 | `POST /webhooks/appstore` | `{signedPayload}` (App Store Server Notification V2) | Verifies the JWS chain, then applies renewals, refunds, grace periods |
+| `DELETE /v1/account` | (Bearer) | Erases the account and its data (sessions, profile, plans, usage). Only an install-id hash is kept, unlinked, so deleting and re-creating cannot re-claim Free credits on the same Mac. The old access token stops working at once |
 | `POST /v1/auth/refresh` | `{refresh_token}` | same; the old refresh token is revoked, and reusing it revokes all of that user's sessions |
 | `GET /v1/me` | (Bearer access token) | `{plan, runs_used, runs_allowance, period_end, owns_lifetime, updates_until, next_upgrade_tier}` |
 | `GET /v1/templates?since_version=N` | (Bearer) | `{version, templates}`; `templates` is empty when the caller already has the newest version |

@@ -26,7 +26,10 @@ export async function authenticate(req: Request, env: Env, now: number): Promise
   if (!match) return null;
   try {
     const claims = await verifyJwt(match[1].trim(), env.JWT_SECRET, now);
-    return typeof claims.sub === "string" ? claims.sub : null;
+    if (typeof claims.sub !== "string") return null;
+    // A token outlives its account for up to ACCESS_TOKEN_TTL_S; a deleted account must stop working at once.
+    const exists = await env.DB.prepare("SELECT 1 FROM users WHERE id = ?").bind(claims.sub).first();
+    return exists ? claims.sub : null;
   } catch {
     return null;
   }

@@ -10,6 +10,7 @@ import { AppStoreError, handleAppStoreNotification, submitTransaction } from "./
 import { handleRun } from "./run.ts";
 import { getTemplates } from "./templates.ts";
 import { startFree } from "./free.ts";
+import { deleteAccount } from "./account.ts";
 
 const defaultDeps: Deps = { fetch: (...args) => fetch(...args), now: () => Date.now(), sendEmail };
 const noContext = { waitUntil() {}, passThroughOnException() {}, props: {} } as unknown as ExecutionContext;
@@ -128,6 +129,14 @@ export async function handleRequest(req: Request, env: Env, deps: Deps = default
           throw error;
         }
       }
+      case "DELETE /v1/account": {
+        const userId = await authenticate(req, env, deps.now());
+        if (!userId) return fail(401, "unauthenticated", "Sign in to continue.");
+        const limited = await takeRateSlot(env.DB, userId, deps.now());
+        if (!limited.ok) return fail(429, "rate_limited", "Too many attempts. Try again shortly.", { retry_after: limited.retryAfter });
+        await deleteAccount(env.DB, userId, deps.now());
+        return json({ ok: true });
+      }
       case "POST /v1/auth/refresh": {
         const body = await readJson(req);
         const token = body?.refresh_token;
@@ -136,7 +145,7 @@ export async function handleRequest(req: Request, env: Env, deps: Deps = default
       }
     }
 
-    const known = ["/v1/purchases/storekit", "/webhooks/appstore", "/v1/me", "/v1/templates", "/v1/run", "/v1/events", "/v1/trial/start", "/v1/auth/apple", "/v1/auth/google", "/v1/auth/refresh",
+    const known = ["/v1/purchases/storekit", "/webhooks/appstore", "/v1/me", "/v1/templates", "/v1/run", "/v1/events", "/v1/trial/start", "/v1/account", "/v1/auth/apple", "/v1/auth/google", "/v1/auth/refresh",
       "/v1/auth/email/request", "/v1/auth/email/verify"];
     return known.includes(url.pathname) ? fail(405, "method_not_allowed", "Method not allowed.") : fail(404, "not_found", "Not found.");
   } catch (error) {

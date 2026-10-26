@@ -278,6 +278,22 @@ final class AccountModel {
         apply(me)
     }
 
+    /// Deletes the account on the server, then signs out here. The purchases stay with the Apple ID, but the plan does not
+    /// carry over to a new account, so the confirmation says so.
+    func deleteAccount() async -> Bool {
+        guard let backend, signedIn else { return false }
+        isBusy = true; defer { isBusy = false }
+        do {
+            try await backend.deleteAccount(accessToken: try await validAccessToken())
+            signOut()
+            show(L("Your account was deleted."), error: false)
+            return true
+        } catch let error as BackendError {
+            show(friendly(error), error: true)
+        } catch { show(error.localizedDescription, error: true) }
+        return false
+    }
+
     // MARK: Meter text (FR-A13) and warnings (FR-A14)
 
     var meterText: String? {
