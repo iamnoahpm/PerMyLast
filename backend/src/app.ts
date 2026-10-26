@@ -63,7 +63,8 @@ export async function handleRequest(req: Request, env: Env, deps: Deps = default
         if (typeof idToken !== "string" || !idToken) return fail(400, "bad_request", "id_token is required.");
         const provider = url.pathname.endsWith("apple") ? "apple" : "google";
         const nonce = typeof body?.nonce === "string" ? body.nonce : undefined;
-        return json(await signInWithProvider(env, deps, provider as Provider, idToken, nonce));
+        const code = typeof body?.authorization_code === "string" && body.authorization_code ? body.authorization_code : undefined;
+        return json(await signInWithProvider(env, deps, provider as Provider, idToken, nonce, code));
       }
       case "POST /v1/auth/email/request": {
         const body = await readJson(req);
@@ -134,7 +135,7 @@ export async function handleRequest(req: Request, env: Env, deps: Deps = default
         if (!userId) return fail(401, "unauthenticated", "Sign in to continue.");
         const limited = await takeRateSlot(env.DB, userId, deps.now());
         if (!limited.ok) return fail(429, "rate_limited", "Too many attempts. Try again shortly.", { retry_after: limited.retryAfter });
-        await deleteAccount(env.DB, userId, deps.now());
+        await deleteAccount(env, deps, userId);
         return json({ ok: true });
       }
       case "POST /v1/auth/refresh": {

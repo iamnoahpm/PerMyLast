@@ -16,6 +16,10 @@
   "vars": {
     // Bundle ID of the app, as registered for Sign in with Apple.
     "APPLE_CLIENT_ID": "app.permylast",
+    // Sign in with Apple key (developer portal > Keys), used to revoke tokens when an account is deleted. The .p8 itself is
+    // the APPLE_PRIVATE_KEY secret. Leave empty until the key exists.
+    "APPLE_TEAM_ID": "",
+    "APPLE_KEY_ID": "",
     // Google OAuth client id(s), comma-separated. Fill in after creating them.
     "GOOGLE_CLIENT_ID": "",
     // Sender of sign-in emails. The domain must be verified in Resend; the key is the RESEND_API_KEY secret.

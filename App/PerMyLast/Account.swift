@@ -161,9 +161,9 @@ final class AccountModel {
             Task { @MainActor in
                 self.appleDelegate = nil
                 switch result {
-                case .success(let token):
+                case .success(let (token, code)):
                     self.isBusy = true; defer { self.isBusy = false }
-                    do { await self.didSignIn(try await backend.signIn(provider: "apple", idToken: token, nonce: rawNonce)) }
+                    do { await self.didSignIn(try await backend.signIn(provider: "apple", idToken: token, nonce: rawNonce, authorizationCode: code)) }
                     catch { self.show((error as? BackendError).map(self.friendly) ?? error.localizedDescription, error: true) }
                 case .failure(let error): self.show(error.localizedDescription, error: true)
                 }
@@ -387,13 +387,13 @@ final class AccountModel {
 }
 
 private final class AppleSignInDelegate: NSObject, ASAuthorizationControllerDelegate {
-    private let done: (Result<String, Error>) -> Void
-    init(done: @escaping (Result<String, Error>) -> Void) { self.done = done }
+    private let done: (Result<(token: String, code: String?), Error>) -> Void
+    init(done: @escaping (Result<(token: String, code: String?), Error>) -> Void) { self.done = done }
 
     func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
         if let cred = authorization.credential as? ASAuthorizationAppleIDCredential,
            let data = cred.identityToken, let token = String(data: data, encoding: .utf8) {
-            done(.success(token))
+            done(.success((token, cred.authorizationCode.flatMap { String(data: $0, encoding: .utf8) })))
         } else {
             done(.failure(URLError(.badServerResponse)))
         }

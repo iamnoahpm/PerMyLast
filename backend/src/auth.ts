@@ -1,5 +1,6 @@
 import { config } from "../config.ts";
 import type { Deps, Env } from "./env.ts";
+import { exchangeAuthorizationCode, revocationConfigured } from "./appleRevoke.ts";
 import { AuthError, b64urlEncode, sha256Hex, signJwt, verifyIdToken, verifyJwt, type IdTokenClaims } from "./jwt.ts";
 
 export type Provider = "apple" | "google";
@@ -82,7 +83,7 @@ async function findOrCreateUser(env: Env, provider: Provider, claims: IdTokenCla
 }
 
 /** Trades a Sign in with Apple / Google ID token for a session. Apple's `nonce` is the raw value the app hashed. */
-export async function signInWithProvider(env: Env, deps: Deps, provider: Provider, idToken: string, nonce?: string): Promise<Session> {
+export async function signInWithProvider(env: Env, deps: Deps, provider: Provider, idToken: string, nonce?: string, authorizationCode?: string): Promise<Session> {
   const p = PROVIDERS[provider];
   const audiences = p.audience(env).split(",").map((s) => s.trim()).filter(Boolean);
   if (audiences.length === 0) throw new AuthError(`${provider} sign-in is not configured`);
@@ -91,7 +92,13 @@ export async function signInWithProvider(env: Env, deps: Deps, provider: Provide
   if (claims.nonce !== undefined) {
     if (!nonce || (claims.nonce !== nonce && claims.nonce !== (await sha256Hex(nonce)))) throw new AuthError("nonce mismatch");
   }
-  return issueSession(env, await findOrCreateUser(env, provider, claims, now), now);
+  const userId = await findOrCreateUser(env, provider, claims, now);
+  if (provider === "apple" && authorizationCode && revocationConfigured(env)) {
+    // Best effort: sign-in must not fail because Apple's token endpoint did.
+    const refresh = await exchangeAuthorizationCode(env, deps, authorizationCode);
+    if (refresh) await env.DB.prepare("UPDATE users SET apple_refresh_token = ? WHERE id = ?").bind(refresh, userId).run();
+  }
+  return issueSession(env, userId, now);
 }
 
 /** Rotates a refresh token. Reusing one that was already rotated revokes every session of that user. */

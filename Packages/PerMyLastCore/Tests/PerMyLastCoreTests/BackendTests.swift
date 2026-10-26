@@ -278,6 +278,15 @@ struct PurchaseTests {
         #expect(PaywallProduct.allCases.filter(\.isUpgrade).count == PaywallProduct.upgradeTiers)
     }
 
+    @Test func appleSignInSendsTheAuthorizationCode() async throws {
+        let t = FakeHTTP()
+        t.body = Data(#"{"user_id":"u","access_token":"a","refresh_token":"r","expires_in":3600}"#.utf8)
+        _ = try await BackendClient(baseURL: base, transport: t).signIn(provider: "apple", idToken: "id", nonce: "n", authorizationCode: "code-1")
+        let body = try #require(t.requests[0].httpBody).flatMap { $0 }
+        let json = try #require(JSONSerialization.jsonObject(with: Data(body)) as? [String: String])
+        #expect(json["authorization_code"] == "code-1" && json["id_token"] == "id" && json["nonce"] == "n")
+    }
+
     @Test func deleteAccountSendsADeleteWithTheToken() async throws {
         let t = FakeHTTP()
         t.body = Data(#"{"ok":true}"#.utf8)

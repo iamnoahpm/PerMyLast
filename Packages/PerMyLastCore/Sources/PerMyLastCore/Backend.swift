@@ -321,9 +321,11 @@ public struct BackendClient: Sendable {
         try session(try await send("v1/auth/email/verify", body: ["email": email, "code": code]), now: now)
     }
 
-    public func signIn(provider: String, idToken: String, nonce: String? = nil, now: Date = Date()) async throws -> AuthSession {
+    /// `authorizationCode` is Apple's one-time code; the backend keeps the token it yields so it can revoke it on account deletion.
+    public func signIn(provider: String, idToken: String, nonce: String? = nil, authorizationCode: String? = nil, now: Date = Date()) async throws -> AuthSession {
         var body = ["id_token": idToken]
         if let nonce { body["nonce"] = nonce }
+        if let authorizationCode { body["authorization_code"] = authorizationCode }
         return try session(try await send("v1/auth/\(provider)", body: body), now: now)
     }
 

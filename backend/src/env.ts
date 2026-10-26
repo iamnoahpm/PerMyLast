@@ -4,6 +4,11 @@ export interface Env {
   JWT_SECRET: string;
   /** Sign in with Apple audience: the app's bundle id (comma-separated for more than one). */
   APPLE_CLIENT_ID: string;
+  /** Sign in with Apple key, for revoking tokens on account deletion (src/appleRevoke.ts). Team id and key id are public; the key is a secret. */
+  APPLE_TEAM_ID?: string;
+  APPLE_KEY_ID?: string;
+  /** Secret: contents of the .p8 key. `wrangler secret put APPLE_PRIVATE_KEY < AuthKey_XXXX.p8` */
+  APPLE_PRIVATE_KEY?: string;
   /** Google OAuth client id(s), comma-separated. */
   GOOGLE_CLIENT_ID: string;
   /** Secret: the shared Anthropic key. Only ever read here, never sent to the app (NFR-1). */

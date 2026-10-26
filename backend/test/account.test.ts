@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { handleRequest } from "../src/app.ts";
 import type { Deps } from "../src/env.ts";
+import { deleteAccount } from "../src/account.ts";
+import { appleClientSecret, exchangeAuthorizationCode } from "../src/appleRevoke.ts";
 import { signJwt } from "../src/jwt.ts";
 import { grant, newUser, testEnv } from "./helpers.ts";
 
@@ -52,5 +54,63 @@ describe("DELETE /v1/account (App Store 5.1.1(v))", () => {
     const second = await newUser(false);
     const again = await call("/v1/trial/start", { user: second, body: { install_id_hash: hash } });
     expect(again.status).toBe(409);
+  });
+});
+
+describe("Sign in with Apple token revocation", () => {
+  async function appleEnv() {
+    const pair = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]) as CryptoKeyPair;
+    const der = new Uint8Array((await crypto.subtle.exportKey("pkcs8", pair.privateKey)) as ArrayBuffer);
+    const pem = `-----BEGIN PRIVATE KEY-----\n${btoa(String.fromCharCode(...der))}\n-----END PRIVATE KEY-----`;
+    return { pair, env: { ...testEnv, APPLE_TEAM_ID: "TEAM123456", APPLE_KEY_ID: "KEY1234567", APPLE_PRIVATE_KEY: pem } };
+  }
+  const requests: { url: string; form: URLSearchParams }[] = [];
+  const fakeFetch = (status = 200, body: unknown = {}) => (async (input: RequestInfo | URL, init?: RequestInit) => {
+    requests.push({ url: String(input), form: new URLSearchParams(String(init?.body)) });
+    return new Response(JSON.stringify(body), { status });
+  }) as typeof fetch;
+
+  it("signs a client secret Apple can verify", async () => {
+    const { pair, env: e } = await appleEnv();
+    const jwt = await appleClientSecret(e, Date.now());
+    const [head, claims, sig] = jwt.split(".");
+    const dec = (s: string) => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0));
+    expect(JSON.parse(new TextDecoder().decode(dec(head)))).toEqual({ alg: "ES256", kid: "KEY1234567" });
+    expect(JSON.parse(new TextDecoder().decode(dec(claims)))).toMatchObject({ iss: "TEAM123456", aud: "https://appleid.apple.com", sub: "app.permylast" });
+    expect(await crypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, pair.publicKey, dec(sig), new TextEncoder().encode(`${head}.${claims}`))).toBe(true);
+  });
+
+  it("trades an authorization code for a refresh token, and returns null if Apple refuses", async () => {
+    const { env: e } = await appleEnv();
+    requests.length = 0;
+    expect(await exchangeAuthorizationCode(e, { ...deps, fetch: fakeFetch(200, { refresh_token: "r-1" }) }, "code-1")).toBe("r-1");
+    expect(requests[0].url).toBe("https://appleid.apple.com/auth/token");
+    expect(requests[0].form.get("code")).toBe("code-1");
+    expect(requests[0].form.get("grant_type")).toBe("authorization_code");
+    expect(await exchangeAuthorizationCode(e, { ...deps, fetch: fakeFetch(400, { error: "invalid_grant" }) }, "bad")).toBeNull();
+  });
+
+  it("revokes the stored token when the account is deleted, and still deletes if Apple fails", async () => {
+    const { env: e } = await appleEnv();
+    for (const status of [200, 500]) {
+      const u = await newUser();
+      await testEnv.DB.prepare("UPDATE users SET apple_refresh_token = ? WHERE id = ?").bind(`r-${status}`, u).run();
+      requests.length = 0;
+      await deleteAccount(e, { ...deps, fetch: fakeFetch(status) }, u);
+      expect(requests).toHaveLength(1);
+      expect(requests[0].url).toBe("https://appleid.apple.com/auth/revoke");
+      expect(requests[0].form.get("token")).toBe(`r-${status}`);
+      expect(requests[0].form.get("token_type_hint")).toBe("refresh_token");
+      expect(await count("SELECT COUNT(*) AS n FROM users WHERE id = ?", u)).toBe(0);
+    }
+  });
+
+  it("does nothing with Apple when the key is not configured", async () => {
+    const u = await newUser();
+    await testEnv.DB.prepare("UPDATE users SET apple_refresh_token = 'r' WHERE id = ?").bind(u).run();
+    requests.length = 0;
+    await deleteAccount(testEnv, { ...deps, fetch: fakeFetch() }, u);
+    expect(requests).toHaveLength(0);
+    expect(await count("SELECT COUNT(*) AS n FROM users WHERE id = ?", u)).toBe(0);
   });
 });

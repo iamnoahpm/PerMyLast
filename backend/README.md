@@ -19,13 +19,13 @@ the Claude proxy (`POST /v1/run`), rate limits, `GET /v1/me` and `GET /v1/templa
 | `src/purchases.ts` | What a purchase does to an account |
 | `src/appstore.ts`, `src/x509.ts` | App Store transactions and notifications: Apple-signed JWS checked against Apple Root CA - G3 |
 | `scripts/` | `measure-cost.mjs` (cost per run), `cost-report.sql` (from real usage) and `funnel-report.sql` (onboarding funnel: `npx wrangler d1 execute permylast --remote --file scripts/funnel-report.sql`) |
-| `test/` | 101 tests in a local D1 simulation, including AC-11 directly and through the proxy |
+| `test/` | 105 tests in a local D1 simulation, including AC-11 directly and through the proxy |
 
 ## Endpoints
 
 | Method and path | Body | Result |
 |---|---|---|
-| `POST /v1/auth/apple` | `{id_token, nonce?}` | `{user_id, access_token, refresh_token, expires_in}` |
+| `POST /v1/auth/apple` | `{id_token, nonce?, authorization_code?}` | `{user_id, access_token, refresh_token, expires_in}` |
 | `POST /v1/auth/google` | `{id_token}` | same |
 | `POST /v1/auth/email/request` | `{email}` | `{ok: true}` whether or not the address has an account; a 6-digit code is emailed (3 per address per 15 min) |
 | `POST /v1/auth/email/verify` | `{email, code}` | session; the code works once, for 10 minutes, and locks after 5 wrong guesses |
@@ -34,7 +34,7 @@ the Claude proxy (`POST /v1/run`), rate limits, `GET /v1/me` and `GET /v1/templa
 | `POST /v1/run` | `{template_id, variables}` (Bearer) | SSE: `delta` events `{text}`, then `done` `{runs_remaining}`; or `error` `{code, message}` |
 | `POST /v1/purchases/storekit` | `{signed_transaction}` (Bearer) | Verifies the Apple-signed transaction and grants the plan; returns the `/v1/me` body. Used after a purchase and for Restore |
 | `POST /webhooks/appstore` | `{signedPayload}` (App Store Server Notification V2) | Verifies the JWS chain, then applies renewals, refunds, grace periods |
-| `DELETE /v1/account` | (Bearer) | Erases the account and its data (sessions, profile, plans, usage). Only an install-id hash is kept, unlinked, so deleting and re-creating cannot re-claim Free credits on the same Mac. The old access token stops working at once |
+| `DELETE /v1/account` | (Bearer) | Erases the account and its data (sessions, profile, plans, usage). Only an install-id hash is kept, unlinked, so deleting and re-creating cannot re-claim Free credits on the same Mac. The old access token stops working at once. If the Sign in with Apple key is set up, the user's Apple token is revoked first |
 | `POST /v1/auth/refresh` | `{refresh_token}` | same; the old refresh token is revoked, and reusing it revokes all of that user's sessions |
 | `GET /v1/me` | (Bearer access token) | `{plan, runs_used, runs_allowance, period_end, owns_lifetime, updates_until, next_upgrade_tier}` |
 | `GET /v1/templates?since_version=N` | (Bearer) | `{version, templates}`; `templates` is empty when the caller already has the newest version |
@@ -77,6 +77,8 @@ Nothing here is done by Claude: no real purchases, no store settings changed.
 URL (sandbox and production) to `https://<your-worker>/webhooks/appstore`. 4) While testing set `APPSTORE_ENVIRONMENTS` to `"Production,Sandbox"`. The app sets `appAccountToken` to the user id on every purchase;
 the Worker checks the Apple signature chain against the pinned root, the bundle id, the environment and the account before granting anything.
 Purchases made with Xcode's local StoreKit configuration are signed by a local test certificate, not Apple's, so the Worker rejects them: test with a sandbox account instead.
+
+**Sign in with Apple token revocation (needed before App Store submission).** Apple requires the token to be revoked when an account is deleted. 1) In the developer portal create a Key with Sign in with Apple enabled (Keys, then your app id as the primary). Note the Key ID and your Team ID and download the `.p8` once. 2) Put the two ids in `wrangler.jsonc` (`APPLE_TEAM_ID`, `APPLE_KEY_ID`) and run `npx wrangler secret put APPLE_PRIVATE_KEY < AuthKey_XXXX.p8`. 3) Deploy. From then on the app's sign-in sends Apple's authorization code, the Worker keeps the refresh token it yields (`users.apple_refresh_token`), and `DELETE /v1/account` revokes it. Without the key nothing changes. Accounts that signed in before this was set up have no stored token, so their revocation is skipped.
 
 **Prices (USD, assuming dollars).** Power user / `lifetime_byok` $40; `lifetime_upgrade_1` $20; `lifetime_upgrade_2` $10; `lifetime_upgrade_3` $5 (and stays at $5 after that). Pro prices are not set yet.
 
