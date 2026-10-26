@@ -2465,17 +2465,6 @@
         }
       }
     },
-    "Waiting for your purchase…": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Đang chờ giao dịch của bạn…"
-          }
-        }
-      }
-    },
     "Renew updates": {
       "extractionState": "manual",
       "localizations": {
@@ -2483,39 +2472,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Gia hạn cập nhật"
-          }
-        }
-      }
-    },
-    "Have a license key?": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bạn có khóa bản quyền?"
-          }
-        }
-      }
-    },
-    "License key": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Khóa bản quyền"
-          }
-        }
-      }
-    },
-    "Activate": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kích hoạt"
           }
         }
       }
@@ -2575,50 +2531,6 @@
         }
       }
     },
-    "Sign in first, then enter your license key.": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hãy đăng nhập trước, rồi nhập khóa bản quyền."
-          }
-        }
-      }
-    },
-    "License activated.": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Đã kích hoạt khóa bản quyền."
-          }
-        }
-      }
-    },
-    "We couldn't find that license key. If you just bought it, try again in a minute.": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Không tìm thấy khóa bản quyền đó. Nếu bạn vừa mua, hãy thử lại sau một phút."
-          }
-        }
-      }
-    },
-    "That license key is already linked to another account.": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Khóa bản quyền đó đã được gắn với tài khoản khác."
-          }
-        }
-      }
-    },
     "Couldn't load the store: %@": {
       "extractionState": "manual",
       "localizations": {
@@ -2652,17 +2564,6 @@
         }
       }
     },
-    "Finish your purchase in the browser. This window updates when it arrives.": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hãy hoàn tất giao dịch trong trình duyệt. Cửa sổ này sẽ cập nhật khi giao dịch hoàn tất."
-          }
-        }
-      }
-    },
     "This purchase isn't available right now.": {
       "extractionState": "manual",
       "localizations": {
@@ -2692,17 +2593,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Hãy đăng nhập trước để khôi phục giao dịch."
-          }
-        }
-      }
-    },
-    "Checked for purchases. If you bought before signing in, enter your license key below.": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Đã kiểm tra giao dịch. Nếu bạn mua trước khi đăng nhập, hãy nhập khóa bản quyền bên dưới."
           }
         }
       }
@@ -2791,17 +2681,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Gia hạn cập nhật →"
-          }
-        }
-      }
-    },
-    "Download your last version": {
-      "extractionState": "manual",
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tải phiên bản cuối cùng của bạn"
           }
         }
       }

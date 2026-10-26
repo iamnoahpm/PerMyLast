@@ -271,43 +271,11 @@ final class AccountModel {
 
     // MARK: Purchases (Phase 4)
 
-    var isWaitingForPurchase = false
-
     /// Sends an Apple-signed transaction to the backend, which verifies it and grants the plan (FR-P1, P2).
     func submitStoreKit(jws: String) async throws {
         guard let backend else { throw BackendError(code: "unauthenticated", message: L("Sign in to continue.")) }
         let me = try await backend.submitStoreKitTransaction(accessToken: try await validAccessToken(), signedTransaction: jws)
         apply(me)
-    }
-
-    /// Links a Lemon Squeezy licence key to this account, for people who bought before signing in (FR-P4).
-    func activateLicense(_ key: String) async -> Bool {
-        guard let backend, signedIn else { show(L("Sign in first, then enter your license key."), error: true); return false }
-        isBusy = true; defer { isBusy = false }
-        do {
-            apply(try await backend.activateLicense(accessToken: try await validAccessToken(), licenseKey: key.trimmingCharacters(in: .whitespacesAndNewlines)))
-            show(L("License activated."), error: false)
-            return true
-        } catch let error as BackendError {
-            show(error.kind == .unknownLicense ? L("We couldn't find that license key. If you just bought it, try again in a minute.")
-                 : error.kind == .licenseAlreadyUsed ? L("That license key is already linked to another account.")
-                 : friendly(error), error: true)
-        } catch { show(error.localizedDescription, error: true) }
-        return false
-    }
-
-    /// After the checkout page opens, check every few seconds until the purchase shows up (the webhook can take a moment).
-    func waitForPurchase() async {
-        let before = entitlement.map { ($0.plan, $0.ownsLifetime) }
-        isWaitingForPurchase = true
-        defer { isWaitingForPurchase = false }
-        for _ in 0..<45 {
-            try? await Task.sleep(for: .seconds(4))
-            if Task.isCancelled { return }
-            await refreshEntitlement()
-            guard let now = entitlement else { continue }
-            if before == nil || now.plan != before!.0 || now.ownsLifetime != before!.1 { return }
-        }
     }
 
     // MARK: Meter text (FR-A13) and warnings (FR-A14)

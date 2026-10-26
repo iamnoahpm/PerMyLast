@@ -263,33 +263,18 @@ struct PurchaseTests {
         #expect(PaywallProduct.allCases.filter(\.isUpgrade).count == PaywallProduct.upgradeTiers)
     }
 
-    @Test func checkoutURLCarriesOnlyTheAccountID() throws {
-        let base = try #require(URL(string: "https://store.lemonsqueezy.com/checkout/buy/abc-123?embed=0"))
-        let url = checkoutURL(base: base, userID: "11111111-2222-3333-4444-555555555555")
-        let comps = try #require(URLComponents(url: url, resolvingAgainstBaseURL: false))
-        #expect(comps.host == "store.lemonsqueezy.com" && comps.path == "/checkout/buy/abc-123")
-        #expect(comps.queryItems?.first { $0.name == "embed" }?.value == "0")
-        #expect(comps.queryItems?.first { $0.name == "checkout[custom][user_id]" }?.value == "11111111-2222-3333-4444-555555555555")
-        #expect(!url.absoluteString.contains("@"))
-        // Calling again does not duplicate the parameter.
-        #expect(checkoutURL(base: url, userID: "x").absoluteString.components(separatedBy: "user_id").count == 2)
-    }
-
-    @Test func licenseAndReceiptCallsAndErrors() async throws {
+    @Test func receiptCallAndErrors() async throws {
         let t = FakeHTTP()
         t.body = Data(#"{"plan":"lifetime","trial_ends_at":null,"runs_used":null,"runs_allowance":null,"period_end":null,"owns_lifetime":true,"updates_until":"2027-10-22T00:00:00.000Z"}"#.utf8)
         let client = BackendClient(baseURL: base, transport: t)
-        let me = try await client.activateLicense(accessToken: "tok", licenseKey: "AAAA-BBBB")
+        let me = try await client.submitStoreKitTransaction(accessToken: "tok", signedTransaction: "a.b.c")
         #expect(me.plan == .lifetime && me.ownsLifetime && me.updatesUntil != nil)
-        #expect(t.requests[0].url?.path == "/v1/license/activate")
-        _ = try await client.submitStoreKitTransaction(accessToken: "tok", signedTransaction: "a.b.c")
-        #expect(t.requests[1].url?.path == "/v1/purchases/storekit")
+        #expect(t.requests[0].url?.path == "/v1/purchases/storekit")
 
-        for (status, code, kind) in [(404, "unknown_license", BackendError.Kind.unknownLicense), (409, "license_already_used", .licenseAlreadyUsed),
-                                     (400, "invalid_receipt", .invalidReceipt), (409, "wrong_account", .wrongAccount)] {
+        for (status, code, kind) in [(400, "invalid_receipt", BackendError.Kind.invalidReceipt), (409, "wrong_account", .wrongAccount)] {
             t.status = status
             t.body = Data(#"{"error":{"code":"\#(code)","message":"m"}}"#.utf8)
-            do { _ = try await client.activateLicense(accessToken: "t", licenseKey: "x"); Issue.record("expected error") }
+            do { _ = try await client.submitStoreKitTransaction(accessToken: "t", signedTransaction: "x"); Issue.record("expected error") }
             catch let e as BackendError { #expect(e.kind == kind) }
         }
     }

@@ -2,7 +2,7 @@
 
 Phases 2 to 4 of `docs/PRD AI Plans, Trial & BYOK.md`, built on Cloudflare Workers and D1 (SQLite) instead of the PRD's
 Supabase default. It has the schema, atomic run metering, sign-in (Apple, Google, emailed code), session tokens, the Free plan,
-the Claude proxy (`POST /v1/run`), rate limits, `GET /v1/me` and `GET /v1/templates`, and payments (Lemon Squeezy and the Mac App Store).
+the Claude proxy (`POST /v1/run`), rate limits, `GET /v1/me` and `GET /v1/templates`, and payments (Mac App Store).
 
 ## Layout
 
@@ -16,7 +16,7 @@ the Claude proxy (`POST /v1/run`), rate limits, `GET /v1/me` and `GET /v1/templa
 | `src/app.ts` | Routes. Paths are exactly the PRD's (`/v1/...`) |
 | `src/run.ts` | The proxy: limits, atomic reserve, Anthropic stream, refunds, usage events |
 | `src/free.ts`, `src/emailAuth.ts`, `src/limits.ts` | Claiming Free credits for a Mac, emailed-code sign-in, per-user rate and stream limits |
-| `src/purchases.ts`, `src/lemonsqueezy.ts`, `src/license.ts` | What a purchase does to an account; Lemon Squeezy webhook; licence-key activation |
+| `src/purchases.ts` | What a purchase does to an account |
 | `src/appstore.ts`, `src/x509.ts` | App Store transactions and notifications: Apple-signed JWS checked against Apple Root CA - G3 |
 | `scripts/` | `measure-cost.mjs` (cost per run), `cost-report.sql` (from real usage) and `funnel-report.sql` (onboarding funnel: `npx wrangler d1 execute permylast --remote --file scripts/funnel-report.sql`) |
 | `test/` | 97 tests in a local D1 simulation, including AC-11 directly and through the proxy |
@@ -33,8 +33,6 @@ the Claude proxy (`POST /v1/run`), rate limits, `GET /v1/me` and `GET /v1/templa
 | `POST /v1/events` | `{install_id_hash, app_version?, events: [{name, at?, props?}]}` | Anonymous onboarding funnel events (no sign-in). Only allowlisted names (`src/events.ts`), at most 20 per request and 500 per install. `400` for anything else, `429` past the cap |
 | `POST /v1/run` | `{template_id, variables}` (Bearer) | SSE: `delta` events `{text}`, then `done` `{runs_remaining}`; or `error` `{code, message}` |
 | `POST /v1/purchases/storekit` | `{signed_transaction}` (Bearer) | Verifies the Apple-signed transaction and grants the plan; returns the `/v1/me` body. Used after a purchase and for Restore |
-| `POST /v1/license/activate` | `{license_key}` (Bearer) | Links a Lemon Squeezy licence key to the account; `404 unknown_license`, `409 license_already_used` |
-| `POST /webhooks/lemonsqueezy` | Lemon Squeezy event, `X-Signature` header | Verifies the HMAC signature, then applies the event; always `200` for valid deliveries |
 | `POST /webhooks/appstore` | `{signedPayload}` (App Store Server Notification V2) | Verifies the JWS chain, then applies renewals, refunds, grace periods |
 | `POST /v1/auth/refresh` | `{refresh_token}` | same; the old refresh token is revoked, and reusing it revokes all of that user's sessions |
 | `GET /v1/me` | (Bearer access token) | `{plan, runs_used, runs_allowance, period_end, owns_lifetime, updates_until, next_upgrade_tier}` |
@@ -73,13 +71,6 @@ Needs a free Cloudflare account.
 
 Nothing here is done by Claude: no real purchases, no store settings changed.
 
-**Lemon Squeezy (direct build).** 1) Create a store and, in **test mode**, five or more products: Power user / Lifetime (one-time, with licence keys on), one one-time upgrade product per tier
-(`LS_VARIANT_LIFETIME_UPGRADE_1..3`, priced at 50%, 25%, 12.5% of the Lifetime price), Pro Monthly and Pro Yearly (subscriptions). 2) Put each variant id into `wrangler.jsonc` (`LS_VARIANT_*`) and each product's checkout link into
-`App/PerMyLast/AppConfig.swift` (`checkoutLinks`). 3) Add a webhook pointing at `https://<your-worker>/webhooks/lemonsqueezy`, subscribed to
-`order_created`, `order_refunded`, `subscription_*`, `subscription_payment_refunded` and `license_key_created`, and `npx wrangler secret put LS_WEBHOOK_SECRET` with its signing secret.
-4) While testing set `LS_ACCEPT_TEST_MODE` to `"true"`. Field names in `src/lemonsqueezy.ts` follow Lemon Squeezy's docs but were not checked against live deliveries:
-make one test purchase of each product and watch the Worker log (`npx wrangler tail`) before trusting them.
-
 **Mac App Store build.** 1) In App Store Connect create `lifetime_byok` (non-consumable), `lifetime_upgrade_1` ... `lifetime_upgrade_3` (consumable; 50%, 25%, 12.5% of the Lifetime price), and `pro_monthly` / `pro_yearly`
 (auto-renewing, one subscription group). 2) Add the In-App Purchase capability to the app (needs the Apple Developer Program and real signing). 3) Set the App Store Server Notifications V2
 URL (sandbox and production) to `https://<your-worker>/webhooks/appstore`. 4) While testing set `APPSTORE_ENVIRONMENTS` to `"Production,Sandbox"`. The app sets `appAccountToken` to the user id on every purchase;
@@ -88,7 +79,7 @@ Purchases made with Xcode's local StoreKit configuration are signed by a local t
 
 **Prices (USD, assuming dollars).** Power user / `lifetime_byok` $40; `lifetime_upgrade_1` $20; `lifetime_upgrade_2` $10; `lifetime_upgrade_3` $5 (and stays at $5 after that). Pro prices are not set yet.
 
-**Before launch:** remove `APPSTORE_ENVIRONMENTS` sandbox and set `LS_ACCEPT_TEST_MODE` back to `"false"`, then set `AppConfig.paymentsLiveInRelease = true` (this is what makes an own key require Lifetime).
+**Before launch:** set `APPSTORE_ENVIRONMENTS` back to `"Production"`, then set `AppConfig.paymentsLiveInRelease = true` (this is what makes an own key require Lifetime).
 
 ## Behaviour notes
 
@@ -96,9 +87,8 @@ Purchases made with Xcode's local StoreKit configuration are signed by a local t
   each upgrade adds 12 months from today or from the current end, once per order, and costs half the previous purchase. Stores sell fixed prices, so the ladder is one product per tier;
   the account's `upgrade_count` decides which tier is due (`next_upgrade_tier` in `/v1/me`), a cheaper stale tier is refused, and past the last tier the last product repeats. Pro: `expires_at` is the paid-through date; cancelling keeps access to it; a payment retry keeps
   access for `GRACE_DAYS`; a refund revokes. A provider's older event cannot undo a newer one (`source_updated_at`).
-- **Webhooks are idempotent.** Deliveries are recorded after they are applied, by body hash (Lemon Squeezy) or notification id (App Store).
-- **Test payments cannot unlock production.** Lemon Squeezy test-mode events and App Store sandbox transactions are ignored unless the deployment opts in.
-- **Licence keys.** A purchase made while signed out waits as a pending licence until its key is entered in the app; only a hash of each key is stored.
+- **Webhooks are idempotent.** Deliveries are recorded after they are applied, by notification id.
+- **Test payments cannot unlock production.** App Store sandbox transactions are ignored unless the deployment opts in.
 
 - **No row-level security.** Clients never reach D1; the Worker does, and scopes every query to the user id in a verified token.
 - **Metering.** Resolution order: active Pro, then Lifetime, then Free (once this Mac is claimed; 21 credits per calendar-style month from sign-up), else none.

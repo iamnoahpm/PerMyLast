@@ -7,8 +7,6 @@ import { AuthError } from "./jwt.ts";
 import { recordEvents } from "./events.ts";
 import { getMe } from "./me.ts";
 import { AppStoreError, handleAppStoreNotification, submitTransaction } from "./appstore.ts";
-import { handleLemonSqueezy, verifySignature } from "./lemonsqueezy.ts";
-import { activateLicense } from "./license.ts";
 import { handleRun } from "./run.ts";
 import { getTemplates } from "./templates.ts";
 import { startFree } from "./free.ts";
@@ -122,25 +120,6 @@ export async function handleRequest(req: Request, env: Env, deps: Deps = default
           throw error;
         }
       }
-      case "POST /v1/license/activate": {
-        const userId = await authenticate(req, env, deps.now());
-        if (!userId) return fail(401, "unauthenticated", "Sign in to continue.");
-        const limited = await takeRateSlot(env.DB, userId, deps.now());
-        if (!limited.ok) return fail(429, "rate_limited", "Too many attempts. Try again shortly.", { retry_after: limited.retryAfter });
-        const licenseKey = (await readJson(req))?.license_key;
-        if (typeof licenseKey !== "string" || licenseKey.trim().length < 8 || licenseKey.length > 200) return fail(400, "bad_request", "license_key is required.");
-        const result = await activateLicense(env, userId, licenseKey, deps.now());
-        if (result.ok) return json(await getMe(env.DB, userId, deps.now()));
-        return result.reason === "license_already_used"
-          ? fail(409, "license_already_used", "That license key is already linked to another account.")
-          : fail(404, "unknown_license", "We couldn't find that license key. If you just bought it, try again in a minute.");
-      }
-      case "POST /webhooks/lemonsqueezy": {
-        const raw = await req.text();
-        if (!env.LS_WEBHOOK_SECRET) return fail(503, "not_configured", "Webhook is not configured.");
-        if (!(await verifySignature(raw, req.headers.get("x-signature"), env.LS_WEBHOOK_SECRET))) return fail(401, "invalid_signature", "Bad signature.");
-        return json({ ok: true, outcome: await handleLemonSqueezy(env, deps, raw) });
-      }
       case "POST /webhooks/appstore": {
         try {
           return json({ ok: true, outcome: await handleAppStoreNotification(env, deps, await readJson(req)) });
@@ -157,7 +136,7 @@ export async function handleRequest(req: Request, env: Env, deps: Deps = default
       }
     }
 
-    const known = ["/v1/purchases/storekit", "/v1/license/activate", "/webhooks/lemonsqueezy", "/webhooks/appstore", "/v1/me", "/v1/templates", "/v1/run", "/v1/events", "/v1/trial/start", "/v1/auth/apple", "/v1/auth/google", "/v1/auth/refresh",
+    const known = ["/v1/purchases/storekit", "/webhooks/appstore", "/v1/me", "/v1/templates", "/v1/run", "/v1/events", "/v1/trial/start", "/v1/auth/apple", "/v1/auth/google", "/v1/auth/refresh",
       "/v1/auth/email/request", "/v1/auth/email/verify"];
     return known.includes(url.pathname) ? fail(405, "method_not_allowed", "Method not allowed.") : fail(404, "not_found", "Not found.");
   } catch (error) {

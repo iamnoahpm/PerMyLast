@@ -1,8 +1,8 @@
-// What a purchase does to an account. Both payment channels end up here, and every function is safe to call twice.
+// What a purchase does to an account. App Store purchases end up here, and every function is safe to call twice.
 import { config } from "../config.ts";
 import { addMonths, nextUpgradeTier } from "./plans.ts";
 
-export type Source = "lemonsqueezy" | "storekit";
+export type Source = "storekit";
 export type ProductKind = "lifetime" | "lifetime_renewal" | "pro_monthly" | "pro_yearly";
 
 /** Power user (lifetime) licence: never expires, updates for 12 months from purchase. */

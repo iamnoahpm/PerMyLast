@@ -14,12 +14,11 @@ enum AppConfig {
         return text.isEmpty ? nil : URL(string: text)
     }
 
-    /// Flip to `true` at launch, once the App Store products and Lemon Squeezy checkout links below exist and a test
-    /// purchase has worked end to end. Until then nothing can be bought, so people who already use their own key
+    /// Flip to `true` at launch, once the App Store products exist and a sandbox purchase has worked end to end. Until then nothing can be bought, so people who already use their own key
     /// keep using it, and the paywall says plans are not open yet.
     static let paymentsLiveInRelease = false
 
-    /// `PML_PAYMENTS_LIVE=1` switches payments on for a test run only (Lemon Squeezy test mode, App Store sandbox) without
+    /// `PML_PAYMENTS_LIVE=1` switches payments on for a test run only (App Store sandbox) without
     /// changing what ships. Remember it also makes your own key require a Lifetime licence in that run.
     static var paymentsLive: Bool {
         paymentsLiveInRelease || ProcessInfo.processInfo.environment["PML_PAYMENTS_LIVE"] == "1"
@@ -28,34 +27,13 @@ enum AppConfig {
     /// PRD behaviour: an own Anthropic key needs a Lifetime licence.
     static var ownKeyNeedsLicense: Bool { paymentsLive }
 
-    /// Which store this build sells through. The Mac App Store build must use StoreKit only (App Store rules); the
-    /// direct build sells through Lemon Squeezy only. Override with PML_CHANNEL=appstore|direct for testing.
-    enum Channel { case appStore, direct }
-    static var channel: Channel {
-        switch ProcessInfo.processInfo.environment["PML_CHANNEL"] {
-        case "appstore": return .appStore
-        case "direct": return .direct
-        default:
-            let receipt = Bundle.main.appStoreReceiptURL
-            return receipt.map { FileManager.default.fileExists(atPath: $0.path) } == true ? .appStore : .direct
-        }
-    }
-
-    /// Lemon Squeezy checkout links (direct build). Create the products in Lemon Squeezy, then paste each product's
-    /// "Share" checkout link here. Empty means that product cannot be bought yet.
-    static let checkoutLinks: [PaywallProduct: String] = [
-        .proYearly: "", .proMonthly: "", .lifetime: "",
-        .lifetimeUpgrade1: "", .lifetimeUpgrade2: "", .lifetimeUpgrade3: "",
-    ]
-
-    /// Sign in with Apple needs the app signed with a real team and the capability enabled (see backend/README).
-    /// The Mac App Store build signs in with Apple only (one tap, no email codes). Enable the Sign in with Apple
-    /// capability in Xcode for the release target. The direct build keeps email and Google.
-    static var appleSignInEnabled: Bool { channel == .appStore }
-    static var emailSignInEnabled: Bool { channel != .appStore }
+    /// Sign in with Apple needs the app signed with a real team and the capability enabled in Xcode for the release
+    /// target (see backend/README). The app signs in with Apple only: one tap, no email codes.
+    static let appleSignInEnabled = true
+    static let emailSignInEnabled = false
     /// Google OAuth client id (iOS/desktop type). Empty hides Google sign-in.
     static let googleClientID = ""
-    static var googleSignInEnabled: Bool { !googleClientID.isEmpty && channel != .appStore }
+    static var googleSignInEnabled: Bool { false }
 
     /// FR-P7: the date this build was released. Update it for every release. A Lifetime licence whose 12 months of updates
     /// ended before this date cannot use the build (it shows "Renew updates to use this version").
@@ -66,8 +44,6 @@ enum AppConfig {
     }()
     /// Set to true for a compatibility-fix build, which Lifetime users may keep using for 12 months longer.
     static let isPatchBuild = false
-    /// Where Lifetime users can download the last build their licence covers. Empty hides the link.
-    static let lastEligibleDownloadURL = ""
 
     /// Credits the Free plan renews with every month, as the plans card and paywall say it. Keep in step with
     /// FREE_MONTHLY_CREDITS in backend/config.ts.

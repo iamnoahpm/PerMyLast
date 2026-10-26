@@ -236,10 +236,6 @@ struct OutputPanel: View {
                 }
                 if model.lastErrorKind == .updatesExpired {
                     Button("Renew updates →") { WindowCoordinator.shared.showPaywall() }
-                    if let url = URL(string: AppConfig.lastEligibleDownloadURL), !AppConfig.lastEligibleDownloadURL.isEmpty {
-                        Link("Download your last version", destination: url)
-                            .font(PMLFont.select).foregroundStyle(PMLColor.accentText)
-                    }
                 }
                 if model.lastErrorKind == .noEntitlement || model.lastErrorKind == .freeCreditsExhausted {
                     Button("See plans →") { WindowCoordinator.shared.showPaywall() }

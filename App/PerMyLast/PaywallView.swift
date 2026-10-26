@@ -7,8 +7,6 @@ struct PaywallView: View {
     @Environment(AccountModel.self) private var account
     @Environment(AppModel.self) private var model
     @State private var selected = PaywallProduct.proYearly
-    @State private var licenseKey = ""
-    @FocusState private var licenseFocused: Bool
     private let purchases = PurchaseService.shared
 
     var body: some View {
@@ -61,8 +59,8 @@ struct PaywallView: View {
                     continueLabel.frame(maxWidth: .infinity)
                 }
                 .buttonStyle(PMLPrimaryButtonStyle())
-                .disabled(!account.signedIn || !purchases.isAvailable(selected) || purchases.isBusy || account.isWaitingForPurchase)
-                if account.isWaitingForPurchase || purchases.isBusy { ProgressView().controlSize(.small) }
+                .disabled(!account.signedIn || !purchases.isAvailable(selected) || purchases.isBusy)
+                if purchases.isBusy { ProgressView().controlSize(.small) }
             }
 
             Rectangle().fill(PMLColor.divider).frame(height: 1)
@@ -79,19 +77,6 @@ struct PaywallView: View {
                     if account.entitlement?.ownsLifetime == true || account.updateWindow != .ok {
                         Button(upgradeTitle) { Task { await purchases.buy(upgradeProduct) } }
                             .disabled(!purchases.isAvailable(upgradeProduct) || purchases.isBusy)
-                            .buttonStyle(PMLSecondaryButtonStyle())
-                    }
-                }
-            }
-
-            if purchases.channel == .direct {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Have a license key?").font(PMLFont.select.weight(.bold))
-                    HStack {
-                        TextField("License key", text: $licenseKey)
-                            .pmlInput(focus: $licenseFocused)
-                        Button("Activate") { Task { if await account.activateLicense(licenseKey) { licenseKey = "" } } }
-                            .disabled(licenseKey.trimmingCharacters(in: .whitespaces).count < 8 || account.isBusy)
                             .buttonStyle(PMLSecondaryButtonStyle())
                     }
                 }
@@ -126,9 +111,7 @@ struct PaywallView: View {
     }
 
     @ViewBuilder private var continueLabel: some View {
-        if account.isWaitingForPurchase {
-            Text("Waiting for your purchase…")
-        } else if let days = purchases.freeTrialDays(selected) {
+        if let days = purchases.freeTrialDays(selected) {
             Text("Start \(days)-day free trial")
         } else {
             Text("Continue")

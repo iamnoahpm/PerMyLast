@@ -120,7 +120,7 @@ public struct BackendError: Error, LocalizedError, Equatable, Sendable {
         case unauthenticated, invalidToken, invalidCode
         case noEntitlement, freeCreditsExhausted, quotaExhausted, byokRequired
         case installAlreadyUsed, inputTooLarge, rateLimited, upstream, emailUnavailable, unreachable
-        case unknownLicense, licenseAlreadyUsed, invalidReceipt, wrongAccount, updatesExpired, other
+        case invalidReceipt, wrongAccount, updatesExpired, other
     }
 
     public let code: String
@@ -150,8 +150,6 @@ public struct BackendError: Error, LocalizedError, Equatable, Sendable {
         case "upstream_error": return .upstream
         case "email_unavailable": return .emailUnavailable
         case "unreachable": return .unreachable
-        case "unknown_license": return .unknownLicense
-        case "license_already_used": return .licenseAlreadyUsed
         case "invalid_receipt", "unknown_product": return .invalidReceipt
         case "wrong_account": return .wrongAccount
         case "updates_expired": return .updatesExpired
@@ -336,12 +334,6 @@ public struct BackendClient: Sendable {
         return FreeInfo(plan: w.plan, periodEnd: w.period_end, runsAllowance: w.runs_allowance)
     }
 
-    /// Links a Lemon Squeezy licence key to this account (for people who bought before signing in).
-    public func activateLicense(accessToken: String, licenseKey: String) async throws -> EntitlementInfo {
-        let data = try await send("v1/license/activate", body: ["license_key": licenseKey], token: accessToken)
-        return try BackendCoding.decoder.decode(EntitlementInfo.self, from: data)
-    }
-
     /// Sends an Apple-signed StoreKit transaction after a purchase, and again on "Restore purchases".
     public func submitStoreKitTransaction(accessToken: String, signedTransaction: String) async throws -> EntitlementInfo {
         let data = try await send("v1/purchases/storekit", body: ["signed_transaction": signedTransaction], token: accessToken)
@@ -438,15 +430,4 @@ public enum PaywallProduct: String, CaseIterable, Sendable {
     }
 
     public var isSubscription: Bool { self == .proYearly || self == .proMonthly }
-}
-
-/// Lemon Squeezy checkout link for the direct build. Only the random account id travels in the URL (it lets the
-/// webhook credit the right account); no email or other personal data.
-public func checkoutURL(base: URL, userID: String) -> URL {
-    var parts = URLComponents(url: base, resolvingAgainstBaseURL: false) ?? URLComponents()
-    var items = parts.queryItems ?? []
-    items.removeAll { $0.name == "checkout[custom][user_id]" }
-    items.append(URLQueryItem(name: "checkout[custom][user_id]", value: userID))
-    parts.queryItems = items
-    return parts.url ?? base
 }

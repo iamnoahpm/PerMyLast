@@ -20,15 +20,7 @@
     "GOOGLE_CLIENT_ID": "",
     // Sender of sign-in emails. The domain must be verified in Resend; the key is the RESEND_API_KEY secret.
     "MAIL_FROM": "Per My Last <login@permylast.app>",
-    // Lemon Squeezy variant ids: fill in after creating the products in Lemon Squeezy.
-    "LS_VARIANT_LIFETIME": "",
-    "LS_VARIANT_LIFETIME_UPGRADE_1": "",
-    "LS_VARIANT_LIFETIME_UPGRADE_2": "",
-    "LS_VARIANT_LIFETIME_UPGRADE_3": "",
-    "LS_VARIANT_PRO_MONTHLY": "",
-    "LS_VARIANT_PRO_YEARLY": "",
-    // Set to "Production,Sandbox" and "true" while testing payments; remove both before launch.
-    "APPSTORE_ENVIRONMENTS": "Production",
-    "LS_ACCEPT_TEST_MODE": "false"
+    // Set to "Production,Sandbox" while testing payments; set back to "Production" before launch.
+    "APPSTORE_ENVIRONMENTS": "Production"
   }
 }
