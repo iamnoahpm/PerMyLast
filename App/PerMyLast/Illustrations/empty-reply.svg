@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="132" viewBox="0 0 240 132" role="img" aria-label="A beach umbrella between two empty deckchairs facing a calm sea">
+<style>
+@keyframes esflap{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.12)}}
+@keyframes eswave{0%,100%{transform:translateX(0)}50%{transform:translateX(-6px)}}
+.flap{transform-origin:120px 40px;animation:esflap 2.4s ease-in-out infinite}
+.wave{animation:eswave 4s ease-in-out infinite}
+@media (prefers-reduced-motion: reduce){.flap,.wave{animation:none}}
+</style>
+<defs><clipPath id="u1clip"><rect x="0" y="0" width="240" height="132" rx="16"></rect></clipPath></defs>
+<g clip-path="url(#u1clip)">
+<rect x="0" y="0" width="240" height="60" fill="#f0f5ff"></rect>
+<rect x="0" y="60" width="240" height="30" fill="#c7d9ff" shape-rendering="crispEdges"></rect>
+<rect x="0" y="60" width="240" height="6" fill="#9dbbff" shape-rendering="crispEdges"></rect>
+<rect x="0" y="60" width="240" height="2.4" fill="#2b6cf6" shape-rendering="crispEdges"></rect>
+<path class="wave" d="M-10 84 Q10 80 30 84 T70 84 T110 84 T150 84 T190 84 T230 84 T270 84 V132 H-10 Z" fill="#ffffff" fill-opacity="0.7"></path>
+<path d="M0 90 Q60 86 120 90 T240 89 V132 H0 Z" fill="#f3ecdc"></path>
+<ellipse cx="120" cy="121" rx="62" ry="5" fill="#e6dcc4"></ellipse>
+<line x1="120" y1="18" x2="120" y2="122" stroke="#6b6b73" stroke-width="2.5" stroke-linecap="round"></line>
+<g transform="translate(120 34) scale(1.23) translate(-120 -34)">
+<g class="flap">
+<path d="M58 40 Q120 2 182 40 Q172 47 162 40 Q151 47 141 40 Q130 47 120 40 Q110 47 99 40 Q89 47 78 40 Q68 47 58 40 Z" fill="#2b6cf6"></path>
+<path d="M120 21 Q100 26 99 40 Q110 47 120 40 Z" fill="#7aa2ff"></path>
+<path d="M120 21 Q140 26 141 40 Q151 47 162 40 Q160 30 120 21 Z" fill="#7aa2ff"></path>
+<path d="M120 21 Q80 24 78 40 Q68 47 58 40 Q72 26 120 21 Z" fill="#7aa2ff"></path>
+</g>
+</g>
+<circle cx="120" cy="14" r="2.8" fill="#1f5bd8"></circle>
+<g transform="translate(20 0)">
+<line x1="60" y1="108" x2="55" y2="121" stroke="#4a4a52" stroke-width="2.4" stroke-linecap="round"></line>
+<line x1="88" y1="108" x2="93" y2="121" stroke="#4a4a52" stroke-width="2.4" stroke-linecap="round"></line>
+<rect x="60" y="80" width="28" height="28" fill="#ffffff"></rect>
+<rect x="60" y="80" width="5" height="28" fill="#2b6cf6"></rect>
+<rect x="71.5" y="80" width="5" height="28" fill="#2b6cf6"></rect>
+<rect x="83" y="80" width="5" height="28" fill="#2b6cf6"></rect>
+<rect x="58" y="78" width="32" height="31" rx="2" fill="none" stroke="#4a4a52" stroke-width="2.4"></rect>
+<line x1="54" y1="98" x2="58" y2="98" stroke="#4a4a52" stroke-width="2.4" stroke-linecap="round"></line>
+<line x1="90" y1="98" x2="94" y2="98" stroke="#4a4a52" stroke-width="2.4" stroke-linecap="round"></line>
+</g>
+<g transform="translate(-20 0)">
+<line x1="152" y1="108" x2="147" y2="121" stroke="#4a4a52" stroke-width="2.4" stroke-linecap="round"></line>
+<line x1="180" y1="108" x2="185" y2="121" stroke="#4a4a52" stroke-width="2.4" stroke-linecap="round"></line>
+<rect x="152" y="80" width="28" height="28" fill="#ffffff"></rect>
+<rect x="152" y="80" width="5" height="28" fill="#2b6cf6"></rect>
+<rect x="163.5" y="80" width="5" height="28" fill="#2b6cf6"></rect>
+<rect x="175" y="80" width="5" height="28" fill="#2b6cf6"></rect>
+<rect x="150" y="78" width="32" height="31" rx="2" fill="none" stroke="#4a4a52" stroke-width="2.4"></rect>
+<line x1="146" y1="98" x2="150" y2="98" stroke="#4a4a52" stroke-width="2.4" stroke-linecap="round"></line>
+<line x1="182" y1="98" x2="186" y2="98" stroke="#4a4a52" stroke-width="2.4" stroke-linecap="round"></line>
+</g>
+<path d="M206 10 q5 -3 10 0 q5 -3 10 0" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round"></path>
+<path d="M10 14 q5 -3 10 0 q5 -3 10 0" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round"></path>
+</g>
+</svg>

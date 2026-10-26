@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="132" viewBox="0 0 240 132" role="img" aria-label="A beach umbrella beside an empty sun lounger angled toward the sea">
+<style>
+@keyframes eswave{0%,100%{transform:translateX(0)}50%{transform:translateX(-6px)}}
+@keyframes essway{0%,100%{transform:rotate(0deg)}50%{transform:rotate(-1.5deg)}}
+.wave{animation:eswave 4s ease-in-out infinite}
+.sway{transform-origin:168px 124px;animation:essway 5s ease-in-out infinite}
+@media (prefers-reduced-motion: reduce){.wave,.sway{animation:none}}
+</style>
+<defs><clipPath id="u2clip"><rect x="0" y="0" width="240" height="132" rx="16"></rect></clipPath></defs>
+<g clip-path="url(#u2clip)">
+<rect x="0" y="0" width="240" height="72" fill="#f0f5ff"></rect>
+<rect x="0" y="72" width="240" height="22" fill="#c7d9ff" shape-rendering="crispEdges"></rect>
+<rect x="0" y="72" width="240" height="6" fill="#9dbbff" shape-rendering="crispEdges"></rect>
+<rect x="0" y="72" width="240" height="2.4" fill="#2b6cf6" shape-rendering="crispEdges"></rect>
+<path class="wave" d="M-10 90 Q8 86 26 90 T62 90 T98 90 T134 90 T170 90 T206 90 T250 90 V132 H-10 Z" fill="#ffffff" fill-opacity="0.75"></path>
+<path d="M0 94 Q60 90 120 94 T240 93 V132 H0 Z" fill="#f3ecdc"></path>
+<ellipse cx="108" cy="118" rx="66" ry="8" fill="#e6dcc4"></ellipse>
+<g transform="translate(104 104) scale(1.05) translate(-170 -124)">
+<g class="sway">
+<line x1="168.6" y1="58" x2="170" y2="124" stroke="#6b6b73" stroke-width="3" stroke-linecap="round"></line>
+<g transform="translate(0 32)">
+<path d="M104 46 Q168 4 232 46 Q226 52 220 47 Q213 52 206 47 Q199 52 192 47 Q185 52 178 47 Q171 52 164 47 Q157 52 150 47 Q143 52 136 47 Q129 52 122 47 Q115 52 108 47 Q106 48 104 46 Z" fill="#2b6cf6"></path>
+<path d="M168 25 Q150 30 143 47 Q150 52 157 47 Q160 32 168 25 Z" fill="#7aa2ff"></path>
+<path d="M168 25 Q186 30 193 47 Q199 52 206 47 Q194 31 168 25 Z" fill="#7aa2ff"></path>
+<path d="M168 25 Q126 28 108 47 Q106 48 104 46 Q124 30 168 25 Z" fill="#7aa2ff"></path>
+<g fill="none" stroke="#1f5bd8" stroke-width="1.1" stroke-linecap="round" opacity="0.6">
+<path d="M168 25 Q150 30 143 47"></path>
+<path d="M168 25 Q160 32 157 47"></path>
+<path d="M168 25 Q176 32 179 47"></path>
+<path d="M168 25 Q186 30 193 47"></path>
+<path d="M168 25 Q194 31 206 47"></path>
+<path d="M168 25 Q210 28 228 45"></path>
+<path d="M168 25 Q132 29 122 47"></path>
+</g>
+<circle cx="168" cy="23" r="2.6" fill="#1f5bd8"></circle>
+</g>
+</g>
+</g>
+<g>
+<line x1="66" y1="112" x2="66" y2="123" stroke="#4a4a52" stroke-width="2.6" stroke-linecap="round"></line>
+<line x1="104" y1="118" x2="104" y2="128" stroke="#4a4a52" stroke-width="2.6" stroke-linecap="round"></line>
+<line x1="150" y1="100" x2="150" y2="108" stroke="#4a4a52" stroke-width="2.4" stroke-linecap="round"></line>
+<path d="M104 118 L150 98 L150 102 L104 122 Z" fill="#1f5bd8"></path>
+<path d="M66 112 L104 118 L150 98 L122 93 Z" fill="#2b6cf6"></path>
+<path d="M71.43 112.86 L76.86 113.71 L130 94.43 L126 93.71 Z" fill="#ffffff"></path>
+<path d="M82.29 114.57 L87.71 115.43 L138 95.86 L134 95.14 Z" fill="#ffffff"></path>
+<path d="M93.14 116.29 L98.57 117.14 L146 97.29 L142 96.57 Z" fill="#ffffff"></path>
+<path d="M122 93 L150 98 L147 99.5 L121 95 Z" fill="#7aa2ff"></path>
+<line x1="86" y1="115" x2="80" y2="103" stroke="#4a4a52" stroke-width="2" stroke-linecap="round"></line>
+<path d="M66 112 L104 118 L91 102 L53 96 Z" fill="#1f5bd8"></path>
+<path d="M71.43 112.86 L76.86 113.71 L63.86 97.71 L58.43 96.86 Z" fill="#e8eefc"></path>
+<path d="M82.29 114.57 L87.71 115.43 L74.71 99.43 L69.29 98.57 Z" fill="#e8eefc"></path>
+<path d="M93.14 116.29 L98.57 117.14 L85.57 101.14 L80.14 100.29 Z" fill="#e8eefc"></path>
+<path d="M66 112 L104 118 L91 102 L53 96 Z" fill="none" stroke="#4a4a52" stroke-width="2.4" stroke-linejoin="round"></path>
+<line x1="60" y1="104" x2="98" y2="110" stroke="#4a4a52" stroke-width="1.4" stroke-linecap="round"></line>
+<line x1="104" y1="118" x2="150" y2="98" stroke="#4a4a52" stroke-width="2.4" stroke-linecap="round"></line>
+</g>
+</g>
+</svg>

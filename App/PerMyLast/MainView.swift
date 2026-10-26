@@ -34,20 +34,21 @@ struct MainView: View {
                             }
                             modeHeading
                             if model.isAsk {
-                                askBox(text: $model.askPrompt)
+                                SingleComposer(focus: $askFocused)
                             } else {
                                 chips
-                                PromptPanel()
-                            }
-                            if !model.isAsk { inputBox(text: $model.inputText) }
-                            if model.activeModeTakesIntent {
-                                intentRow(text: $model.intent)
-                            } else {
-                                sendRow
+                                if model.activeModeTakesIntent {
+                                    ReplyComposer(theirFocus: $inputFocused, intentFocus: $intentFocused)
+                                } else {
+                                    SingleComposer(focus: $inputFocused)
+                                }
                             }
                             OutputPanel()
                         }
-                        .padding(wide ? PMLSpace.s5 : PMLLayout.windowPadding)
+                        .padding(.horizontal, wide ? PMLSpace.s5 : PMLLayout.windowPadding)
+                        // Wide: the mode title shares a line with the sidebar's eyebrow.
+                        .padding(.top, wide ? PMLSpace.s2 : PMLLayout.windowPadding)
+                        .padding(.bottom, wide ? PMLSpace.s5 : PMLLayout.windowPadding)
                     }
                 }
                 .overlay(alignment: .leading) { if wide && !railPinned { peekRail } }
@@ -129,7 +130,7 @@ struct MainView: View {
             }
             .font(.custom("Plus Jakarta Sans", size: 22).weight(.bold))
             .foregroundStyle(PMLColor.ink)
-            Text(ModeRail.blurb(for: model.activeMode))
+            Text(model.activeModeTakesIntent ? LocalizedStringKey("Their message and your intent live in one box.") : ModeRail.blurb(for: model.activeMode))
                 .font(PMLFont.body)
                 .foregroundStyle(PMLColor.inkSoft)
         }
@@ -161,178 +162,6 @@ struct MainView: View {
             }
         }
     }
-
-    /// On tabs that take an intent, Send sits beside the intent field.
-    private func intentRow(text: Binding<String>) -> some View {
-        VStack(alignment: .leading, spacing: PMLSpace.s2) {
-            Text("Your reply intent").font(PMLFont.meta).fontWeight(.semibold).foregroundStyle(PMLColor.inkMuted)
-            HStack(alignment: .center, spacing: PMLSpace.s3) {
-                TextField("e.g. Confirm I can make it, but ask to push 30 minutes", text: text)
-                    .pmlInput(focus: $intentFocused, height: PMLLayout.controlHeight)
-                sendButton
-            }
-        }
-    }
-
-    /// The Ask tab's prompt: a plain box, like a chat app's message field.
-    private func askBox(text: Binding<String>) -> some View {
-        VStack(alignment: .leading, spacing: PMLSpace.s2) {
-            Text("Your question").font(PMLFont.meta).fontWeight(.semibold).foregroundStyle(PMLColor.inkMuted)
-            PMLField(text: text, placeholder: "Ask anything…", minHeight: 220, focus: $askFocused)
-        }
-    }
-
-    private func inputBox(text: Binding<String>) -> some View {
-        let words = TextCleanup.wordCount(text.wrappedValue)
-        return PMLField(
-            text: text,
-            placeholder: "Select some text, then press \(model.shortcutDisplay) — or paste it here.",
-            minHeight: 150, focus: $inputFocused,
-            footer: words > 0 ? "\(words) words" : nil)
-            // A paste lands as one big jump in length; run it through the same
-            // clean-up as captured text. (Ordinary typing never triggers this.)
-            .onChange(of: text.wrappedValue) { old, new in
-                if new.count - old.count > 20 { text.wrappedValue = TextCleanup.beautify(new) }
-            }
-    }
-
-    private var sendRow: some View {
-        HStack {
-            sendButton
-            Spacer()
-        }
-    }
-
-    private var sendButton: some View {
-        Button {
-            Task { await model.send() }
-        } label: {
-            HStack(spacing: PMLSpace.s2) {
-                if model.isSending { ProgressView().controlSize(.small) }
-                Text(LocalizedStringKey(model.isSending ? "Sending…" : (model.hasResult ? "Send again" : "Send")))
-                Text("⌘↵").font(PMLFont.kbd).opacity(0.75)
-            }
-        }
-        .keyboardShortcut(.return, modifiers: .command)
-        .buttonStyle(PMLPrimaryButtonStyle())
-        .disabled(!model.canSend)
-        .help(sendTooltip)
-    }
-
-    private var sendTooltip: String {
-        if model.motherLanguageMissing { return L("Set your mother language in Settings first") }
-        if model.isAsk { return model.askPrompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? L("Type your question first") : "" }
-        if model.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return L("Select or paste text first") }
-        return ""
-    }
-}
-
-// MARK: - Prompt panel
-
-/// The "Prompt" row under the chips: shows the prompt that will be sent, and
-/// lets you edit it and save the edit back into the preset.
-struct PromptPanel: View {
-    @Environment(AppModel.self) private var model
-
-    var body: some View {
-        @Bindable var model = model
-        if let preset = model.currentPreset {
-            PMLPanel(fill: PMLColor.surfaceInset, radius: PMLRadius.inset) {
-                VStack(alignment: .leading, spacing: PMLSpace.s3) {
-                    header(preset)
-                    if model.promptOpen {
-                        if model.editingPrompt { editor(preset, draft: $model.promptDraft) } else { reader(preset) }
-                    }
-                    if let flash = model.savedFlash {
-                        Label(flash, systemImage: "checkmark.circle.fill")
-                            .font(PMLFont.hint)
-                            .foregroundStyle(PMLColor.success)
-                    }
-                }
-            }
-        }
-    }
-
-    private func header(_ preset: Preset) -> some View {
-        Button { model.togglePrompt() } label: {
-            HStack(spacing: 6) {
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 10, weight: .bold))
-                    .rotationEffect(model.promptOpen ? .degrees(90) : .zero)
-                Text("Prompt").font(PMLFont.select).fontWeight(.bold)
-                if model.isEdited(preset) {
-                    Text("Edited")
-                        .font(PMLFont.badge).tracking(0.42).textCase(.uppercase)
-                        .foregroundStyle(PMLColor.warning)
-                        .padding(.horizontal, 6).padding(.vertical, 2)
-                        .background(PMLColor.warningSoft, in: RoundedRectangle(cornerRadius: PMLRadius.badge, style: .continuous))
-                }
-                Spacer()
-                if !preset.tone.isEmpty {
-                    HStack(spacing: 4) {
-                        Text("Tone")
-                        Text(preset.tone).fontWeight(.bold)
-                    }
-                    .font(PMLFont.meta)
-                    .foregroundStyle(PMLColor.inkMuted)
-                }
-            }
-            .foregroundStyle(PMLColor.ink)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-    }
-
-    private func reader(_ preset: Preset) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(model.motherLanguageMissing
-                 ? preset.prompt.replacingOccurrences(of: PresetLibrary.motherLanguageToken, with: "…")
-                 : model.resolvedPrompt(for: preset))
-                .font(PMLFont.body)
-                .foregroundStyle(PMLColor.inkSoft)
-                .textSelection(.enabled)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .contentShape(Rectangle())
-                .onTapGesture(perform: model.openPromptEditor)
-                .help("Click to edit")
-            if model.writeMyWayApplies(to: preset) {
-                Label("Plus your Write My Way settings", systemImage: "wand.and.stars")
-                    .font(PMLFont.hint)
-                    .foregroundStyle(PMLColor.inkMuted)
-            }
-            if model.motherLanguageMissing {
-                Button("your mother language — set it in Settings") { WindowCoordinator.shared.showSettings() }
-                    .buttonStyle(PMLGhostButtonStyle())
-            }
-        }
-    }
-
-    private func editor(_ preset: Preset, draft: Binding<String>) -> some View {
-        VStack(alignment: .leading, spacing: PMLSpace.s2) {
-            TextEditor(text: draft)
-                .font(PMLFont.body)
-                .foregroundStyle(PMLColor.ink)
-                .scrollContentBackground(.hidden)
-                .padding(6)
-                .frame(minHeight: 110)
-                .background(PMLColor.surfaceSunken, in: RoundedRectangle(cornerRadius: PMLRadius.input, style: .continuous))
-            Text("Saves to \(model.savedTargetLabel(preset)) in Settings")
-                .font(PMLFont.hint)
-                .foregroundStyle(PMLColor.inkMuted)
-            HStack {
-                Button("Cancel") { model.cancelPromptEdit() }
-                    .buttonStyle(PMLSecondaryButtonStyle())
-                if model.isEdited(preset) || model.promptDraft != preset.originalPrompt {
-                    Button("Reset to original") { model.revertPromptDraft() }
-                        .buttonStyle(PMLGhostButtonStyle())
-                }
-                Spacer()
-                // Send stays the only accent fill in the view.
-                Button("Save & overwrite") { model.savePromptEdit() }
-                    .buttonStyle(PMLInkButtonStyle())
-            }
-        }
-    }
 }
 
 // MARK: - Output
@@ -342,33 +171,52 @@ struct OutputPanel: View {
     @State private var copied = false
 
     var body: some View {
-        if let error = model.errorMessage {
-            errorBox(error)
-        } else if model.hasResult {
-            result
-        } else {
-            emptyState
+        Group {
+            if let error = model.errorMessage {
+                errorBox(error)
+            } else if model.hasResult {
+                result
+            } else if model.isSending {
+                loadingState
+            } else {
+                emptyState
+            }
         }
+        .animation(.easeOut(duration: 0.18), value: model.isSending)
+    }
+
+    /// Reply while the first words are still on their way.
+    private var loadingState: some View {
+        Text(LocalizedStringKey(model.isAsk ? "Writing your answer…" : (model.activeMode == "Understand" ? "Reading the message…" : "Writing your draft…")))
+            .font(PMLFont.body).foregroundStyle(PMLColor.inkMuted)
+            .frame(maxWidth: .infinity)
+            .padding(PMLSpace.s5)
+            .background(RoundedRectangle(cornerRadius: PMLRadius.card, style: .continuous).fill(PMLColor.surfaceInset))
+            .overlay(RoundedRectangle(cornerRadius: PMLRadius.card, style: .continuous).strokeBorder(PMLColor.lineStrong, lineWidth: 1))
+            .accessibilityAddTraits(.updatesFrequently)
     }
 
     private var emptyState: some View { plainEmptyState }
 
     private var plainEmptyState: some View {
         VStack(spacing: PMLSpace.s1) {
-            Text("Your draft appears here.").font(PMLFont.select).fontWeight(.bold).foregroundStyle(PMLColor.ink)
+            EmptyIllustration(scene: EmptyScene(mode: model.activeMode, isAsk: model.isAsk)).padding(.bottom, PMLSpace.s2)
+            Text(LocalizedStringKey(model.isAsk ? "Your answer appears here." : (model.activeMode == "Understand" ? "Your explanation appears here." : "Your draft appears here."))).font(PMLFont.select).fontWeight(.bold).foregroundStyle(PMLColor.ink)
             Text(LocalizedStringKey(model.isAsk
                  ? "Type your question above, then press ⌘↵."
                  : (model.activeModeTakesIntent
-                    ? "Pick a preset above, add your intent if you want, then press ⌘↵."
+                    ? "Paste their message, add your intent if you want, then press ⌘↵."
                     : "Pick a preset above, then press ⌘↵.")))
                 .font(PMLFont.hint)
                 .foregroundStyle(PMLColor.inkMuted)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
-        .padding(PMLSpace.s5)
+        .padding(EdgeInsets(top: PMLSpace.s4, leading: PMLSpace.s4, bottom: 20, trailing: PMLSpace.s4))
         .background(RoundedRectangle(cornerRadius: PMLRadius.card, style: .continuous).fill(PMLColor.surfaceInset))
-        .overlay(RoundedRectangle(cornerRadius: PMLRadius.card, style: .continuous).strokeBorder(PMLColor.line, lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: PMLRadius.card, style: .continuous)
+            .strokeBorder(PMLColor.lineStrong, style: StrokeStyle(lineWidth: 1, dash: [4, 3])))
+        .transition(.opacity)
     }
 
     private func errorBox(_ message: String) -> some View {
@@ -415,7 +263,8 @@ struct OutputPanel: View {
         PMLPanel {
             VStack(alignment: .leading, spacing: PMLSpace.s3) {
                 HStack(spacing: PMLSpace.s2) {
-                    Text(verbatim: resultTitle).pmlEyebrow(PMLColor.inkMuted).lineLimit(1)
+                    Text(LocalizedStringKey(resultHeading)).pmlEyebrow()
+                    Text(verbatim: draftMeta).font(PMLFont.meta).foregroundStyle(PMLColor.inkMuted).lineLimit(1)
                     Spacer()
                     Button("Regenerate") { Task { await model.send() } }
                         .buttonStyle(PMLSecondaryButtonStyle())
@@ -441,10 +290,18 @@ struct OutputPanel: View {
         }
     }
 
-    private var resultTitle: String {
-        if model.isAsk { return L("Ask") }
-        guard let preset = model.currentPreset else { return L("Result") }
-        return preset.tone.isEmpty ? preset.label : "\(preset.label) · \(preset.tone)"
+    /// "Sonnet 5 · Medium · 42 words"
+    private var draftMeta: String {
+        let words = TextCleanup.wordCount(model.output)
+        var parts = [ModelLabel.short(model.settings.model)]
+        if ModelCatalog.supportsEffort(model.settings.model) { parts.append(ModelLabel.effort(model.settings.effort)) }
+        parts.append(words == 1 ? L("1 word") : L("\(words) words"))
+        return parts.joined(separator: " · ")
+    }
+
+    private var resultHeading: String {
+        if model.isAsk { return "Answer" }
+        return model.activeMode == "Understand" ? "Explanation" : "Draft"
     }
 }
 
