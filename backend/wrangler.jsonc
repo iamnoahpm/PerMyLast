@@ -25,6 +25,6 @@
     // Sender of sign-in emails. The domain must be verified in Resend; the key is the RESEND_API_KEY secret.
     "MAIL_FROM": "Per My Last <login@permylast.app>",
     // Set to "Production,Sandbox" while testing payments; set back to "Production" before launch.
-    "APPSTORE_ENVIRONMENTS": "Production"
+    "APPSTORE_ENVIRONMENTS": "Production,Sandbox"
   }
 }
