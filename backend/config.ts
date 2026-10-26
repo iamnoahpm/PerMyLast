@@ -12,10 +12,15 @@ export const config = {
   MAX_OUTPUT_TOKENS: 8_192,
   /** Model for templates without one. Placeholder: a Haiku-class model; confirm the id in Anthropic's docs. */
   DEFAULT_MODEL: "claude-haiku-4-5",
-  /** Runs charged for a larger model (NFR-6). Placeholder: set it from the measured cost ratio. */
-  EXPENSIVE_MODEL_WEIGHT: 4,
-  /** A model counts as larger when its id starts with one of these. The default model (Haiku class) is not listed. */
-  EXPENSIVE_MODEL_PREFIXES: ["claude-opus", "claude-sonnet", "claude-fable"],
+  /** Runs charged per model (NFR-6). All 1 for now; raise one to make that model cost more runs. Placeholder until prices are set. */
+  MODEL_RUN_WEIGHTS: { "claude-haiku-4-5": 1, "claude-sonnet-5": 1, "claude-opus-5": 1, "claude-fable-5": 1 } as Record<string, number>,
+  /** Runs charged for a model not listed above (e.g. a template's own model). */
+  DEFAULT_RUN_WEIGHT: 1,
+  /** Models the app may ask for (mirrors the app's model list). Anything else is refused, never swapped. */
+  ALLOWED_MODELS: ["claude-sonnet-5", "claude-opus-5", "claude-haiku-4-5", "claude-fable-5"],
+  /** Models that reject `output_config.effort`. */
+  EFFORT_UNSUPPORTED_MODELS: ["claude-haiku-4-5"],
+  ALLOWED_EFFORTS: ["low", "medium", "high", "xhigh", "max"],
   RATE_LIMIT_PER_MIN: 20,
   MAX_CONCURRENT_STREAMS: 2,
   UPSTREAM_TIMEOUT_S: 60,

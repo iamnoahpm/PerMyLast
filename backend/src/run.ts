@@ -54,7 +54,7 @@ export async function handleRun(req: Request, env: Env, deps: Deps, ctx: Executi
     return res;
   }
 
-  let body: { template_id?: unknown; variables?: unknown };
+  let body: { template_id?: unknown; variables?: unknown; model?: unknown; effort?: unknown };
   try {
     const text = bodyText;
     if (text.length > config.MAX_INPUT_CHARS * 4 + 4096) return fail(413, "input_too_large", "That input is too large.", { limit: config.MAX_INPUT_CHARS });
@@ -68,6 +68,16 @@ export async function handleRun(req: Request, env: Env, deps: Deps, ctx: Executi
     return fail(400, "bad_request", "template_id and string variables are required.");
   }
   const variables = vars as Record<string, string>;
+
+  // The app sends the model and effort the user picked; they are used as asked, or the run is refused (never silently swapped).
+  const asked = body.model == null ? null : body.model;
+  if (asked !== null && (typeof asked !== "string" || !(config.ALLOWED_MODELS as readonly string[]).includes(asked))) {
+    return fail(400, "unsupported_model", "That model isn't available.");
+  }
+  const askedEffort = body.effort == null ? null : body.effort;
+  if (askedEffort !== null && (typeof askedEffort !== "string" || !(config.ALLOWED_EFFORTS as readonly string[]).includes(askedEffort))) {
+    return fail(400, "bad_request", "Unknown effort level.");
+  }
 
   const row = await env.DB.prepare("SELECT json FROM templates WHERE id = ? AND active = 1").bind(body.template_id).first<{ json: string }>();
   if (!row) return fail(400, "unknown_template", "Unknown template.");
@@ -83,7 +93,7 @@ export async function handleRun(req: Request, env: Env, deps: Deps, ctx: Executi
   const slot: string = slotOrNull;
   let reservation: string;
   try {
-    reservation = await consumeRun(env.DB, userId, started, runWeight(template.model ?? config.DEFAULT_MODEL));
+    reservation = await consumeRun(env.DB, userId, started, runWeight(asked ?? template.model ?? config.DEFAULT_MODEL));
   } catch (error) {
     await releaseStreamSlot(env.DB, slot);
     if (error instanceof RunError) {
@@ -93,7 +103,8 @@ export async function handleRun(req: Request, env: Env, deps: Deps, ctx: Executi
     throw error;
   }
 
-  const model = template.model ?? config.DEFAULT_MODEL;
+  const model = asked ?? template.model ?? config.DEFAULT_MODEL;
+  const effort = askedEffort !== null && !(config.EFFORT_UNSUPPORTED_MODELS as readonly string[]).includes(model) ? askedEffort : null;
   // `detail` says why a run failed (an HTTP status and Anthropic's error type, or the exception text). Never prompt or output text.
   const record = (status: string, usage?: UpstreamUsage, detail?: string) =>
     env.DB.prepare(
@@ -122,6 +133,7 @@ export async function handleRun(req: Request, env: Env, deps: Deps, ctx: Executi
         model,
         max_tokens: Math.min(template.max_tokens, config.MAX_OUTPUT_TOKENS),
         stream: true,
+        ...(effort ? { output_config: { effort } } : {}),
         system: [{ type: "text", text: template.system, cache_control: { type: "ephemeral" } }], // FR-B6
         messages: [{ role: "user", content: renderTemplate(template, variables) }],
       }),

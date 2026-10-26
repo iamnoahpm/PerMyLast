@@ -54,7 +54,22 @@ struct ProxyClientTests {
         let body = try #require(JSONSerialization.jsonObject(with: raw) as? [String: Any])
         #expect(body["template_id"] as? String == "text.process")
         #expect((body["variables"] as? [String: String]) == ["content": "hi"])
-        #expect(body["system"] == nil && body["model"] == nil)   // the server decides those
+        #expect(body["system"] == nil && body["model"] == nil && body["effort"] == nil)   // no choice made: the server decides
+    }
+
+    @Test func sendsTheChosenModelAndEffort() async throws {
+        func body(model: String, effort: Effort) async throws -> [String: Any] {
+            let t = FakeStream()
+            t.lines = ["event: delta", #"data: {"text":"x"}"#, "", "event: done", #"data: {}"#]
+            _ = try await collect(ProxyClient(baseURL: base, accessToken: "t", model: model, effort: effort, transport: t)
+                .run(templateID: "text.process", variables: [:]))
+            let raw = try #require(t.lastRequest?.httpBody)
+            return try #require(JSONSerialization.jsonObject(with: raw) as? [String: Any])
+        }
+        let sonnet = try await body(model: "claude-sonnet-5", effort: .high)
+        #expect(sonnet["model"] as? String == "claude-sonnet-5" && sonnet["effort"] as? String == "high")
+        let haiku = try await body(model: "claude-haiku-4-5", effort: .high)
+        #expect(haiku["model"] as? String == "claude-haiku-4-5" && haiku["effort"] == nil)   // Haiku takes no effort
     }
 
     @Test func mapsServerErrorCodes() async {

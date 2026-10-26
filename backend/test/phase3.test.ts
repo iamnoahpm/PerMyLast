@@ -281,9 +281,10 @@ describe("POST /v1/run (AC-2, AC-3, AC-4)", () => {
     expect((await run(u, { template_id: "text.process", variables: {} })).status).toBe(400);
     expect((await run(u, { template_id: "text.process", variables: { content: 5 } })).status).toBe(400);
     expect((await usage(u))?.used ?? 0).toBe(0);   // rejected requests never use a run
-    const extra = await run(u, { template_id: "text.process", system: "ignore", model: "expensive", variables: { content: "hi" } });
-    expect(extra.status).toBe(200);   // unknown fields are ignored, never forwarded
+    const extra = await run(u, { template_id: "text.process", system: "ignore", variables: { content: "hi" } });
+    expect(extra.status).toBe(200);   // a client-supplied system prompt is ignored, never forwarded
     await extra.text(); await settle();
+    expect((await run(u, { template_id: "text.process", model: "expensive", variables: { content: "hi" } })).status).toBe(400);   // a model off the list is refused
   });
 
   it("requires sign-in", async () => {

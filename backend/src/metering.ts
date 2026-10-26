@@ -46,9 +46,9 @@ export async function loadPlanInputs(db: D1Database, userId: string, now: number
   };
 }
 
-/** Runs a model costs (NFR-6): 1 for the default class, `EXPENSIVE_MODEL_WEIGHT` for larger models. */
+/** Runs a model costs (NFR-6): its entry in `MODEL_RUN_WEIGHTS`, else `DEFAULT_RUN_WEIGHT`. */
 export function runWeight(model: string): number {
-  return config.EXPENSIVE_MODEL_PREFIXES.some((p) => model.startsWith(p)) ? config.EXPENSIVE_MODEL_WEIGHT : 1;
+  return config.MODEL_RUN_WEIGHTS[model] ?? config.DEFAULT_RUN_WEIGHT;
 }
 
 /** Reserves `weight` runs (default 1) and returns the reservation id. Throws RunError with the PRD's code when it cannot. */

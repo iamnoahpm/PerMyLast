@@ -26,7 +26,9 @@ struct AppSettings: Codable, Equatable {
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         let d = AppSettings()
-        model = try c.decodeIfPresent(String.self, forKey: .model) ?? d.model
+        // A custom model name saved by an earlier build is no longer offered; go back to the default.
+        let saved = try c.decodeIfPresent(String.self, forKey: .model) ?? d.model
+        model = ModelCatalog.standardModels.contains { $0.id == saved } ? saved : d.model
         effort = try c.decodeIfPresent(Effort.self, forKey: .effort) ?? d.effort
         workspaceId = try c.decodeIfPresent(String.self, forKey: .workspaceId) ?? d.workspaceId
         motherLanguage = try c.decodeIfPresent(String.self, forKey: .motherLanguage) ?? d.motherLanguage

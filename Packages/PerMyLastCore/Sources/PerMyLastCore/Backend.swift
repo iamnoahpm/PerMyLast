@@ -183,10 +183,15 @@ public struct ProxyClient: AIClient {
     private let accessToken: String
     private let transport: any HTTPStreamTransport
     private let onRunsRemaining: (@Sendable (Int?) -> Void)?
+    private let model: String?
+    private let effort: Effort?
 
-    public init(baseURL: URL, accessToken: String, transport: any HTTPStreamTransport = URLSessionStreamTransport(),
+    /// `model` and `effort` are the user's choice; the backend runs exactly that (effort is left out for models without it).
+    public init(baseURL: URL, accessToken: String, model: String? = nil, effort: Effort? = nil,
+                transport: any HTTPStreamTransport = URLSessionStreamTransport(),
                 onRunsRemaining: (@Sendable (Int?) -> Void)? = nil) {
         self.baseURL = baseURL; self.accessToken = accessToken; self.transport = transport; self.onRunsRemaining = onRunsRemaining
+        self.model = model; self.effort = effort
     }
 
     public func run(templateID: String, variables: [String: String]) -> AsyncThrowingStream<String, Error> {
@@ -212,7 +217,12 @@ public struct ProxyClient: AIClient {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        request.httpBody = try JSONSerialization.data(withJSONObject: ["template_id": templateID, "variables": variables])
+        var body: [String: Any] = ["template_id": templateID, "variables": variables]
+        if let model, !model.isEmpty {
+            body["model"] = model
+            if let effort, ModelCatalog.supportsEffort(model) { body["effort"] = effort.rawValue }
+        }
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
         let status: Int
         let lines: AsyncThrowingStream<String, Error>

@@ -6,10 +6,6 @@ struct GeneralSettingsView: View {
     @Environment(AppModel.self) private var model
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
 
-    private var isStandardModel: Bool {
-        ModelCatalog.standardModels.contains { $0.id == model.settings.model }
-    }
-
     var body: some View {
         @Bindable var model = model
         Form {
@@ -76,16 +72,10 @@ struct GeneralSettingsView: View {
 
     private func modelSection(model: Bindable<AppModel>) -> some View {
         Section("Model") {
-            Picker("Model", selection: modelSelection) {
+            Picker("Model", selection: model.settings.model) {
                 ForEach(ModelCatalog.standardModels) { Text(LocalizedStringKey($0.displayName)).tag($0.id) }
-                Text("Other (custom)").tag("other")
             }
-            if isStandardModel {
-                Text("Selected model: \(self.model.settings.model)").font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted)
-            } else {
-                TextField("Custom model name", text: model.settings.model)
-                Text("Enter the exact model string from Anthropic's docs.").font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted)
-            }
+            Text("Selected model: \(self.model.settings.model)").font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted)
             Picker("Effort", selection: model.settings.effort) {
                 ForEach(Effort.allCases, id: \.self) { Text($0.label).tag($0) }
             }
@@ -95,9 +85,6 @@ struct GeneralSettingsView: View {
                 .font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted)
             if !ModelCatalog.supportsEffort(self.model.settings.model) {
                 Text("Claude Haiku 4.5 doesn't support Effort — this only applies to Sonnet, Opus, and Fable models.")
-                    .font(PMLFont.hint).foregroundStyle(PMLColor.warning)
-            } else if !isStandardModel {
-                Text("This custom model may or may not support Effort — if requests start failing, try turning it off.")
                     .font(PMLFont.hint).foregroundStyle(PMLColor.warning)
             }
         }
@@ -133,13 +120,6 @@ struct GeneralSettingsView: View {
         }
     }
 
-    /// Picker selection that maps any non-standard model ID to the "Other" row.
-    private var modelSelection: Binding<String> {
-        Binding(
-            get: { isStandardModel ? model.settings.model : "other" },
-            set: { model.settings.model = ($0 == "other") ? "" : $0 }
-        )
-    }
 }
 
 extension Effort {
