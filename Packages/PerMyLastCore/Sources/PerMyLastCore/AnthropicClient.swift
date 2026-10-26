@@ -68,6 +68,16 @@ public struct AnthropicClient: Sendable {
                         maxTokens: Self.maxTokens)
     }
 
+    /// Plain text, or image blocks followed by the text when screenshots are attached.
+    static func userContent(_ built: ClaudeRequestContent) -> Any {
+        guard !built.images.isEmpty else { return built.content }
+        var blocks: [[String: Any]] = built.images.map {
+            ["type": "image", "source": ["type": "base64", "media_type": $0.mediaType, "data": $0.data.base64EncodedString()]]
+        }
+        blocks.append(["type": "text", "text": built.content])
+        return blocks
+    }
+
     public func makeRequest(config: AnthropicConfig, content built: ClaudeRequestContent, maxTokens: Int,
                             stream: Bool = false) throws -> URLRequest {
         guard !config.apiKey.isEmpty else { throw AnthropicError.missingAPIKey }
@@ -76,7 +86,7 @@ public struct AnthropicClient: Sendable {
             "model": config.model,
             "max_tokens": maxTokens,
             "system": built.system,
-            "messages": [["role": "user", "content": built.content]]
+            "messages": [["role": "user", "content": Self.userContent(built)]]
         ]
         if stream { body["stream"] = true }
         // Sonnet 5 / Opus 5 / Fable 5 think adaptively; effort only tunes how

@@ -30,6 +30,9 @@ final class AppModel {
     var selectedLabel: String?
     var inputText = ""
     var intent = ""
+    /// Screenshots of the message being answered, and of what the user wants to say (Reply).
+    var theirImages: [AttachedImage] = []
+    var intentImages: [AttachedImage] = []
     /// The Ask tab's free-form prompt (that tab has no preset behind it).
     var askPrompt = ""
     var output = ""
@@ -221,8 +224,14 @@ final class AppModel {
         if isAsk {
             return !isSending && !askPrompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         }
-        return !isSending && currentPreset != nil && !motherLanguageMissing
-            && !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        guard !isSending, currentPreset != nil, !motherLanguageMissing else { return false }
+        if activeModeTakesIntent {
+            // Reply: their text, an intent, or a screenshot is enough.
+            return !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                || !intent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                || !theirImages.isEmpty || !intentImages.isEmpty
+        }
+        return !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !theirImages.isEmpty
     }
 
     func selectDefaultPreset() {
@@ -517,6 +526,8 @@ final class AppModel {
         // On the onboarding shortcut step the capture is the test; show it there instead of loading the popup behind it.
         if OnboardingModel.shared.noteCapture(text, source: source) { WindowCoordinator.shared.showPopup(); return }
         if isAsk { askPrompt = TextCleanup.beautify(text) } else { inputText = TextCleanup.beautify(text) }
+        theirImages = []
+        intentImages = []
         output = ""
         errorMessage = nil
         hasResult = false
@@ -563,14 +574,14 @@ final class AppModel {
     }
 
     /// Runs a template and shows the answer as it streams in.
-    private func stream(_ run: TemplateRun) async throws {
+    private func stream(_ run: TemplateRun, images: [ClaudeImage] = []) async throws {
         output = ""
         hasResult = false
         var text = ""
         for attempt in 0..<2 {
             let (client, viaProxy) = try await makeClient(forceRefresh: attempt == 1)
             do {
-                for try await delta in client.run(templateID: run.templateID, variables: run.variables) {
+                for try await delta in client.run(templateID: run.templateID, variables: run.variables, images: images) {
                     text += delta
                     output = TextCleanup.beautify(text)
                     hasResult = true
@@ -615,8 +626,12 @@ final class AppModel {
         guard !isSending else { return }
         if isAsk { await sendAsk(); return }
         guard let preset = currentPreset else { return }
-        let text = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty else { errorMessage = L("Select or paste text first"); return }
+        let typed = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let images = (theirImages + intentImages).map { ClaudeImage(mediaType: $0.mediaType, data: $0.data) }
+        let replyWithoutText = !images.isEmpty
+            || (activeModeTakesIntent && !intent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        guard !typed.isEmpty || replyWithoutText else { errorMessage = L("Select or paste text first"); return }
+        let text = typed.isEmpty ? "[from the screenshot]" : typed
         if motherLanguageMissing {
             errorMessage = L("Set your mother language in Settings first")
             return
@@ -632,7 +647,12 @@ final class AppModel {
             intent: intent, tabTakesIntent: activeModeTakesIntent,
             writeMyWay: writeMyWay)
         do {
-            try await stream(PromptBuilder.templateRun(text: text, prompt: prompt, isEmail: preset.isEmail))
+            var sent = prompt
+            if !images.isEmpty {
+                sent += "\n\nAttached: \(images.count) screenshot\(images.count == 1 ? "" : "s"). Read the text in \(images.count == 1 ? "it" : "them") as part of the message."
+            }
+            let run = PromptBuilder.templateRun(text: text, prompt: sent, isEmail: preset.isEmail)
+            try await stream(run, images: images)
             OnboardingModel.shared.noteRealRun()
             presets = PresetLibrary.incrementUses(presets, label: preset.label)
             savePresets()
@@ -653,7 +673,12 @@ final class AppModel {
         errorMessage = nil
         defer { isSending = false }
         do {
-            try await stream(PromptBuilder.askRun(prompt: prompt, input: ""))
+            let images = theirImages.map { ClaudeImage(mediaType: $0.mediaType, data: $0.data) }
+            var sent = prompt
+            if !images.isEmpty {
+                sent += "\n\nAttached: \(images.count) screenshot\(images.count == 1 ? "" : "s"). Read the text in \(images.count == 1 ? "it" : "them") as part of the message."
+            }
+            try await stream(PromptBuilder.askRun(prompt: sent, input: ""), images: images)
             OnboardingModel.shared.noteRealRun()
         } catch {
             hasResult = false

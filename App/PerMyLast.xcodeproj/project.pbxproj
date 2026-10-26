@@ -179,6 +179,8 @@
 				INFOPLIST_FILE = "Info-Services.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Per My Last";
 				INFOPLIST_KEY_ITSAppUseNonExemptEncryption = NO;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Per My Last listens only while you dictate what you want to say.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Per My Last turns your dictation into text on your Mac.";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -208,6 +210,8 @@
 				INFOPLIST_FILE = "Info-Services.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Per My Last";
 				INFOPLIST_KEY_ITSAppUseNonExemptEncryption = NO;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Per My Last listens only while you dictate what you want to say.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Per My Last turns your dictation into text on your Mac.";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

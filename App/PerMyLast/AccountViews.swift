@@ -124,9 +124,7 @@ struct AccountFooter: View {
     var body: some View {
         Button { WindowCoordinator.shared.showSettings() } label: {
             HStack(spacing: PMLSpace.s2) {
-                Image(systemName: account.signedIn ? "person.crop.circle.fill" : "person.crop.circle")
-                    .font(.system(size: 24))
-                    .foregroundStyle(account.signedIn ? PMLColor.accentText : PMLColor.inkMuted)
+                UmbrellaAvatar(active: account.signedIn)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(verbatim: title).font(PMLFont.select).fontWeight(.bold).foregroundStyle(PMLColor.ink)
                         .lineLimit(1).truncationMode(.middle)
@@ -148,4 +146,70 @@ struct AccountFooter: View {
         .onHover { hovering = $0 }
         .help("Settings")
     }
+}
+
+
+/// The app mark (seven-panel umbrella seen from above) on a round tile, used as the account avatar.
+private struct UmbrellaAvatar: View {
+    let active: Bool
+    /// The intro plays once per launch, not every time the window reappears.
+    private static var played = false
+    @State private var tick = 0
+    private static let shades: [Color] = [
+        Color(red: 0.91, green: 0.94, blue: 1.0), Color(red: 0.73, green: 0.82, blue: 0.98),
+        Color(red: 0.56, green: 0.68, blue: 0.95), Color(red: 0.36, green: 0.53, blue: 0.88),
+        Color(red: 0.24, green: 0.45, blue: 0.89), Color(red: 0.18, green: 0.33, blue: 0.80),
+        Color(red: 0.09, green: 0.21, blue: 0.50),
+    ]
+
+    var body: some View {
+        Canvas { ctx, size in
+            let c = CGPoint(x: size.width / 2, y: size.height / 2)
+            let r = size.width * 0.32
+            func vertex(_ k: Int) -> CGPoint {
+                let a = -Double.pi / 2 + Double(k) * 2 * Double.pi / 7
+                return CGPoint(x: c.x + r * cos(a), y: c.y + r * sin(a))
+            }
+            for k in 0..<7 {
+                var path = Path()
+                path.move(to: c)
+                path.addLine(to: vertex(k))
+                path.addLine(to: vertex(k + 1))
+                path.closeSubpath()
+                ctx.fill(path, with: .color(Self.shades[k]))
+                ctx.stroke(path, with: .color(Self.shades[k]), lineWidth: 0.5)
+            }
+        }
+        .keyframeAnimator(initialValue: Drop(), trigger: tick) { view, v in
+            view.rotationEffect(.degrees(v.spin)).scaleEffect(v.scale).offset(y: v.y)
+        } keyframes: { _ in
+            KeyframeTrack(\.spin) {
+                LinearKeyframe(900, duration: 0)
+                CubicKeyframe(0, duration: 0.9)
+            }
+            KeyframeTrack(\.y) {
+                LinearKeyframe(-70, duration: 0)
+                CubicKeyframe(0, duration: 0.8)
+                CubicKeyframe(-8, duration: 0.12)
+                CubicKeyframe(0, duration: 0.12)
+            }
+            KeyframeTrack(\.scale) {
+                LinearKeyframe(1.7, duration: 0)
+                CubicKeyframe(1, duration: 0.8)
+                CubicKeyframe(0.9, duration: 0.08)
+                SpringKeyframe(1, duration: 0.2)
+            }
+        }
+        .frame(width: 32, height: 32)
+        .background(Circle().fill(PMLColor.accentText.opacity(0.12)))
+        .overlay(Circle().strokeBorder(PMLColor.accentText.opacity(0.18), lineWidth: 1))
+        .opacity(active ? 1 : 0.6)
+        .onAppear {
+            guard !Self.played else { return }
+            Self.played = true
+            tick += 1
+        }
+    }
+
+    private struct Drop { var spin = 0.0; var y = 0.0; var scale = 1.0 }
 }

@@ -3,6 +3,17 @@ import Foundation
 /// The one door every AI feature goes through (FR-A1). Streams text deltas.
 public protocol AIClient: Sendable {
     func run(templateID: String, variables: [String: String]) -> AsyncThrowingStream<String, Error>
+    /// Same, with screenshots attached. Only the direct client can send them for now.
+    func run(templateID: String, variables: [String: String], images: [ClaudeImage]) -> AsyncThrowingStream<String, Error>
+}
+
+public extension AIClient {
+    func run(templateID: String, variables: [String: String], images: [ClaudeImage]) -> AsyncThrowingStream<String, Error> {
+        guard images.isEmpty else {
+            return AsyncThrowingStream { $0.finish(throwing: AnthropicError.api("Screenshots need your own Anthropic API key for now. Add it in Settings.")) }
+        }
+        return run(templateID: templateID, variables: variables)
+    }
 }
 
 /// Seam for tests; yields the response body line by line as it arrives.
@@ -47,11 +58,15 @@ public struct DirectAnthropicClient: AIClient {
     }
 
     public func run(templateID: String, variables: [String: String]) -> AsyncThrowingStream<String, Error> {
+        run(templateID: templateID, variables: variables, images: [])
+    }
+
+    public func run(templateID: String, variables: [String: String], images: [ClaudeImage]) -> AsyncThrowingStream<String, Error> {
         AsyncThrowingStream { continuation in
             let task = Task {
                 do {
                     let template = try templates.template(id: templateID)
-                    let content = ClaudeRequestContent(system: template.system, content: try template.render(variables))
+                    let content = ClaudeRequestContent(system: template.system, content: try template.render(variables), images: images)
                     let request = try AnthropicClient().makeRequest(
                         config: config, content: content, maxTokens: template.maxTokens, stream: true)
                     try await stream(request, into: continuation)

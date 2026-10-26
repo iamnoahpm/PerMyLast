@@ -91,9 +91,9 @@ final class WindowCoordinator: NSObject, NSWindowDelegate {
             window.title = "Per My Last"
             window.contentViewController = NSHostingController(rootView: LocalizedRoot { PaywallView() }.environment(AppModel.shared).environment(AccountModel.shared))
             window.isReleasedWhenClosed = false
-            window.center()
             paywallWindow = window
         }
+        if let window = paywallWindow, !window.isVisible { centerOverApp(window) }
         present(paywallWindow!)
         Task { await AccountModel.shared.refreshEntitlement() }
     }
@@ -112,6 +112,27 @@ final class WindowCoordinator: NSObject, NSWindowDelegate {
         window.minSize = NSSize(width: 620, height: 520)
         window.delegate = self
         return window
+    }
+
+    /// Centers a dialog over whichever app window is open beneath it (Settings, else the popup), so it lines up
+    /// with that window rather than the middle of the display. Falls back to the display the cursor is on.
+    private func centerOverApp(_ window: NSWindow) {
+        let host = [settingsWindow, popup].compactMap { $0 }.first { $0.isVisible }
+        let bounds: NSRect
+        if let host {
+            bounds = host.frame
+        } else {
+            let mouse = NSEvent.mouseLocation
+            let screen = NSScreen.screens.first { NSMouseInRect(mouse, $0.frame, false) } ?? NSScreen.main
+            bounds = screen?.visibleFrame ?? NSRect(x: 0, y: 0, width: 960, height: 700)
+        }
+        var origin = NSPoint(x: bounds.midX - window.frame.width / 2, y: bounds.midY - window.frame.height / 2)
+        // Keep it fully on the display it lands on.
+        if let visible = (host?.screen ?? NSScreen.main)?.visibleFrame {
+            origin.x = min(max(origin.x, visible.minX), visible.maxX - window.frame.width)
+            origin.y = min(max(origin.y, visible.minY), visible.maxY - window.frame.height)
+        }
+        window.setFrameOrigin(origin)
     }
 
     /// Right half of whichever display the cursor is on, full height.

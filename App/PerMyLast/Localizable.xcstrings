@@ -89,6 +89,28 @@
         }
       }
     },
+    "They said": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Họ nói"
+          }
+        }
+      }
+    },
+    "You want to say": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bạn muốn nói"
+          }
+        }
+      }
+    },
     "Your reply intent": {
       "extractionState": "manual",
       "localizations": {
@@ -689,7 +711,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mức độ nỗ lực"
+            "value": "Mức nỗ lực"
           }
         }
       }
@@ -3197,7 +3219,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mở Cài đặt hệ thống"
+            "value": "Mở Cài đặt Hệ thống"
           }
         }
       }
@@ -4265,6 +4287,600 @@
           "stringUnit": {
             "state": "translated",
             "value": "%lld / %lld lượt"
+          }
+        }
+      }
+    },
+    "Their message and your intent live in one box.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tin nhắn của họ và ý bạn muốn nói nằm chung một khung."
+          }
+        }
+      }
+    },
+    "Select some text, then press %@, or paste text or a screenshot here.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sao chép văn bản, rồi nhấn %@, hoặc dán văn bản hay ảnh chụp màn hình vào đây."
+          }
+        }
+      }
+    },
+    "Confirm I can make it, but ask to push 30 minutes": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xác nhận tôi tham dự được, nhưng xin lùi 30 phút"
+          }
+        }
+      }
+    },
+    "Add a screenshot": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thêm ảnh chụp màn hình"
+          }
+        }
+      }
+    },
+    "Dictate": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đọc để nhập"
+          }
+        }
+      }
+    },
+    "Stop dictation": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dừng đọc"
+          }
+        }
+      }
+    },
+    "View prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xem câu lệnh"
+          }
+        }
+      }
+    },
+    "Listening…": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đang nghe…"
+          }
+        }
+      }
+    },
+    "Listening": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đang nghe"
+          }
+        }
+      }
+    },
+    "Writing your draft…": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đang viết bản nháp…"
+          }
+        }
+      }
+    },
+    "Draft": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bản nháp"
+          }
+        }
+      }
+    },
+    "Add their message or your intent first.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hãy thêm tin nhắn của họ hoặc ý bạn muốn nói trước."
+          }
+        }
+      }
+    },
+    "Remove image": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xóa ảnh"
+          }
+        }
+      }
+    },
+    "Model and effort": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mô hình và mức nỗ lực"
+          }
+        }
+      }
+    },
+    "Balanced": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cân bằng"
+          }
+        }
+      }
+    },
+    "Most capable": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mạnh nhất"
+          }
+        }
+      }
+    },
+    "Fastest": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhanh nhất"
+          }
+        }
+      }
+    },
+    "Frontier": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiên phong"
+          }
+        }
+      }
+    },
+    "1 word": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 từ"
+          }
+        }
+      }
+    },
+    "1 image": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 ảnh"
+          }
+        }
+      }
+    },
+    "%lld images": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ảnh"
+          }
+        }
+      }
+    },
+    "Paste their message, add your intent if you want, then press ⌘↵.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dán tin nhắn của họ, thêm ý bạn muốn nói nếu muốn, rồi nhấn ⌘↵."
+          }
+        }
+      }
+    },
+    "Error: Microphone access is off. Turn it on in System Settings.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lỗi: Quyền dùng micro đang tắt. Hãy bật trong Cài đặt Hệ thống."
+          }
+        }
+      }
+    },
+    "Error: Speech recognition is off. Turn it on in System Settings.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lỗi: Nhận dạng giọng nói đang tắt. Hãy bật trong Cài đặt Hệ thống."
+          }
+        }
+      }
+    },
+    "Dictation language": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ngôn ngữ đọc"
+          }
+        }
+      }
+    },
+    "Edit": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sửa"
+          }
+        }
+      }
+    },
+    "Dictation settings": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cài đặt đọc"
+          }
+        }
+      }
+    },
+    "Search languages": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tìm ngôn ngữ"
+          }
+        }
+      }
+    },
+    "Auto": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tự động"
+          }
+        }
+      }
+    },
+    "Default - %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mặc định - %@"
+          }
+        }
+      }
+    },
+    "Your text": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Văn bản của bạn"
+          }
+        }
+      }
+    },
+    "The message": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tin nhắn"
+          }
+        }
+      }
+    },
+    "Writing your answer…": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đang viết câu trả lời…"
+          }
+        }
+      }
+    },
+    "Reading the message…": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đang đọc tin nhắn…"
+          }
+        }
+      }
+    },
+    "Your answer appears here.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Câu trả lời của bạn hiện ở đây."
+          }
+        }
+      }
+    },
+    "Your explanation appears here.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phần giải thích hiện ở đây."
+          }
+        }
+      }
+    },
+    "Answer": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Câu trả lời"
+          }
+        }
+      }
+    },
+    "Explanation": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Giải thích"
+          }
+        }
+      }
+    },
+    "Mixed": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trộn ngôn ngữ"
+          }
+        }
+      }
+    },
+    "Not set": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chưa đặt"
+          }
+        }
+      }
+    },
+    "Mother language + English": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ngôn ngữ mẹ đẻ + English"
+          }
+        }
+      }
+    },
+    "English (UK)": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "English (Anh)"
+          }
+        }
+      }
+    },
+    "English (US)": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "English (Mỹ)"
+          }
+        }
+      }
+    },
+    "Choose your mother language": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chọn ngôn ngữ mẹ đẻ của bạn"
+          }
+        }
+      }
+    },
+    "Which language will you dictate in?": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bạn sẽ đọc bằng ngôn ngữ nào?"
+          }
+        }
+      }
+    },
+    "Speak one language? Pick English (United Kingdom), English (United States) or your mother language.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chỉ nói một ngôn ngữ? Chọn English (Anh), English (Mỹ) hoặc ngôn ngữ mẹ đẻ của bạn."
+          }
+        }
+      }
+    },
+    "Mix languages in one breath, like Vietnamese with English words? Pick Mixed. It listens for both and keeps the words it's surest of, once you stop.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hay chêm tiếng Anh vào câu tiếng Việt? Chọn Trộn ngôn ngữ. App nghe cả hai và giữ những từ nó chắc nhất khi bạn dừng nói."
+          }
+        }
+      }
+    },
+    "You can change this any time from the arrow beside the mic.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bạn có thể đổi bất cứ lúc nào từ mũi tên cạnh mic."
+          }
+        }
+      }
+    },
+    "Start dictating": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bắt đầu đọc"
+          }
+        }
+      }
+    },
+    "English": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "English"
+          }
+        }
+      }
+    },
+    "English accent": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Giọng English"
+          }
+        }
+      }
+    },
+    "Your mother language and English, in one sentence": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ngôn ngữ mẹ đẻ và English trong cùng một câu"
+          }
+        }
+      }
+    },
+    "Mixed suits most people. Speak your language and drop in English words, like Vietnamese with English terms. It listens for both and keeps the words it's surest of once you stop.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trộn ngôn ngữ hợp với hầu hết mọi người. Nói tiếng mẹ đẻ và chêm từ English, như tiếng Việt xen thuật ngữ tiếng Anh. App nghe cả hai và giữ những từ nó chắc nhất khi bạn dừng nói."
+          }
+        }
+      }
+    },
+    "Only ever speaking one language? Pick English or your mother language.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chỉ nói một ngôn ngữ? Chọn English hoặc ngôn ngữ mẹ đẻ."
           }
         }
       }

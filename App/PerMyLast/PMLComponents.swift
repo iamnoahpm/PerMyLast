@@ -27,9 +27,9 @@ extension View {
 // MARK: - Buttons
 
 enum PMLButtonSize {
-    case regular, compact
-    var height: CGFloat { self == .regular ? PMLLayout.controlHeight : 28 }
-    var radius: CGFloat { self == .regular ? PMLRadius.inset : PMLRadius.btn }
+    case regular, medium, compact
+    var height: CGFloat { switch self { case .regular: PMLLayout.controlHeight; case .medium: 34; case .compact: 28 } }
+    var radius: CGFloat { self == .compact ? PMLRadius.btn : PMLRadius.inset }
     var hPadding: CGFloat { self == .regular ? PMLSpace.s4 : PMLSpace.s3 }
 }
 
@@ -179,26 +179,44 @@ struct PMLField: View {
     var minHeight: CGFloat = 150
     var focus: FocusState<Bool>.Binding
     var footer: String? = nil
+    /// Controls living inside the field's bottom edge: settings on the left, the action on the right.
+    var bottomLeading: AnyView? = nil
+    var bottomTrailing: AnyView? = nil
+
+    private var hasBar: Bool { bottomLeading != nil || bottomTrailing != nil }
 
     var body: some View {
-        ZStack(alignment: .topLeading) {
-            TextEditor(text: $text)
-                .font(PMLFont.input)
-                .foregroundStyle(PMLColor.ink)
-                .scrollContentBackground(.hidden)
-                .focused(focus)
-                .padding(PMLSpace.s2)
-            if text.isEmpty {
-                Text(placeholder)
+        VStack(spacing: 0) {
+            ZStack(alignment: .topLeading) {
+                TextEditor(text: $text)
                     .font(PMLFont.input)
-                    .foregroundStyle(PMLColor.inkHint)
-                    .padding(.horizontal, 13).padding(.vertical, 16)
-                    .allowsHitTesting(false)
+                    .foregroundStyle(PMLColor.ink)
+                    .scrollContentBackground(.hidden)
+                    .focused(focus)
+                    .padding(PMLSpace.s2)
+                if text.isEmpty {
+                    Text(placeholder)
+                        .font(PMLFont.input)
+                        .foregroundStyle(PMLColor.inkHint)
+                        .padding(.horizontal, 13).padding(.vertical, 8)
+                        .allowsHitTesting(false)
+                }
+            }
+            .frame(minHeight: minHeight)
+            if hasBar {
+                HStack(spacing: PMLSpace.s3) {
+                    bottomLeading
+                    Spacer(minLength: PMLSpace.s2)
+                    if let footer {
+                        Text(footer).font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted)
+                    }
+                    bottomTrailing
+                }
+                .padding(.horizontal, PMLSpace.s2).padding(.bottom, PMLSpace.s2)
             }
         }
-        .frame(minHeight: minHeight)
         .overlay(alignment: .bottomTrailing) {
-            if let footer {
+            if let footer, !hasBar {
                 Text(footer).font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted)
                     .padding(.horizontal, PMLSpace.s3).padding(.vertical, PMLSpace.s2)
                     .allowsHitTesting(false)

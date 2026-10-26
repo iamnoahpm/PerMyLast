@@ -1,8 +1,20 @@
 import Foundation
 
+/// A screenshot sent alongside the text.
+public struct ClaudeImage: Equatable, Sendable {
+    public let mediaType: String
+    public let data: Data
+    public init(mediaType: String, data: Data) { self.mediaType = mediaType; self.data = data }
+}
+
 public struct ClaudeRequestContent: Equatable, Sendable {
     public let system: String
     public let content: String
+    public let images: [ClaudeImage]
+
+    public init(system: String, content: String, images: [ClaudeImage] = []) {
+        self.system = system; self.content = content; self.images = images
+    }
 }
 
 public enum PromptBuilder {

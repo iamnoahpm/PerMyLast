@@ -58,6 +58,7 @@ struct ModeRail: View {
                         if let icon = Self.icon(for: mode) {
                             Image(systemName: icon)
                                 .font(.system(size: 14, weight: .semibold))
+                                .scaleEffect(x: icon == "brain.head.profile" ? -1 : 1)
                                 .foregroundStyle(selected ? PMLColor.accentText : PMLColor.inkMuted)
                                 .frame(width: 18)
                         }
@@ -153,7 +154,7 @@ struct ModeRail: View {
         switch mode {
         case "Reply": "arrowshape.turn.up.left"
         case "Write": "pencil"
-        case "Understand": "lightbulb"
+        case "Understand": "brain.head.profile"
         case AppModel.askTab: "questionmark.bubble"
         default: nil
         }
