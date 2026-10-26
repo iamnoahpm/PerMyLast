@@ -28,4 +28,15 @@ Per My Last rewrites, explains and answers the messages people dread sending. Th
 
 - Mode icons are simple 2px-stroke outline glyphs with round caps, 17px in the rail: Reply (arrow turning back), Write (pencil), Understand (lightbulb), Ask (speech bubble with a question mark). On Apple platforms use SF Symbols with the same meaning at the same weight: `arrowshape.turn.up.left`, `pencil`, `lightbulb`, `questionmark.bubble`; a custom mode has no icon.
 - The brand mark is an umbrella. The app icon is the full-colour umbrella tile. The menu bar icon is a single-colour template image: solid open umbrella when the app is enabled, outlined tilted umbrella when disabled (assets in Brand).
-- Use no other illustration. Empty states are one sentence of text.
+- The only illustrations are the four empty-state scenes below. Use no other illustration. Every other empty state is one sentence of text.
+
+## Illustration
+
+The empty output panel shows one animated beach scene per mode, 200 × 110 pt (20:11, never below 160 pt wide), above the title and hint. Colours are the `illustration-*` tokens and are never inverted in dark mode. Motion is slow and loops forever, stops under Reduce Motion, and pauses when the panel is hidden. Spec: `docs/REQUIREMENT-empty-states.md`.
+
+| Mode | Scene |
+|---|---|
+| Reply | One umbrella, two deckchairs close to the pole, facing the sea |
+| Write | One reclined striped lounger angled toward the sea, umbrella planted behind it |
+| Understand | An upright striped umbrella planted behind a full deckchair in 3/4 view, flat icon style |
+| Ask | An empty hammock between two leaning palm trunks at a soft sunset |

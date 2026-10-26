@@ -27,6 +27,10 @@ struct EmptyIllustration: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.controlActiveState) private var activeState
     @State private var occluded = false
+    @State private var available: CGFloat = 400
+
+    /// 200 pt wide; below 380 pt of available width it shrinks proportionally, never under 160.
+    private var width: CGFloat { available >= 380 ? 200 : max(160, 200 * available / 380) }
 
     private var animating: Bool { !reduceMotion && activeState != .inactive && !occluded }
 
@@ -38,8 +42,9 @@ struct EmptyIllustration: View {
                 svg.draw(in: &ctx, size: size, time: t)
             }
         }
-        .aspectRatio(20.0 / 11.0, contentMode: .fit)
-        .frame(minWidth: 160, idealWidth: 200, maxWidth: 200)
+        .frame(width: width, height: width * 11 / 20)
+        .frame(maxWidth: .infinity)
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { available = $0 }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didChangeOcclusionStateNotification)) { _ in
             occluded = !NSApp.occlusionState.contains(.visible)
         }
