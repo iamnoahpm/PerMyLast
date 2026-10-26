@@ -1,5 +1,4 @@
 import AppKit
-import os
 import Observation
 import SwiftUI
 import PerMyLastCore
@@ -440,14 +439,11 @@ final class AppModel {
     /// macOS only allows that once the user grants Accessibility; without it, or with nothing selected, it uses
     /// whatever is already on the clipboard. The Services entry (see `ServicesProvider`) needs no permission.
     func handleHotKey() {
-        Self.captureLog.notice("hotkey fired, enabled=\(self.enabled, privacy: .public)")
         guard enabled else { return }
         Task { @MainActor in
             if let selection = await Self.copySelection() {
-                Self.captureLog.notice("captured selection, \(selection.count, privacy: .public) chars")
                 open(with: selection, source: .selection)
             } else if let text = NSPasteboard.general.string(forType: .string) {
-                Self.captureLog.notice("no selection captured, using clipboard, \(text.count, privacy: .public) chars")
                 open(with: text, source: .clipboard)
             }
         }
@@ -482,13 +478,8 @@ final class AppModel {
 
     /// Sends ⌘C to the frontmost app and returns the text it copied, then puts the user's previous clipboard back.
     /// Nil if permission is missing or nothing was selected.
-    private static let captureLog = Logger(subsystem: "app.permylast", category: "capture")
-
     private static func copySelection() async -> String? {
-        let allowed = CGPreflightPostEventAccess()
-        let front = NSWorkspace.shared.frontmostApplication?.bundleIdentifier ?? "?"
-        captureLog.notice("copySelection: postEventAccess=\(allowed, privacy: .public) frontmost=\(front, privacy: .public) sandboxed=\(ProcessInfo.processInfo.environment["APP_SANDBOX_CONTAINER_ID"] != nil, privacy: .public)")
-        guard allowed || CGRequestPostEventAccess() else { return nil }
+        guard CGPreflightPostEventAccess() || CGRequestPostEventAccess() else { return nil }
         let pasteboard = NSPasteboard.general
         // Let go of the hotkey's own modifiers first, or the target app sees ⇧⌘⌥-C instead of ⌘C.
         for _ in 0..<20 where !NSEvent.modifierFlags.intersection([.shift, .option, .control, .command]).isEmpty {
@@ -510,10 +501,7 @@ final class AppModel {
         for _ in 0..<24 where pasteboard.changeCount == before {
             try? await Task.sleep(for: .milliseconds(25))
         }
-        guard pasteboard.changeCount != before else {
-            captureLog.notice("copySelection: sent ⌘C but the clipboard did not change (nothing selected, or the event was ignored)")
-            return nil
-        }
+        guard pasteboard.changeCount != before else { return nil }
         let text = pasteboard.string(forType: .string)
         pasteboard.clearContents()
         if !saved.isEmpty { pasteboard.writeObjects(saved) }
@@ -559,7 +547,7 @@ final class AppModel {
         case .proxy:
             guard let base = AppConfig.backendURL else { throw AnthropicError.missingAPIKey }
             let token = try await account.validAccessToken(forceRefresh: forceRefresh)
-            return (ProxyClient(baseURL: base, accessToken: token, onRunsRemaining: { remaining in
+            return (ProxyClient(baseURL: base, accessToken: token, model: settings.model, effort: settings.effort, onRunsRemaining: { remaining in
                 Task { @MainActor in AccountModel.shared.noteRunsRemaining(remaining) }
             }), true)
         case .keySetup:

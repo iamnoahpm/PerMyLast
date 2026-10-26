@@ -30,4 +30,3 @@ Key routing rules:
 - This is the native Swift rewrite (`App/`, `Packages/PerMyLastCore`); the Electron app lives on branch `electron-legacy`. Feature status is tracked in `docs/PARITY.md`.
 - Logic tests: `cd Packages/PerMyLastCore && swift test`. Build steps are in `README.md`.
 - Never deploy the website (permylast.app) until the user explicitly says so; preview locally first.
-- Before a store build, remove the `captureLog` diagnostics from `AppModel.swift`.
