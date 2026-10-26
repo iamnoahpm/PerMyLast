@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://permylast.app/index.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://permylast.app/index.html"/>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://permylast.app/vi/index.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://permylast.app/index.html"/>
+  </url>
+  <url>
+    <loc>https://permylast.app/features.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://permylast.app/features.html"/>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://permylast.app/vi/features.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://permylast.app/features.html"/>
+  </url>
+  <url>
+    <loc>https://permylast.app/vi/index.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://permylast.app/index.html"/>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://permylast.app/vi/index.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://permylast.app/index.html"/>
+  </url>
+  <url>
+    <loc>https://permylast.app/vi/features.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://permylast.app/features.html"/>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://permylast.app/vi/features.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://permylast.app/features.html"/>
+  </url>
+  <url>
+    <loc>https://permylast.app/pricing.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://permylast.app/pricing.html"/>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://permylast.app/vi/pricing.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://permylast.app/pricing.html"/>
+  </url>
+  <url>
+    <loc>https://permylast.app/vi/pricing.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://permylast.app/pricing.html"/>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://permylast.app/vi/pricing.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://permylast.app/pricing.html"/>
+  </url>
+  <url>
+    <loc>https://permylast.app/account.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://permylast.app/account.html"/>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://permylast.app/vi/account.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://permylast.app/account.html"/>
+  </url>
+  <url>
+    <loc>https://permylast.app/vi/account.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://permylast.app/account.html"/>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://permylast.app/vi/account.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://permylast.app/account.html"/>
+  </url>
+</urlset>
