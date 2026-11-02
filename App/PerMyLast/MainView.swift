@@ -72,14 +72,13 @@ struct MainView: View {
 
     // MARK: Sidebar
 
-    /// Modes, setup progress or plans, and the account: the whole left column.
+    /// Modes, setup progress, and the account: the whole left column.
     private var railColumn: some View {
         @Bindable var model = model
         return VStack(spacing: PMLSpace.s3) {
             ModeRail(modes: model.modes, selection: $model.activeMode, wide: true,
                      onSettings: { WindowCoordinator.shared.showSettings() })
             SetupProgressCard()
-            PlansCard()
             AccountFooter()
         }
         .padding(PMLSpace.s3)
