@@ -310,8 +310,9 @@ struct AccountFooter: View {
         return account.accountTitle
     }
 
+    /// Signed out: the nudge to sign in. Signed in shows the plan badge instead; credits live in the window's footer.
     private var subtitle: String? {
-        if account.signedIn { return [account.planTitle, account.usageText].compactMap { $0 }.joined(separator: " · ") }
+        guard !account.signedIn else { return nil }
         return account.isConfigured ? L("Sign in to save your setup") : nil
     }
 
@@ -324,8 +325,10 @@ struct AccountFooter: View {
                         .lineLimit(1).truncationMode(.middle)
                     if let subtitle {
                         Text(verbatim: subtitle).font(PMLFont.hint)
-                            .foregroundStyle(account.signedIn ? PMLColor.inkMuted : PMLColor.accentText)
+                            .foregroundStyle(PMLColor.accentText)
                             .lineLimit(2).fixedSize(horizontal: false, vertical: true)
+                    } else if account.signedIn, let plan = account.entitlement?.plan {
+                        PlanBadge(plan: plan).padding(.top, 2)
                     }
                 }
                 Spacer(minLength: 0)
@@ -342,6 +345,30 @@ struct AccountFooter: View {
     }
 }
 
+
+/// The plan under the person's name: Free is quiet, Pro is tinted, Lifetime is the solid one with an infinity mark.
+private struct PlanBadge: View {
+    let plan: PlanKind
+
+    var body: some View {
+        switch plan {
+        case .free: pill(Text("Free"), fill: PMLColor.surfaceSunken, text: PMLColor.inkMuted)
+        case .proMonthly, .proYearly: pill(Text("Pro"), fill: PMLColor.accentSoft, text: PMLColor.accentText)
+        case .lifetime:
+            pill(Label { Text("Lifetime") } icon: { Image(systemName: "infinity") }.labelStyle(.titleAndIcon),
+                 fill: PMLColor.accent, text: PMLColor.onAccent)
+        case .none: EmptyView()
+        }
+    }
+
+    private func pill(_ label: some View, fill: Color, text: Color) -> some View {
+        label
+            .font(PMLFont.badge).textCase(.uppercase).tracking(0.42)
+            .foregroundStyle(text)
+            .padding(.horizontal, 6).padding(.vertical, 2)
+            .background(RoundedRectangle(cornerRadius: PMLRadius.badge, style: .continuous).fill(fill))
+    }
+}
 
 /// The app mark (seven-panel umbrella seen from above) on a round tile, used as the account avatar.
 private struct UmbrellaAvatar: View {

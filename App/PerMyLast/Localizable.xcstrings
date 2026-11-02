@@ -5082,6 +5082,17 @@
           }
         }
       }
+    },
+    "Pro": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
