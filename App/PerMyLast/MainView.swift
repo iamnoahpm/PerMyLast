@@ -304,17 +304,37 @@ struct OutputPanel: View {
 
 struct FooterBar: View {
     @Environment(AppModel.self) private var model
+    @Environment(AccountModel.self) private var account
 
     var body: some View {
-        HStack(spacing: PMLSpace.s4) {
-            Text("Version \(model.appVersion)").foregroundStyle(PMLColor.inkMuted)
-            UsageMeterLabel()
-            Spacer()
+        let state = account.creditsFooterState
+        // The out-of-credits state holds a button, so it gets tighter padding to keep the row the same height.
+        let padding = state?.level == .empty
+            ? EdgeInsets(top: 6, leading: PMLLayout.windowPadding, bottom: 6, trailing: PMLSpace.s2)
+            : EdgeInsets(top: 10, leading: PMLLayout.windowPadding, bottom: 10, trailing: PMLLayout.windowPadding)
+        // On a narrow window the version label goes first, then the credits line truncates.
+        ViewThatFits(in: .horizontal) {
+            row(showVersion: true)
+            row(showVersion: false)
         }
-        .font(PMLFont.hint)
-        .padding(.horizontal, PMLLayout.windowPadding)
-        .padding(.vertical, PMLSpace.s2)
+        .font(PMLFont.meta)
+        .padding(padding)
+        .frame(maxWidth: .infinity)
         .background(PMLColor.surface)
+        // Said once per change of state, not on every credit spent.
+        .onChange(of: state?.level) { _, level in
+            if let state, level != nil { AccessibilityNotification.Announcement(CreditsCopy.text(state)).post() }
+        }
+    }
+
+    private func row(showVersion: Bool) -> some View {
+        HStack(spacing: PMLSpace.s3) {
+            if showVersion {
+                Text(verbatim: "v\(model.appVersion)").foregroundStyle(PMLColor.inkMuted).lineLimit(1).fixedSize()
+            }
+            Spacer(minLength: 0)
+            UsageMeterLabel()
+        }
     }
 }
 

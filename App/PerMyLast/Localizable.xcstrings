@@ -4917,6 +4917,171 @@
           }
         }
       }
+    },
+    "If you continue without auto-copy": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nếu tiếp tục không tự động sao chép"
+          }
+        }
+      }
+    },
+    "Per My Last can't copy your selection for you, so you do that one step yourself:": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Per My Last sẽ không tự sao chép đoạn bạn bôi đen, nên bạn tự làm bước đó:"
+          }
+        }
+      }
+    },
+    "In any app, select text and press ⌘C to copy it.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ở bất kỳ app nào, bôi đen văn bản rồi nhấn ⌘C để sao chép."
+          }
+        }
+      }
+    },
+    "Press %@. Per My Last opens with that text.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhấn %@. Per My Last sẽ mở ra với đoạn văn bản đó."
+          }
+        }
+      }
+    },
+    "Pick a tone, press Copy, then ⌘V to paste the result back in your app.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chọn giọng điệu, bấm Copy, rồi nhấn ⌘V để dán kết quả về lại app của bạn."
+          }
+        }
+      }
+    },
+    "You can turn on auto-copy any time in Settings. Then you skip step 1: just select and press.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bạn có thể bật tự động sao chép bất cứ lúc nào trong Cài đặt. Khi đó bỏ được bước 1: chỉ cần bôi đen và nhấn phím tắt."
+          }
+        }
+      }
+    },
+    "%@ credits left": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "còn %@ lượt"
+          }
+        }
+      }
+    },
+    "1 credit left": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "còn 1 lượt"
+          }
+        }
+      }
+    },
+    "Running low: %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sắp hết: %@"
+          }
+        }
+      }
+    },
+    "No credits left": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hết lượt"
+          }
+        }
+      }
+    },
+    "resets today": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "đặt lại hôm nay"
+          }
+        }
+      }
+    },
+    "resets tomorrow": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "đặt lại ngày mai"
+          }
+        }
+      }
+    },
+    "resets in %lld days": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "đặt lại sau %lld ngày"
+          }
+        }
+      }
+    },
+    "%@ of %@ credits": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@/%2$@ lượt"
+          }
+        }
+      }
+    },
+    "Upgrade": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nâng cấp"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

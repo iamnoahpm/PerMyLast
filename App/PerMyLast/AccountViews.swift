@@ -99,14 +99,182 @@ struct AccountSection: View {
     }
 }
 
-/// Footer text: the usage meter (FR-A13).
+extension AccountModel {
+    /// The footer's credits state for Free and Pro. Nil while the plan is loading, signed out, or on Lifetime
+    /// (the person's own Anthropic key, so there is no count to show).
+    var creditsFooterState: CreditsFooterState? {
+        guard isConfigured, signedIn, let me = entitlement, me.plan == .free || me.plan.isPro,
+              let left = me.runsLeft else { return nil }
+        return getCreditsFooterState(remaining: left, total: me.runsAllowance, resetDate: me.periodEnd)
+    }
+}
+
+/// The footer's wording, localized. Strings follow the design handoff exactly.
+@MainActor
+enum CreditsCopy {
+    private static func number(_ n: Int) -> String { n.formatted(.number.locale(AppModel.shared.locale)) }
+
+    static func creditsLeft(_ n: Int) -> String {
+        n == 1 ? L("1 credit left") : L("\(number(n)) credits left")
+    }
+
+    static func reset(_ reset: CreditsReset) -> String {
+        switch reset {
+        case .today: return L("resets today")
+        case .tomorrow: return L("resets tomorrow")
+        case .days(let n): return L("resets in \(n) days")
+        }
+    }
+
+    /// The visible line: "999 credits left", "Running low: 180 credits left · resets in 26 days", "No credits left · resets today".
+    static func text(_ s: CreditsFooterState) -> String {
+        let tail = s.reset.map { " · " + reset($0) } ?? ""
+        switch s.level {
+        case .normal: return creditsLeft(s.remaining)
+        case .low: return L("Running low: \(creditsLeft(s.remaining))") + tail
+        case .empty: return L("No credits left") + tail
+        }
+    }
+
+    /// "999 of 1,021 credits · resets in 26 days (26 Nov 2026)"; also carries the full text when the line is truncated.
+    static func tooltip(_ s: CreditsFooterState, resetDate: Date?) -> String {
+        var out = s.total.map { L("\(number(s.remaining)) of \(number($0)) credits") } ?? creditsLeft(s.remaining)
+        if let r = s.reset {
+            out += " · " + reset(r)
+            if let resetDate {
+                out += " (" + resetDate.formatted(.dateTime.day().month(.abbreviated).year().locale(AppModel.shared.locale)) + ")"
+            }
+        }
+        return out
+    }
+}
+
+/// Footer indicator (FR-A13): quiet while there are plenty of credits, louder as they run low. State is told by
+/// words as well as colour. Lifetime keeps its plain "Using your Anthropic key" line.
 struct UsageMeterLabel: View {
     @Environment(AccountModel.self) private var account
 
     var body: some View {
-        if let text = account.meterText {
-            Text(text).foregroundStyle(PMLColor.inkMuted)
+        if let state = account.creditsFooterState {
+            let tip = CreditsCopy.tooltip(state, resetDate: account.entitlement?.periodEnd)
+            switch state.level {
+            case .normal:
+                HStack(spacing: PMLSpace.s2) {
+                    CreditsBar(ratio: state.ratio, fill: PMLColor.accent, track: PMLColor.line)
+                    line(state).foregroundStyle(PMLColor.inkMuted)
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityHint(tip)
+                .focusableTooltip(tip)
+            case .low:
+                HStack(spacing: PMLSpace.s2) {
+                    CreditsBar(ratio: state.ratio, fill: PMLColor.warning, track: PMLColor.warningLine)
+                    line(state).fontWeight(.medium).foregroundStyle(PMLColor.warning)
+                }
+                .padding(.vertical, 2)
+                .padding(.horizontal, 10)
+                .background(Capsule().fill(PMLColor.warningSoft))
+                .overlay(Capsule().strokeBorder(PMLColor.warningLine, lineWidth: 1))
+                .accessibilityElement(children: .combine)
+                .accessibilityHint(tip)
+                .focusableTooltip(tip)
+            case .empty:
+                HStack(spacing: PMLSpace.s2) {
+                    line(state).fontWeight(.medium).foregroundStyle(PMLColor.danger)
+                        .lineLimit(1).truncationMode(.tail).help(tip)
+                    Button("Upgrade") { WindowCoordinator.shared.showPaywall() }
+                        .buttonStyle(FooterUpgradeButtonStyle())
+                }
+            }
+        } else if account.entitlement?.plan == .lifetime, let text = account.meterText {
+            Text(text).foregroundStyle(PMLColor.inkMuted).lineLimit(1).truncationMode(.tail)
         }
+    }
+
+    /// One line that ellipsizes on a narrow window; the tooltip holds the full text.
+    private func line(_ state: CreditsFooterState) -> Text {
+        Text(verbatim: CreditsCopy.text(state))
+    }
+}
+
+/// 56 x 4 pt track with a fill of `ratio`. Decorative: the words beside it say the same thing. Hidden when the total is unknown.
+private struct CreditsBar: View {
+    let ratio: Double?
+    let fill: Color
+    let track: Color
+
+    var body: some View {
+        if let ratio {
+            Capsule().fill(track)
+                .frame(width: 56, height: 4)
+                .overlay(alignment: .leading) {
+                    Capsule().fill(fill).frame(width: 56 * min(1, max(0, ratio)))
+                }
+                .clipShape(Capsule())
+                .accessibilityHidden(true)
+        }
+    }
+}
+
+private extension View {
+    /// The full text as a small bubble on hover and on keyboard focus.
+    func focusableTooltip(_ text: String) -> some View { modifier(FocusableTooltip(text: text)) }
+}
+
+private struct FocusableTooltip: ViewModifier {
+    let text: String
+    @FocusState private var focused: Bool
+    @State private var hovering = false
+
+    func body(content: Content) -> some View {
+        content
+            .lineLimit(1).truncationMode(.tail)
+            .pmlFocusRing(radius: PMLRadius.badge)
+            // Keyboard navigation only: a click must not leave the bubble stuck open.
+            .focusable(interactions: .activate)
+            .focusEffectDisabled()
+            .focused($focused)
+            // Escape dismisses the bubble instead of closing the window.
+            .onExitCommand { if focused { focused = false } else { WindowCoordinator.shared.hidePopup() } }
+            // Shown while the pointer is over it or it has keyboard focus. Moving away, which includes clicking
+            // elsewhere, dismisses it; so does Escape.
+            .onHover { inside in
+                hovering = inside
+                if !inside { focused = false }
+            }
+            .overlay(alignment: .topTrailing) {
+                if hovering || focused {
+                    Text(verbatim: text)
+                        .font(PMLFont.hint).foregroundStyle(PMLColor.ink)
+                        .padding(.horizontal, PMLSpace.s2).padding(.vertical, PMLSpace.s1)
+                        .background(RoundedRectangle(cornerRadius: PMLRadius.badge, style: .continuous).fill(PMLColor.surface))
+                        .overlay(RoundedRectangle(cornerRadius: PMLRadius.badge, style: .continuous).strokeBorder(PMLColor.lineStrong, lineWidth: 1))
+                        .fixedSize()
+                        .offset(y: -34)
+                        .allowsHitTesting(false)
+                        .accessibilityHidden(true)
+                }
+            }
+    }
+}
+
+/// The Upgrade button in the out-of-credits footer: accent fill, hover darkens and lifts 1 pt (no lift under Reduce Motion).
+private struct FooterUpgradeButtonStyle: ButtonStyle {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var hovering = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(PMLFont.body.weight(.semibold))
+            .foregroundStyle(PMLColor.onAccent)
+            .padding(.vertical, 6).padding(.horizontal, 14)
+            .background(RoundedRectangle(cornerRadius: PMLRadius.btn, style: .continuous)
+                .fill(hovering || configuration.isPressed ? PMLColor.accentHover : PMLColor.accent))
+            .contentShape(RoundedRectangle(cornerRadius: PMLRadius.btn, style: .continuous))
+            .pmlFocusRing(radius: PMLRadius.btn)
+            .offset(y: hovering && !configuration.isPressed && !reduceMotion ? PMLMotion.lift : 0)
+            .animation(PMLMotion.fast, value: hovering)
+            .onHover { hovering = $0 }
     }
 }
 
