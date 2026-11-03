@@ -285,13 +285,10 @@ struct OutputPanel: View {
         }
     }
 
-    /// "Sonnet 5 · Medium · 42 words"
+    /// "42 words"
     private var draftMeta: String {
         let words = TextCleanup.wordCount(model.output)
-        var parts = [ModelLabel.short(model.settings.model)]
-        if ModelCatalog.supportsEffort(model.settings.model) { parts.append(ModelLabel.effort(model.settings.effort)) }
-        parts.append(words == 1 ? L("1 word") : L("\(words) words"))
-        return parts.joined(separator: " · ")
+        return words == 1 ? L("1 word") : L("\(words) words")
     }
 
     private var resultHeading: String {
