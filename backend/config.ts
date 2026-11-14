@@ -29,6 +29,11 @@ export const config = {
   EVENTS_PER_REQUEST: 20,
   EVENTS_PER_INSTALL: 500,
 
+  /** Run ratings (anonymous): most one install may ever send, and the caps on text shared with consent. */
+  FEEDBACK_PER_INSTALL: 300,
+  FEEDBACK_MAX_PROMPT_CHARS: 20_000,
+  FEEDBACK_MAX_OUTPUT_CHARS: 40_000,
+
   /** Email sign-in codes. */
   EMAIL_CODE_TTL_S: 600,
   EMAIL_CODE_MAX_ATTEMPTS: 5,

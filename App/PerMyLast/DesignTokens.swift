@@ -139,6 +139,8 @@ enum PMLFont {
     static let eyebrow = Font.custom(family, size: 11).weight(.bold)
     /// Apply `.textCase(.uppercase)` and `.tracking(0.42)` (0.04em).
     static let badge = Font.custom(family, size: 10.5).weight(.bold)
+    /// Monospaced, for the log-style preview of what feedback would send.
+    static let log = Font.system(size: 11, design: .monospaced)
     static let kbd = Font.system(size: 12, weight: .medium, design: .monospaced)
 }
 

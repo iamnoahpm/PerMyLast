@@ -221,6 +221,24 @@ struct BackendClientTests {
         #expect((list[1]["props"] as? [String: String]) == ["step": "welcome"])
     }
 
+    @Test func feedbackSendsTextOnlyWhenShared() async throws {
+        let t = FakeHTTP()
+        t.body = Data(#"{"ok":true}"#.utf8)
+        var report = FeedbackReport(feedbackID: "id-1", rating: "good", appVersion: "1.2.0", osVersion: "macOS 15", appLanguage: "en",
+                                    model: "claude-sonnet-5", effort: "medium", mode: "Reply", preset: "Polite", viaProxy: false, imageCount: 1)
+        let client = BackendClient(baseURL: base, transport: t)
+        try await client.sendFeedback(installIDHash: installIDHash("abc"), report: report)
+        report.sharedText = .init(prompt: "P", input: "I", output: "O")
+        try await client.sendFeedback(installIDHash: installIDHash("abc"), report: report)
+        #expect(t.requests.allSatisfy { $0.url?.path == "/v1/feedback" && $0.value(forHTTPHeaderField: "Authorization") == nil })
+        let firstRaw = try #require(t.requests[0].httpBody)
+        let first = try #require(JSONSerialization.jsonObject(with: firstRaw) as? [String: Any])
+        #expect(first["rating"] as? String == "good" && first["via"] as? String == "own_key" && first["prompt"] == nil && first["shared"] == nil)
+        let secondRaw = try #require(t.requests[1].httpBody)
+        let second = try #require(JSONSerialization.jsonObject(with: secondRaw) as? [String: Any])
+        #expect(second["shared"] as? Bool == true && second["prompt"] as? String == "P" && second["input"] as? String == "I" && second["output"] as? String == "O")
+    }
+
     @Test func claimingFreeCreditsSendsTheHashedInstallID() async throws {
         let t = FakeHTTP()
         t.body = Data(#"{"plan":"free","period_end":"2026-11-12T00:00:00.000Z","runs_allowance":21}"#.utf8)

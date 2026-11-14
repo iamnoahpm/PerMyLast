@@ -18,6 +18,8 @@ struct AppSettings: Codable, Equatable {
     var appLanguage = AppLanguage.detectDefault()
     /// Anonymous first-run funnel events (which setup step was reached; never text, email or keys).
     var shareAnonymousUsage = true
+    /// Occasionally ask how a run went, and then whether we may see it (see Feedback.swift).
+    var askForFeedback = true
 
     init() {}
 
@@ -37,6 +39,7 @@ struct AppSettings: Codable, Equatable {
         shortcut = try c.decodeIfPresent(String.self, forKey: .shortcut) ?? d.shortcut
         appLanguage = try c.decodeIfPresent(AppLanguage.self, forKey: .appLanguage) ?? d.appLanguage
         shareAnonymousUsage = try c.decodeIfPresent(Bool.self, forKey: .shareAnonymousUsage) ?? d.shareAnonymousUsage
+        askForFeedback = try c.decodeIfPresent(Bool.self, forKey: .askForFeedback) ?? d.askForFeedback
     }
 }
 

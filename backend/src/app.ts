@@ -5,6 +5,7 @@ import { sendEmail } from "./email.ts";
 import type { Deps, Env } from "./env.ts";
 import { AuthError } from "./jwt.ts";
 import { recordEvents } from "./events.ts";
+import { recordFeedback } from "./feedback.ts";
 import { getMe } from "./me.ts";
 import { AppStoreError, handleAppStoreNotification, submitTransaction } from "./appstore.ts";
 import { handleRun } from "./run.ts";
@@ -23,9 +24,9 @@ function fail(status: number, code: string, message: string, extra: Record<strin
   return json({ error: { code, message, ...extra } }, status);
 }
 
-async function readJson(req: Request): Promise<Record<string, unknown> | null> {
+async function readJson(req: Request, maxChars = 16_384): Promise<Record<string, unknown> | null> {
   const text = await req.text();
-  if (text.length > 16_384) return null;
+  if (text.length > maxChars) return null;
   try {
     const v = JSON.parse(text);
     return v && typeof v === "object" ? (v as Record<string, unknown>) : null;
@@ -107,6 +108,14 @@ export async function handleRequest(req: Request, env: Env, deps: Deps = default
           ? fail(429, "rate_limited", "Too many events from this install.")
           : fail(400, "bad_request", "install_id_hash and a list of known events are required.");
       }
+      case "POST /v1/feedback": {
+        // Anonymous like events: a hashed install id, no sign-in. The body may carry shared text, so it is allowed to be larger.
+        const result = await recordFeedback(env.DB, await readJson(req, 160_000), deps.now());
+        if (result.ok) return json({ ok: true });
+        return result.reason === "too_many"
+          ? fail(429, "rate_limited", "Too much feedback from this install.")
+          : fail(400, "bad_request", "A valid install_id_hash, feedback_id and rating are required.");
+      }
       case "POST /v1/run": {
         const userId = await authenticate(req, env, deps.now());
         if (!userId) return fail(401, "unauthenticated", "Sign in to continue.");
@@ -147,7 +156,7 @@ export async function handleRequest(req: Request, env: Env, deps: Deps = default
       }
     }
 
-    const known = ["/v1/purchases/storekit", "/webhooks/appstore", "/v1/me", "/v1/templates", "/v1/run", "/v1/events", "/v1/trial/start", "/v1/account", "/v1/auth/apple", "/v1/auth/google", "/v1/auth/refresh",
+    const known = ["/v1/purchases/storekit", "/webhooks/appstore", "/v1/me", "/v1/templates", "/v1/run", "/v1/events", "/v1/feedback", "/v1/trial/start", "/v1/account", "/v1/auth/apple", "/v1/auth/google", "/v1/auth/refresh",
       "/v1/auth/email/request", "/v1/auth/email/verify"];
     return known.includes(url.pathname) ? fail(405, "method_not_allowed", "Method not allowed.") : fail(404, "not_found", "Not found.");
   } catch (error) {

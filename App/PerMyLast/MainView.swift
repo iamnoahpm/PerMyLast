@@ -174,7 +174,10 @@ struct OutputPanel: View {
             if let error = model.errorMessage {
                 errorBox(error)
             } else if model.hasResult {
-                result
+                VStack(spacing: PMLSpace.s2) {
+                    result
+                    if !model.isSending { FeedbackPrompt() }
+                }
             } else if model.isSending {
                 loadingState
             } else {

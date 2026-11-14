@@ -328,6 +328,36 @@ public struct FunnelEvent: Equatable, Sendable {
     }
 }
 
+/// A rating of one run. The text fields are filled only when the person agreed, on a screen showing them, to share the run.
+public struct FeedbackReport: Equatable, Sendable {
+    public var feedbackID: String
+    public var rating: String          // "bad" | "fine" | "good"
+    public var appVersion: String
+    public var osVersion: String
+    public var appLanguage: String
+    public var model: String
+    public var effort: String
+    public var mode: String
+    public var preset: String
+    public var viaProxy: Bool
+    public var imageCount: Int
+    public var sharedText: SharedRun?
+
+    public struct SharedRun: Equatable, Sendable {
+        public var prompt: String
+        public var input: String
+        public var output: String
+        public init(prompt: String, input: String, output: String) { self.prompt = prompt; self.input = input; self.output = output }
+    }
+
+    public init(feedbackID: String, rating: String, appVersion: String, osVersion: String, appLanguage: String, model: String, effort: String,
+                mode: String, preset: String, viaProxy: Bool, imageCount: Int, sharedText: SharedRun? = nil) {
+        self.feedbackID = feedbackID; self.rating = rating; self.appVersion = appVersion; self.osVersion = osVersion
+        self.appLanguage = appLanguage; self.model = model; self.effort = effort; self.mode = mode; self.preset = preset
+        self.viaProxy = viaProxy; self.imageCount = imageCount; self.sharedText = sharedText
+    }
+}
+
 public struct FreeInfo: Equatable, Sendable {
     public var plan: PlanKind
     public var periodEnd: Date?
@@ -396,6 +426,17 @@ public struct BackendClient: Sendable {
             return item
         }
         _ = try await send("v1/events", body: ["install_id_hash": installIDHash, "app_version": appVersion, "events": list])
+    }
+
+    /// A run rating, anonymous (no sign-in). Sending the same `feedbackID` again with `sharedText` adds the text to that rating.
+    public func sendFeedback(installIDHash: String, report r: FeedbackReport) async throws {
+        var body: [String: Any] = [
+            "install_id_hash": installIDHash, "feedback_id": r.feedbackID, "rating": r.rating, "app_version": r.appVersion,
+            "os_version": r.osVersion, "app_language": r.appLanguage, "model": r.model, "effort": r.effort, "mode": r.mode,
+            "preset": r.preset, "via": r.viaProxy ? "proxy" : "own_key", "image_count": r.imageCount,
+        ]
+        if let t = r.sharedText { body["shared"] = true; body["prompt"] = t.prompt; body["input"] = t.input; body["output"] = t.output }
+        _ = try await send("v1/feedback", body: body)
     }
 
     private func session(_ data: Data, now: Date) throws -> AuthSession {

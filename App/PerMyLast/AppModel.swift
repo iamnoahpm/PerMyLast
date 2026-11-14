@@ -562,7 +562,8 @@ final class AppModel {
     }
 
     /// Runs a template and shows the answer as it streams in.
-    private func stream(_ run: TemplateRun, images: [ClaudeImage] = []) async throws {
+    @discardableResult
+    private func stream(_ run: TemplateRun, images: [ClaudeImage] = []) async throws -> Bool {
         output = ""
         hasResult = false
         var text = ""
@@ -574,7 +575,7 @@ final class AppModel {
                     output = TextCleanup.beautify(text)
                     hasResult = true
                 }
-                return
+                return viaProxy
             } catch let error as BackendError where viaProxy && attempt == 0 && error.kind == .unauthenticated && text.isEmpty {
                 continue   // the token was rejected: refresh it once and try again
             } catch let error as BackendError {
@@ -582,6 +583,14 @@ final class AppModel {
                 throw error
             }
         }
+        return false
+    }
+
+    /// What a finished run could share if the person agrees to (Feedback.swift). Screenshots are never included.
+    private func noteFinishedRun(prompt: String, input: String, mode: String, preset: String, viaProxy: Bool, imageCount: Int) {
+        FeedbackModel.shared.runFinished(.init(
+            prompt: prompt, input: input, output: output, mode: mode, preset: preset, model: settings.model,
+            effort: settings.effort.rawValue, viaProxy: viaProxy, imageCount: imageCount))
     }
 
     /// A readable message for any failure of a run.
@@ -628,6 +637,7 @@ final class AppModel {
         isSending = true
         errorMessage = nil
         lastErrorKind = nil
+        FeedbackModel.shared.reset()
         defer { isSending = false }
 
         let prompt = PromptBuilder.finalPrompt(
@@ -640,8 +650,9 @@ final class AppModel {
                 sent += "\n\nAttached: \(images.count) screenshot\(images.count == 1 ? "" : "s"). Read the text in \(images.count == 1 ? "it" : "them") as part of the message."
             }
             let run = PromptBuilder.templateRun(text: text, prompt: sent, isEmail: preset.isEmail)
-            try await stream(run, images: images)
+            let viaProxy = try await stream(run, images: images)
             OnboardingModel.shared.noteRealRun()
+            noteFinishedRun(prompt: sent, input: typed.isEmpty ? "" : typed, mode: activeMode, preset: preset.label, viaProxy: viaProxy, imageCount: images.count)
             presets = PresetLibrary.incrementUses(presets, label: preset.label)
             savePresets()
         } catch {
@@ -659,6 +670,7 @@ final class AppModel {
         }
         isSending = true
         errorMessage = nil
+        FeedbackModel.shared.reset()
         defer { isSending = false }
         do {
             let images = theirImages.map { ClaudeImage(mediaType: $0.mediaType, data: $0.data) }
@@ -666,17 +678,19 @@ final class AppModel {
             if !images.isEmpty {
                 sent += "\n\nAttached: \(images.count) screenshot\(images.count == 1 ? "" : "s"). Read the text in \(images.count == 1 ? "it" : "them") as part of the message."
             }
-            try await stream(PromptBuilder.askRun(prompt: sent, input: ""), images: images)
+            let viaProxy = try await stream(PromptBuilder.askRun(prompt: sent, input: ""), images: images)
             OnboardingModel.shared.noteRealRun()
+            noteFinishedRun(prompt: sent, input: "", mode: "Ask", preset: "Ask", viaProxy: viaProxy, imageCount: images.count)
         } catch {
             hasResult = false
             errorMessage = describe(error)
         }
     }
 
-    func copyOutput() {
+    /// `plain` strips markdown markers, used when the answer is shown rendered.
+    func copyOutput(plain: Bool = false) {
         NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(output, forType: .string)
+        NSPasteboard.general.setString(plain ? MarkdownBlock.plainText(output) : output, forType: .string)
     }
 
     // MARK: Footer actions

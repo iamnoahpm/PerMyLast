@@ -117,6 +117,9 @@ struct GeneralSettingsView: View {
             Toggle("Share anonymous setup stats", isOn: model.settings.shareAnonymousUsage)
             Text("Tells us which first-run step people get stuck on. Never includes your text, email, key or anything you select.")
                 .font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted)
+            Toggle("Ask me how results went", isOn: model.settings.askForFeedback)
+            Text("Now and then, after you've used Per My Last for a while, asks for a quick rating. Afterwards it asks whether we may see that run, which you can decline.")
+                .font(PMLFont.hint).foregroundStyle(PMLColor.inkMuted)
         }
     }
 

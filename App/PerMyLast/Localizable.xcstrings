@@ -359,7 +359,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bỏ qua"
+            "value": "Đóng"
           }
         }
       }
@@ -5090,6 +5090,248 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pro"
+          }
+        }
+      }
+    },
+    "How did that go?": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lượt này thế nào?"
+          }
+        }
+      }
+    },
+    "Bad": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tệ"
+          }
+        }
+      }
+    },
+    "Fine": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ổn"
+          }
+        }
+      }
+    },
+    "Good": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tốt"
+          }
+        }
+      }
+    },
+    "Don't ask for a while": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tạm thời đừng hỏi"
+          }
+        }
+      }
+    },
+    "Thank you. That helps.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cảm ơn bạn. Điều này rất hữu ích."
+          }
+        }
+      }
+    },
+    "Thanks for letting us know.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cảm ơn bạn đã cho chúng tôi biết."
+          }
+        }
+      }
+    },
+    "Thanks. Can we see this run to make Per My Last better?": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cảm ơn bạn. Chúng tôi có thể xem lượt chạy này để cải thiện Per My Last không?"
+          }
+        }
+      }
+    },
+    "It is anonymous: nothing links it to your name, email, account or API key, and screenshots are never sent. Because of that, we can't find it later to delete it.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoàn toàn ẩn danh: không có gì liên kết nó với tên, email, tài khoản hay API key của bạn, và ảnh chụp màn hình không bao giờ được gửi. Vì vậy, sau này chúng tôi không thể tìm lại để xóa nó."
+          }
+        }
+      }
+    },
+    "We would receive:": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chúng tôi sẽ nhận:"
+          }
+        }
+      }
+    },
+    "the prompt, the text you gave, the result, your rating": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "câu lệnh, văn bản bạn đưa vào, kết quả, đánh giá của bạn"
+          }
+        }
+      }
+    },
+    "And these settings:": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Và các cài đặt này:"
+          }
+        }
+      }
+    },
+    "model, effort, mode and preset, app and macOS version, app language": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mô hình, mức nỗ lực, chế độ và preset, phiên bản app và macOS, ngôn ngữ app"
+          }
+        }
+      }
+    },
+    "Review, edit or remove what's sent": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xem, sửa hoặc xóa nội dung sẽ gửi"
+          }
+        }
+      }
+    },
+    "Edit any value above, or press Remove to leave it out. Only what you see here is sent.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sửa bất kỳ giá trị nào ở trên, hoặc nhấn Xóa để bỏ nó đi. Chỉ những gì bạn thấy ở đây mới được gửi."
+          }
+        }
+      }
+    },
+    "If it contains anything private, review it first or choose No thanks.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nếu có nội dung riêng tư, hãy xem lại trước hoặc chọn Không, cảm ơn."
+          }
+        }
+      }
+    },
+    "Share this run": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chia sẻ lượt chạy này"
+          }
+        }
+      }
+    },
+    "No thanks": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không, cảm ơn"
+          }
+        }
+      }
+    },
+    "Don't ask again": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đừng hỏi lại"
+          }
+        }
+      }
+    },
+    "Remove": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xóa"
+          }
+        }
+      }
+    },
+    "Ask me how results went": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hỏi tôi về chất lượng kết quả"
+          }
+        }
+      }
+    },
+    "Now and then, after you've used Per My Last for a while, asks for a quick rating. Afterwards it asks whether we may see that run, which you can decline.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thỉnh thoảng, sau khi bạn đã dùng Per My Last một thời gian, app sẽ xin một đánh giá nhanh. Sau đó app hỏi liệu chúng tôi có thể xem lượt chạy đó không, bạn có thể từ chối."
           }
         }
       }
