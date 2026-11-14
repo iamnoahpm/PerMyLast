@@ -709,5 +709,41 @@ a.lang-menu__item:hover { background: var(--bg-sunken); color: var(--fg); }
   backdrop-filter: blur(16px) saturate(1.4);
   border-bottom-color: var(--line);
 }
+
+/* --- Mobile nav: brand, Download and a hamburger; the page links live in the menu --- */
+.nav__burger { display: none; }
+.nav__menu { display: none; }
+@media (max-width: 520px) {
+  .nav .nav__inner { height: 56px; padding-block: 0; grid-template-columns: 1fr auto; row-gap: 0; }
+  .nav .nav__group, .nav .nav__download { display: none; }  /* the hero already has the Download button */
+  .nav__right { gap: 8px; }
+  .nav__burger {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+    width: 36px; height: 36px; padding: 0; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--line); background: rgba(255,255,255,.04); color: var(--fg);
+  }
+  .nav__burger span { display: block; width: 16px; height: 1.5px; border-radius: 1px; background: currentColor; transition: transform .2s; }
+  .nav.is-open .nav__burger span:nth-child(1) { transform: translateY(3.25px) rotate(45deg); }
+  .nav.is-open .nav__burger span:nth-child(2) { transform: translateY(-3.25px) rotate(-45deg); }
+  .nav.is-open { background: rgba(10,10,10,.94); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); border-bottom-color: var(--line); }
+  .nav__menu[hidden] { display: none; }
+  .nav__menu { display: block; position: absolute; top: 100%; left: 0; right: 0; padding: 4px var(--gutter) 24px; background: rgba(10,10,10,.985); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); border-bottom: 1px solid var(--line); }
+  .nav__menu-link { display: block; padding: 16px 0; font-size: 1.125rem; font-weight: 600; letter-spacing: -0.012em; color: var(--fg); text-decoration: none; border-top: 1px solid var(--line); }
+  .nav__menu-link:first-child { border-top: 0; }
+  /* The bar is one row again, so the hero needs less room above it. */
+  .page--home .hero, .page--home.page--sub .hero { padding-top: 112px; }
+}
+
+/* --- Privacy policy (long-form text page) --- */
+.prose { max-width: 46rem; text-align: left; }
+.prose__block + .prose__block { margin-top: var(--s-7, 48px); }
+.prose h2 { font-size: clamp(1.375rem, 1.1rem + 1vw, 1.75rem); font-weight: 650; letter-spacing: -0.015em; margin: 0 0 var(--s-3, 12px); color: var(--fg); }
+.prose p, .prose li { font-size: var(--fs-body); line-height: 1.65; color: var(--fg-muted); }
+.prose p { margin: 0 0 var(--s-3, 12px); }
+.prose ul { margin: 0 0 var(--s-3, 12px); padding-left: 1.25rem; }
+.prose li { margin-bottom: var(--s-2, 8px); }
+.prose strong { color: var(--fg); font-weight: 600; }
+.prose a { color: var(--accent); text-underline-offset: 3px; }
+.prose code { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.9em; }
 .lang-banner { position: relative; z-index: 20; }
 .page--home :is(h1, h2) { text-wrap: balance; }

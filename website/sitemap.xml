@@ -49,4 +49,16 @@
     <xhtml:link rel="alternate" hreflang="vi" href="https://permylast.app/vi/account.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://permylast.app/account.html"/>
   </url>
+  <url>
+    <loc>https://permylast.app/privacy.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://permylast.app/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://permylast.app/vi/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://permylast.app/privacy.html"/>
+  </url>
+  <url>
+    <loc>https://permylast.app/vi/privacy.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://permylast.app/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://permylast.app/vi/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://permylast.app/privacy.html"/>
+  </url>
 </urlset>
