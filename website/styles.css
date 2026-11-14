@@ -210,13 +210,11 @@ a { color: inherit; }
   .nav__group { grid-column: 1 / -1; grid-row: 2; justify-content: space-between; justify-self: stretch; }
   .nav__inner { height: auto; padding-block: 12px; }
   .lang-menu__btn { padding: 6px 12px; }
-  .lang-menu__caret { display: none; }
   .nav__brand { min-width: max-content; }
 }
 @media (max-width: 380px) {
   .nav .nav__links .nav__download { padding: 6px 12px; }
   .nav__download-icon { display: none; }
-  .lang-menu__btn > span { display: none; }
 }
 .nav__link {
   font-size: 0.8125rem;
@@ -709,6 +707,143 @@ a.lang-menu__item:hover { background: var(--bg-sunken); color: var(--fg); }
   backdrop-filter: blur(16px) saturate(1.4);
   border-bottom-color: var(--line);
 }
+.lang-banner { position: relative; z-index: 20; }
+.page--home :is(h1, h2) { text-wrap: balance; }
+
+/* =====================================================================
+   v2 — show the product, one action, light that comes from the icon
+   ===================================================================== */
+.page--v2 { --accent: #90b2f5; --accent-soft: rgba(144,178,245,.14); }
+
+/* Hero: icon, headline, one sentence, one button; then the product. */
+.page--home.page--v2 .hero {
+  display: block;
+  min-height: 0;
+  padding-block: 128px clamp(32px, 4vw, 56px);
+  background:
+    radial-gradient(70% 55% at 82% 0%, rgba(144,178,245,.20), transparent 62%),
+    linear-gradient(180deg, #0c0e19 0%, #0a0a0a 78%);
+}
+.page--home.page--v2 .hero::before, .page--home.page--v2 .hero::after { display: none; }
+.page--v2 .hero__inner { text-align: center; }
+.page--v2 .hero__icon { width: 72px; height: 72px; margin-bottom: var(--s-5); }
+.page--v2 .hero h1 { margin-bottom: var(--s-4); }
+.page--v2 .hero .hero__lead { max-width: 26em; margin-bottom: 32px; }
+.page--v2 .hero__note { margin-top: var(--s-4); }
+.page--v2 .hero__actions { display: flex; justify-content: center; }
+
+/* The icon's seven facets, enlarged into the background: one light, from the top right. */
+.page--v2 .facets {
+  position: absolute; z-index: -1; pointer-events: none;
+  left: 50%; top: -14%; width: min(1500px, 170vw); transform: translateX(-50%);
+  /* Only the top of the umbrella shows: it fades out by the middle of the hero. */
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 20%, transparent 56%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 20%, transparent 56%);
+  opacity: .9;
+  filter: blur(7px);
+}
+.page--v2 .facets polygon:nth-child(1) { fill-opacity: .42; }
+.page--v2 .facets polygon:nth-child(2) { fill-opacity: .32; }
+.page--v2 .facets polygon:nth-child(3) { fill-opacity: .25; }
+.page--v2 .facets polygon:nth-child(4) { fill-opacity: .2; }
+.page--v2 .facets polygon:nth-child(5) { fill-opacity: .17; }
+.page--v2 .facets polygon:nth-child(6) { fill-opacity: .14; }
+.page--v2 .facets polygon:nth-child(7) { fill-opacity: .13; }
+
+/* The product, drawn from the app's own dark tokens. */
+.page--v2 .stage { margin-top: clamp(48px, 6vw, 88px); max-width: 1040px; }
+.win {
+  text-align: left; border-radius: 16px; overflow: hidden;
+  background: #1c1c1f; border: 1px solid rgba(255,255,255,.12);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 40px 100px -30px rgba(0,0,0,.9), 0 0 120px -40px rgba(144,178,245,.35);
+  color: #f2f2f5;
+}
+.win__bar { display: flex; gap: 8px; padding: 14px 16px; background: #222225; border-bottom: 1px solid #2a2a2e; }
+.win__bar i { width: 12px; height: 12px; border-radius: 50%; background: #3f3f46; }
+.win__bar i:nth-child(1) { background: #ff5f57; } .win__bar i:nth-child(2) { background: #febc2e; } .win__bar i:nth-child(3) { background: #28c840; }
+.win__body { display: grid; grid-template-columns: 240px 1fr; min-height: 340px; }
+.win__rail { background: #222225; padding: 24px 16px; border-right: 1px solid #2a2a2e; }
+.win__eyebrow { margin: 0 8px 16px; font-size: .75rem; color: #a0a0a8; }
+.win__rail ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.win__rail li { padding: 10px 12px; border-radius: 10px; display: flex; flex-direction: column; gap: 2px; font-size: .9375rem; color: #c4c4cc; }
+.win__rail li b { font-weight: 600; }
+.win__rail li span { font-size: .75rem; color: #75757d; }
+.win__rail li.is-on { background: #1b2845; color: #7aa2ff; }
+.win__rail li.is-on span { color: #7aa2ff; opacity: .75; }
+.win__main { padding: 28px 32px; display: flex; flex-direction: column; gap: 16px; }
+.win__title { margin: 0; font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+.win__in { background: #27272b; border: 1px solid #3f3f46; border-radius: 12px; padding: 14px 16px; font-size: 1rem; color: #c4c4cc; line-height: 1.5; }
+.win__in small { display: block; font-size: .75rem; color: #75757d; margin-bottom: 4px; }
+.win__out { border: 1px solid #3f3f46; border-radius: 12px; background: #222225; }
+.win__outhead { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #2a2a2e; font-size: .8125rem; color: #a0a0a8; }
+.win__copy { background: #f2f2f5; color: #1c1c1f; border-radius: 8px; padding: 5px 12px; font-weight: 600; }
+.win__out p { margin: 0; padding: 16px; font-size: 1.0625rem; line-height: 1.55; color: #f2f2f5; }
+@media (max-width: 760px) { .win__body { grid-template-columns: 1fr; } .win__rail { display: none; } .win__main { padding: 20px; } }
+
+/* How it works: one picture, three frames on one line. */
+.page--v2 .section__head h2 { margin-bottom: var(--s-4); }
+.flow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; position: relative; }
+.flow::before { content: ""; position: absolute; left: 16%; right: 16%; top: 110px; height: 1px; background: linear-gradient(90deg, transparent, var(--line-strong) 12%, var(--line-strong) 88%, transparent); }
+.flow__step { text-align: center; position: relative; }
+.flow__art {
+  height: 220px; display: flex; align-items: center; justify-content: center; padding: 24px; margin-bottom: 28px;
+  border-radius: 24px; border: 1px solid var(--line);
+  background: radial-gradient(80% 90% at 70% 0%, rgba(144,178,245,.12), transparent 70%), #0d0d10;
+}
+.flow__step h3 { margin-bottom: var(--s-2); }
+.flow__step p { color: var(--fg-muted); margin: 0 auto; max-width: 24ch; font-size: 1.0625rem; }
+.msg { background: #1c1c1f; border: 1px solid #34343a; border-radius: 16px; padding: 14px 16px; text-align: left; max-width: 280px; font-size: .9375rem; line-height: 1.5; color: #c4c4cc; }
+.msg p { margin: 0; color: inherit; }
+.msg__who { display: block; font-size: .75rem; color: #75757d; margin-bottom: 4px; font-weight: 600; }
+.msg mark { background: rgba(43,108,246,.45); color: #fff; border-radius: 4px; padding: 1px 2px; }
+.msg--out { border-color: rgba(144,178,245,.5); box-shadow: 0 0 40px -12px rgba(144,178,245,.5); color: #f2f2f5; }
+.msg__ok { display: block; margin-top: 8px; font-size: .75rem; color: #4fc79a; font-weight: 600; }
+.keys { display: flex; gap: 12px; }
+.keys kbd {
+  width: 64px; height: 64px; display: grid; place-items: center; font: 600 1.5rem var(--font-display); color: #f2f2f5;
+  border-radius: 14px; border: 1px solid #3f3f46; background: linear-gradient(180deg, #2f3038, #1f2024);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 8px 20px -8px rgba(0,0,0,.8);
+}
+.keys kbd:last-child { background: linear-gradient(180deg, #4a7cf0, #2b55c8); border-color: #5c87e0; }
+@media (max-width: 860px) { .flow { grid-template-columns: 1fr; gap: 32px; } .flow::before { display: none; } .flow__art { height: 200px; } }
+
+/* Three capabilities. */
+.page--v2 .section--tight { padding-block: clamp(40px, 5vw, 72px); }
+.features--three { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 860px) { .features--three { grid-template-columns: 1fr; } }
+.page--v2 .privacy__item { max-width: 30ch; }
+.page--v2 .privacy__item strong::before { content: none; }
+
+/* Finale: the quote, then one action. */
+.page--v2 .section--finale { position: relative; isolation: isolate; overflow: hidden; padding-block: clamp(96px, 12vw, 176px); border-top: 1px solid var(--line); background: radial-gradient(70% 90% at 50% 100%, rgba(144,178,245,.16), transparent 70%), #0a0a0a; }
+.page--v2 .pull-quote { font-size: clamp(2.25rem, 1.2rem + 4vw, 4.5rem); max-width: 24ch; margin-bottom: 48px; }
+.page--v2 .pull-quote span { color: var(--accent); }
+
+/* Footer. */
+.footer--v2 { padding-block: 0; font-size: .9375rem; }
+.footer__v2 { padding-block: 56px 40px; display: grid; grid-template-columns: 1fr auto; gap: 32px 48px; align-items: start; }
+.footer__brand { display: flex; gap: 14px; align-items: center; }
+.footer__brand img { width: 40px; height: 40px; border-radius: 22.6%; }
+.footer__brand strong { display: block; color: var(--fg); font-weight: 600; }
+.footer__brand span { color: var(--fg-muted); font-size: .875rem; }
+.footer__nav { display: flex; flex-wrap: wrap; gap: 8px 28px; justify-content: flex-end; }
+.footer__copy { grid-column: 1 / -1; color: var(--fg-hint); font-size: .8125rem; padding-top: 24px; border-top: 1px solid var(--line); }
+@media (max-width: 760px) { .footer__v2 { grid-template-columns: 1fr; } .footer__nav { justify-content: flex-start; } }
+@media (max-width: 520px) { .page--home.page--v2 .hero { padding-top: 136px; } }
+
+/* =====================================================================
+   v3 — v2 as baseline, with: no hero icon, Download for Mac everywhere,
+   two side-by-side hero CTAs, V1's "How it works" label and one-line heading
+   ===================================================================== */
+.page--v3 .btn__icon { width: 18px; height: 18px; flex: none; margin-top: -2px; }
+.page--v3 .nav__download .btn__icon, .page--v3 .nav__download-icon { width: 14px; height: 14px; margin-top: 0; }
+.page--home.page--v3 .hero { padding-top: 144px; }
+.page--v3 .hero__actions { gap: var(--s-3); flex-wrap: wrap; }
+/* The heading stays on one line on wide screens, like V1. */
+.page--v3 .section__head { max-width: 1000px; }
+@media (min-width: 720px) { .page--v3 #how-it-works .section__head h2 { text-wrap: nowrap; } }
+.page--v3 .eyebrow-label { margin-bottom: var(--s-3); }
+@media (max-width: 520px) { .page--home.page--v3 .hero { padding-top: 152px; } }
 
 /* --- Mobile nav: brand, Download and a hamburger; the page links live in the menu --- */
 .nav__burger { display: none; }
@@ -733,6 +868,49 @@ a.lang-menu__item:hover { background: var(--bg-sunken); color: var(--fg); }
   /* The bar is one row again, so the hero needs less room above it. */
   .page--home .hero, .page--home.page--sub .hero { padding-top: 112px; }
 }
+@media (max-width: 520px) { .page--home.page--v3 .hero { padding-top: 112px; } }
+
+/* v3 footer: brand + tagline on the left; links with the copyright line just under them on the right. */
+.page--v3 .footer__v2 { padding-block: 40px; align-items: center; row-gap: 20px; }
+.page--v3 .footer__right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.page--v3 .footer__copy { grid-column: auto; padding-top: 0; border-top: 0; }
+@media (max-width: 760px) {
+  .page--v3 .footer__v2 { padding-block: 32px; }
+  .page--v3 .footer__right { align-items: flex-start; }
+}
+
+/* Footer "Contact": a small menu that opens upward. */
+.page--v3 .footer__nav { align-items: center; }
+.contact-menu { position: relative; }
+.contact-menu summary { list-style: none; cursor: pointer; color: var(--fg-muted); }
+.contact-menu summary::-webkit-details-marker { display: none; }
+.contact-menu summary:hover, .contact-menu[open] summary { color: var(--fg); }
+.contact-menu__panel {
+  position: absolute; right: 0; bottom: calc(100% + 14px); z-index: 30; min-width: 200px; padding: 6px;
+  display: flex; flex-direction: column;
+  background: rgba(22,22,26,.96); border: 1px solid var(--line-strong); border-radius: 16px;
+  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+  box-shadow: 0 24px 60px -16px rgba(0,0,0,.8);
+}
+.contact-menu__panel a { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; color: var(--fg); font-size: .9375rem; text-decoration: none; }
+.contact-menu__panel a:hover { background: rgba(255,255,255,.07); }
+.contact-menu__panel svg { width: 18px; height: 18px; flex: none; color: var(--fg-muted); }
+.contact-menu__panel a:hover svg { color: var(--fg); }
+
+/* Closing: the same lit stage and "Rewritten" blue as V1's quote band. */
+.page--v3 .section--finale {
+  background: radial-gradient(60% 140% at 50% 0%, rgba(80,112,235,.3), transparent 72%), #0a0a0a;
+}
+.page--v3 .pull-quote span { color: #7ea3ff; }
+
+/* Header "Contact": same menu as the footer, opening downward under the link. */
+.contact-menu--nav summary { color: inherit; }
+.contact-menu--nav .contact-menu__panel { bottom: auto; top: calc(100% + 16px); right: auto; left: 50%; transform: translateX(-50%); }
+.contact-menu--nav .contact-menu__panel a { font-size: .9375rem; }
+/* In the hamburger menu the contact options sit under a small label. */
+.nav__menu-label { display: block; padding: 16px 0 4px; font-size: .75rem; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--fg-hint); border-top: 1px solid var(--line); }
+.nav__menu-sub { display: flex; align-items: center; gap: 12px; padding: 12px 0; font-size: 1rem; color: var(--fg); text-decoration: none; }
+.nav__menu-sub svg { width: 18px; height: 18px; flex: none; color: var(--fg-muted); }
 
 /* --- Privacy policy (long-form text page) --- */
 .prose { max-width: 46rem; text-align: left; }
@@ -745,5 +923,63 @@ a.lang-menu__item:hover { background: var(--bg-sunken); color: var(--fg); }
 .prose strong { color: var(--fg); font-weight: 600; }
 .prose a { color: var(--accent); text-underline-offset: 3px; }
 .prose code { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.9em; }
-.lang-banner { position: relative; z-index: 20; }
-.page--home :is(h1, h2) { text-wrap: balance; }
+
+/* Step icons from V1: a small outlined circle above each step title. */
+.page--v3 .flow .step__icon { --accent: #7ea3ff; margin: 0 auto var(--s-3); background: var(--bg); }
+
+/* Steps: icon, title and caption first, the example underneath; one line joins the three icons (as in V1). */
+.page--v3 .flow::before { top: 20px; left: calc(100% / 6); right: calc(100% / 6); background: var(--line-strong); }
+.page--v3 .flow .step__icon { position: relative; z-index: 1; }
+.page--v3 .flow__art { margin: 32px 0 0; }
+.page--v3 .flow__step h3 { margin-bottom: var(--s-2); }
+
+/* Icon badges use V1's blue; privacy items get theirs back. */
+.page--v3 .icon-badge { --accent: #7ea3ff; }
+.page--v3 .privacy--icons .privacy__item { display: flex; flex-direction: column; align-items: center; }
+.page--v3 .privacy--icons .privacy__item .icon-badge { margin: 0 auto var(--s-3); }
+
+/* In-page anchors clear the fixed bar. */
+.page--v3 #privacy, .page--v3 #how-it-works { scroll-margin-top: 56px; }
+
+/* Hero facets, sharper: edges stay readable but the shapes are quieter than before. */
+.page--v3 .facets { filter: blur(1.5px); opacity: .85; }
+.page--v3 .facets polygon:nth-child(1) { fill-opacity: .34; }
+.page--v3 .facets polygon:nth-child(2) { fill-opacity: .26; }
+.page--v3 .facets polygon:nth-child(3) { fill-opacity: .2; }
+.page--v3 .facets polygon:nth-child(4) { fill-opacity: .15; }
+.page--v3 .facets polygon:nth-child(5) { fill-opacity: .13; }
+.page--v3 .facets polygon:nth-child(6) { fill-opacity: .1; }
+.page--v3 .facets polygon:nth-child(7) { fill-opacity: .1; }
+
+
+/* =====================================================================
+   v4 — v3 with a quieter scale: H1 56 / H2 40, tighter and more regular spacing
+   (8pt steps; the space between sections stays about 3x the space inside one)
+   ===================================================================== */
+.page--v4 {
+  --fs-h1: clamp(2.25rem, 1.2rem + 3.2vw, 3.5rem);
+  --fs-h2: clamp(1.75rem, 1.1rem + 1.8vw, 2.5rem);
+  --section-y: clamp(56px, 6vw, 80px);
+}
+.page--v4 .pull-quote { font-size: clamp(2rem, 1.1rem + 3.4vw, 3.5rem); margin-bottom: 40px; }
+.page--v4 .section--tight { padding-block: clamp(40px, 4vw, 56px); }
+.page--v4 .section__head { margin-bottom: clamp(32px, 4vw, 56px); }
+.page--v4 .section--finale { padding-block: clamp(72px, 8vw, 112px); }
+.page--v4 .stage { margin-top: clamp(40px, 4.5vw, 64px); }
+@media (min-width: 521px) {
+  .page--home.page--v4 .hero { padding-top: 112px; }
+}
+
+/* A selection that wraps onto a second line keeps its rounded highlight on both lines. */
+.msg mark { -webkit-box-decoration-break: clone; box-decoration-break: clone; padding: 2px 3px; }
+
+/* The hero lead is a little longer now: wider, and balanced over two lines. */
+.page--v3 .hero .hero__lead { max-width: 30em; }
+
+@media (max-width: 520px) { .lead-br { display: none; } }
+
+/* The payoff line of the hero lead reads a step brighter than the rest. */
+.page--v3 .hero__lead .lead-em { color: var(--fg); }
+
+/* Second line of the hero lead: the payoff, set in semibold. */
+.page--v3 .hero__lead .lead-em { font-weight: 600; }
