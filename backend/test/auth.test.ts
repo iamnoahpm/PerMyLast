@@ -126,6 +126,18 @@ describe("Sign in with Apple / Google", () => {
     expect(jwksFetches).toBe(1);
   });
 
+  it("keeps the person's name: Apple's from the app, Google's from the token, never overwritten", async () => {
+    const nameOf = (id: string) => testEnv.DB.prepare("SELECT name FROM users WHERE id = ?").bind(id).first<{ name: string | null }>().then((r) => r?.name);
+    const a = await (await post("/v1/auth/apple", { id_token: await idToken(apple({ sub: "name-a" })), full_name: "  Noah Nguyen " })).json<{ user_id: string }>();
+    expect(await nameOf(a.user_id)).toBe("Noah Nguyen");
+    await post("/v1/auth/apple", { id_token: await idToken(apple({ sub: "name-a" })), full_name: "Someone Else" });
+    expect(await nameOf(a.user_id)).toBe("Noah Nguyen");
+    const g = await (await post("/v1/auth/google", { id_token: await idToken(google({ sub: "name-g", email: "g-name@example.com", name: "Noah N." })) })).json<{ user_id: string }>();
+    expect(await nameOf(g.user_id)).toBe("Noah N.");
+    const bare = await (await post("/v1/auth/google", { id_token: await idToken(google({ sub: "name-none", email: "none@example.com" })) })).json<{ user_id: string }>();
+    expect(await nameOf(bare.user_id)).toBeNull();
+  });
+
   it("needs an id_token", async () => {
     expect((await post("/v1/auth/google", {})).status).toBe(400);
   });

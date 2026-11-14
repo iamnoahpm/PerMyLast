@@ -93,9 +93,10 @@ export async function signInWithProvider(env: Env, deps: Deps, provider: Provide
     if (!nonce || (claims.nonce !== nonce && claims.nonce !== (await sha256Hex(nonce)))) throw new AuthError("nonce mismatch");
   }
   const userId = await findOrCreateUser(env, provider, claims, now);
-  // Apple shares the name only on the first authorization, so keep it when it arrives and never overwrite one we have.
-  const name = fullName?.trim().slice(0, 100);
-  if (provider === "apple" && name) await env.DB.prepare("UPDATE users SET name = ? WHERE id = ? AND name IS NULL").bind(name, userId).run();
+  // Apple shares the name only on the first authorization (the app sends it); Google puts it in the verified token.
+  // Keep the first one we get and never overwrite it.
+  const name = (provider === "apple" ? fullName : claims.name)?.trim().slice(0, 100);
+  if (name) await env.DB.prepare("UPDATE users SET name = ? WHERE id = ? AND name IS NULL").bind(name, userId).run();
   if (provider === "apple" && authorizationCode && revocationConfigured(env)) {
     // Best effort: sign-in must not fail because Apple's token endpoint did.
     const refresh = await exchangeAuthorizationCode(env, deps, authorizationCode);

@@ -21,10 +21,10 @@
     "APPLE_TEAM_ID": "",
     "APPLE_KEY_ID": "",
     // Google OAuth client id(s), comma-separated. Fill in after creating them.
-    "GOOGLE_CLIENT_ID": "",
+    "GOOGLE_CLIENT_ID": "866577544533-g07s712i8umbb0j6065sv4cif3mc37on.apps.googleusercontent.com",
     // Sender of sign-in emails. The domain must be verified in Resend; the key is the RESEND_API_KEY secret.
     "MAIL_FROM": "Per My Last <login@permylast.app>",
     // Set to "Production,Sandbox" while testing payments; set back to "Production" before launch.
-    "APPSTORE_ENVIRONMENTS": "Production,Sandbox"
+    "APPSTORE_ENVIRONMENTS": "Production"
   }
 }

@@ -52,6 +52,8 @@ export interface IdTokenClaims {
   sub: string;
   email?: string;
   email_verified: boolean;
+  /** Google's `name` claim (needs the profile scope). Apple never puts the name in the token. */
+  name?: string;
   nonce?: string;
 }
 
@@ -108,6 +110,7 @@ export async function verifyIdToken(token: string, opts: IdTokenOptions): Promis
     sub: c.sub,
     email: typeof c.email === "string" ? c.email.toLowerCase() : undefined,
     email_verified: c.email_verified === true || c.email_verified === "true",
+    name: typeof c.name === "string" ? c.name : undefined,
     nonce: typeof c.nonce === "string" ? c.nonce : undefined,
   };
 }
