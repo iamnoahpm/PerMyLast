@@ -983,3 +983,62 @@ a.lang-menu__item:hover { background: var(--bg-sunken); color: var(--fg); }
 
 /* Second line of the hero lead: the payoff, set in semibold. */
 .page--v3 .hero__lead .lead-em { font-weight: 600; }
+
+/* Hero emphasis: highlighter swipe + hand-drawn squiggle */
+.page--v3 .hero__lead { isolation: isolate; }
+.page--v3 .hero__lead .lead-em { font-weight: 400; }
+.hl-mark {
+  color: var(--fg);
+  background: linear-gradient(100deg, rgba(80,220,170,0), rgba(80,220,170,.4) 4%, rgba(80,220,170,.36) 96%, rgba(80,220,170,0)) no-repeat 0 55% / 0% 1.15em;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+  padding: 0 .1em; margin: 0 -.1em;
+  animation: hl-sweep .8s .5s cubic-bezier(.6,.1,.2,1) forwards;
+}
+@keyframes hl-sweep { to { background-size: 100% 1.15em; } }
+.hl-squiggle { position: relative; display: inline-block; white-space: nowrap; }
+.hl-squiggle svg { position: absolute; left: 0; bottom: -.3em; width: 100%; height: .45em; overflow: visible; pointer-events: none; }
+.hl-squiggle svg { opacity: 0; clip-path: inset(-1em 100% -1em 0); animation: hl-draw .9s 1.5s cubic-bezier(.6,.1,.2,1) both; }
+.hl-squiggle svg path {
+  fill: none; stroke: #6f95ff; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+@keyframes hl-draw { 0% { opacity: 0; clip-path: inset(-1em 100% -1em 0); } 1% { opacity: 1; } 100% { opacity: 1; clip-path: inset(-1em 0 -1em 0); } }
+/* Confetti of calm emojis bursts from the end of the squiggle once it finishes drawing (2.4s), one time. */
+.hl-squiggle .zen { position: absolute; left: calc(100% - .1em); bottom: .4em; z-index: 20; width: 0; height: 0; pointer-events: none; }
+.hl-squiggle .zen i {
+  position: absolute; left: 0; bottom: 0; margin-left: -.5em; font-style: normal; font-size: calc(var(--s, 1) * 1em); line-height: 1; opacity: 0;
+  animation: zen-float var(--t, 2.2s) calc(2.4s + var(--d, 0s)) cubic-bezier(.3,.5,.4,1) both;
+}
+@keyframes zen-float {
+  0% { opacity: 0; transform: translate(0, 0) scale(.5); }
+  12% { opacity: 1; }
+  55% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--x, 0), var(--y, -8em)) scale(var(--e, 1)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hl-squiggle .zen { display: none; }
+  .hl-mark { animation: none; background-size: 100% 1.15em; }
+  .hl-squiggle svg { animation: none; clip-path: none; opacity: 1; }
+}
+
+/* --- Rhythm pass: vertical spacing steps on the 8px grid instead of fluid vw values --- */
+.page--v4 { --section-y: 56px; }
+.page--v4 .section--tight { padding-block: 40px; }
+.page--v4 .section--finale { padding-block: 80px; }
+.page--home.page--v3 .hero { padding-bottom: 40px; }
+@media (min-width: 768px) {
+  .page--v4 { --section-y: 72px; }
+  .page--v4 .section--tight { padding-block: 48px; }
+  .page--v4 .section--finale { padding-block: 96px; }
+  .page--home.page--v3 .hero { padding-bottom: 48px; }
+}
+@media (min-width: 1200px) {
+  .page--v4 { --section-y: 80px; }
+  .page--v4 .section--tight { padding-block: 56px; }
+  .page--v4 .section--finale { padding-block: 112px; }
+}
+/* Sub pages: same type roles as the home page (24 / 17 / 17 at 1.6) */
+.page--v4 .prose h2 { font-size: 1.5rem; font-weight: 700; line-height: 1.25; letter-spacing: -0.02em; }
+.page--v4 .prose p, .page--v4 .prose li { line-height: 1.6; }
+.page--v4 .account__msg { font-size: 1.0625rem; line-height: 1.6; }
+.page--v4 :is(.faq, .plans) :is(h2, h3) { text-wrap: balance; }
